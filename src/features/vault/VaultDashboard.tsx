@@ -27,6 +27,8 @@ import {
 import type {
   AppSettings,
   AuditEvent,
+  BiometricCapability,
+  BiometricStatus,
   Category,
   SortMode,
   VaultItem,
@@ -62,6 +64,8 @@ interface VaultDashboardProps {
   auditEvents: AuditEvent[];
   auditLoading: boolean;
   masterKey: CryptoKey;
+  biometricStatus: BiometricStatus | null;
+  biometricCapability: BiometricCapability | null;
   onCreateItem: (input: VaultItemInput) => Promise<void>;
   onUpdateItem: (id: string, input: VaultItemInput) => Promise<void>;
   onDeleteItem: (id: string) => Promise<void>;
@@ -72,6 +76,9 @@ interface VaultDashboardProps {
   onRefreshAudit: () => Promise<void>;
   onSaveSettings: (next: AppSettings) => Promise<void>;
   onChangePin: (currentPin: string, newPin: string) => Promise<void>;
+  onEnrollBiometric: (pin: string) => Promise<void>;
+  onReplaceBiometric: (pin: string) => Promise<void>;
+  onRemoveBiometric: (pin: string) => Promise<void>;
   onWipeVault: (pin: string) => Promise<void>;
   onReloadVault: () => Promise<void>;
   onLock: () => Promise<void>;
@@ -86,6 +93,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
   auditEvents,
   auditLoading,
   masterKey,
+  biometricStatus,
+  biometricCapability,
   onCreateItem,
   onUpdateItem,
   onDeleteItem,
@@ -96,6 +105,9 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
   onRefreshAudit,
   onSaveSettings,
   onChangePin,
+  onEnrollBiometric,
+  onReplaceBiometric,
+  onRemoveBiometric,
   onWipeVault,
   onReloadVault,
   onLock,
@@ -890,8 +902,13 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
               settings={settings}
               categories={categories}
               masterKey={masterKey}
+              biometricStatus={biometricStatus}
+              biometricCapability={biometricCapability}
               onSaveSettings={onSaveSettings}
               onChangePin={onChangePin}
+              onEnrollBiometric={onEnrollBiometric}
+              onReplaceBiometric={onReplaceBiometric}
+              onRemoveBiometric={onRemoveBiometric}
               onCreateCategory={onCreateCategory}
               onDeleteCategory={onDeleteCategory}
               onWipeVault={onWipeVault}

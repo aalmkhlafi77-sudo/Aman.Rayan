@@ -17,6 +17,7 @@ import {
   validateBootstrapToken,
   verifyPinConstantTime,
 } from '../security/crypto';
+import { biometricRouter } from './biometric';
 
 interface OwnerRow extends RowDataPacket {
   id: number;
@@ -31,6 +32,7 @@ interface SessionRow extends RowDataPacket {
 }
 
 export const authRouter = Router();
+authRouter.use('/biometric', biometricRouter);
 
 const unlockRateLimiter = createRateLimiter(12, 5 * 60 * 1000);
 const setupRateLimiter = createRateLimiter(5, 15 * 60 * 1000);

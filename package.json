@@ -13,6 +13,8 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/cookie-parser": "^1.4.10",
     "@vitejs/plugin-react": "^6.1.1",

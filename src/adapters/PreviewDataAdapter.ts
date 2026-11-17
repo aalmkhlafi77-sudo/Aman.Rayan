@@ -8,6 +8,7 @@ import type {
   AppSettings,
   AuditAction,
   AuditEvent,
+  BiometricStatus,
   Category,
   CategoryInput,
   EncryptedVaultItem,
@@ -251,6 +252,39 @@ export class PreviewDataAdapter implements AmanDataAdapter {
     } finally {
       db.close();
     }
+  }
+
+  async getBiometricStatus(): Promise<BiometricStatus> {
+    const db = await openPreviewDb();
+    try {
+      const owner = await idbGet<PreviewOwnerSecurity>(db, 'owner_security', 1);
+      return {
+        initialized: Boolean(owner),
+        serverConfigured: false,
+        enrolled: false,
+        credentialCount: 0,
+        previewUnsupported: true,
+        diagnostic: 'المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية',
+      };
+    } finally {
+      db.close();
+    }
+  }
+
+  async enrollBiometric(): Promise<BiometricStatus> {
+    throw new Error('المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية');
+  }
+
+  async replaceBiometric(): Promise<BiometricStatus> {
+    throw new Error('المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية');
+  }
+
+  async removeBiometric(): Promise<void> {
+    throw new Error('المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية');
+  }
+
+  async unlockWithBiometric(): Promise<{ masterKey: CryptoKey }> {
+    throw new Error('المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية');
   }
 
   async getVault(): Promise<VaultSnapshot> {

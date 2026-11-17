@@ -141,6 +141,89 @@ export async function unwrapMasterKeyWithPin(
   );
 }
 
+const BIOMETRIC_HKDF_INFO = 'AMAN RAYAN BIOMETRIC MASTER KEY WRAP v1';
+
+function copyPrfInputBytes(prfOutput: ArrayBuffer | Uint8Array): Uint8Array {
+  const view = prfOutput instanceof Uint8Array ? prfOutput : new Uint8Array(prfOutput);
+  if (view.byteLength < 16) {
+    throw new Error('بيانات PRF غير كافية لاشتقاق مفتاح الربط');
+  }
+  return new Uint8Array(view);
+}
+
+async function deriveBiometricWrappingKey(
+  prfBytes: Uint8Array,
+  hkdfSaltBase64: string
+): Promise<CryptoKey> {
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    toArrayBuffer(prfBytes),
+    { name: 'HKDF' },
+    false,
+    ['deriveKey']
+  );
+  const saltBytes = fromBase64(hkdfSaltBase64);
+  const infoBytes = new TextEncoder().encode(BIOMETRIC_HKDF_INFO);
+  return crypto.subtle.deriveKey(
+    {
+      name: 'HKDF',
+      hash: 'SHA-256',
+      salt: toArrayBuffer(saltBytes),
+      info: toArrayBuffer(infoBytes),
+    },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['wrapKey', 'unwrapKey']
+  );
+}
+
+export async function wrapMasterKeyWithBiometricPrf(
+  masterKey: CryptoKey,
+  prfOutput: ArrayBuffer | Uint8Array,
+  hkdfSaltBase64: string
+): Promise<string> {
+  const prfBytes = copyPrfInputBytes(prfOutput);
+  try {
+    const wrappingKey = await deriveBiometricWrappingKey(prfBytes, hkdfSaltBase64);
+    const iv = new Uint8Array(12);
+    crypto.getRandomValues(iv);
+    const wrapped = await crypto.subtle.wrapKey('raw', masterKey, wrappingKey, {
+      name: 'AES-GCM',
+      iv: toArrayBuffer(iv),
+    });
+    return `${ENC_PREFIX}${toBase64(iv)}:${toBase64(new Uint8Array(wrapped))}`;
+  } finally {
+    prfBytes.fill(0);
+  }
+}
+
+export async function unwrapMasterKeyWithBiometricPrf(
+  wrappedMasterKey: string,
+  prfOutput: ArrayBuffer | Uint8Array,
+  hkdfSaltBase64: string
+): Promise<CryptoKey> {
+  const parsed = parseEncryptedEnvelope(wrappedMasterKey);
+  if (!parsed) {
+    throw new Error('صيغة مغلف المفتاح البيومتري غير صالحة');
+  }
+  const prfBytes = copyPrfInputBytes(prfOutput);
+  try {
+    const wrappingKey = await deriveBiometricWrappingKey(prfBytes, hkdfSaltBase64);
+    return await crypto.subtle.unwrapKey(
+      'raw',
+      toArrayBuffer(parsed.ciphertext),
+      wrappingKey,
+      { name: 'AES-GCM', iv: toArrayBuffer(parsed.iv) },
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+  } finally {
+    prfBytes.fill(0);
+  }
+}
+
 function parseEncryptedEnvelope(value: string): { iv: Uint8Array; ciphertext: Uint8Array } | null {
   if (!value || !value.startsWith(ENC_PREFIX)) return null;
   const parts = value.slice(ENC_PREFIX.length).split(':');

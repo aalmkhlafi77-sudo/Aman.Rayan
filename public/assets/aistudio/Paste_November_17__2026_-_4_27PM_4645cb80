@@ -1,0 +1,1750 @@
+Continue development of the existing application:
+
+# Aman Rayan — أمان ريان
+
+Repository:
+
+`aalmkhlafi77-sudo/Aman.Rayan`
+
+The application already contains:
+
+- 6-digit mechanical PIN authentication
+- client-side AES-256-GCM vault encryption
+- PBKDF2 PIN protection
+- wrapped master vault key
+- Node.js / Express backend
+- MySQL / MariaDB production persistence
+- HttpOnly sessions
+- CSRF protection
+- rate limiting
+- Steel Mode
+- mechanical PIN wheels
+- mouse / touch / keyboard wheel interaction
+- mechanical audio
+- PreviewDataAdapter / ApiDataAdapter architecture
+
+Do NOT rebuild the application.
+
+Do NOT replace the current PIN system.
+
+Do NOT weaken existing encryption.
+
+This task adds a **second secure unlock method**:
+
+# Biometric / Windows Hello Unlock
+
+The final application must provide exactly two independent user-facing ways to unlock the vault:
+
+```text
+1. Mechanical 6-digit PIN
+2. Biometric / Windows Hello
+```
+
+PIN remains mandatory for:
+
+- first setup
+- recovery
+- biometric enrollment
+- biometric removal/replacement
+- fallback when biometrics are unavailable
+
+---
+
+# 1. SECURITY MODEL
+
+The first-ever Aman Rayan setup MUST always use the existing 6-digit PIN.
+
+Do not allow biometric enrollment during first setup before the owner has:
+
+1. created the PIN,
+2. confirmed the PIN,
+3. successfully unlocked the vault.
+
+Initial flow:
+
+```text
+First launch
+↓
+Create 6-digit PIN
+↓
+Confirm PIN
+↓
+Initialize encrypted vault
+↓
+Unlock with PIN
+↓
+Enter Aman Rayan
+```
+
+Biometric login is unavailable at this stage.
+
+---
+
+# 2. BIOMETRIC ENROLLMENT LOCATION
+
+Biometric enrollment must exist inside:
+
+```text
+Settings
+→ Security
+→ Biometric Unlock
+```
+
+Arabic section title:
+
+**الدخول البيومتري**
+
+Description:
+
+**استخدم بصمة الجهاز أو Windows Hello لفتح خزنة أمان ريان دون إدخال رمز PIN في كل مرة.**
+
+Primary setup button:
+
+**تفعيل الدخول البيومتري**
+
+Do not call this "Save fingerprint".
+
+Aman Rayan must NEVER receive, capture, store, transmit, or process the actual fingerprint image/template.
+
+Biometric matching is performed entirely by the operating system / platform authenticator.
+
+---
+
+# 3. IMPORTANT WINDOWS HELLO BEHAVIOR
+
+Use standards-based:
+
+# WebAuthn / Passkeys
+
+with:
+
+```text
+userVerification: "required"
+```
+
+Prefer a platform authenticator.
+
+On Windows this normally invokes Windows Hello.
+
+Windows Hello may use:
+
+- fingerprint
+- face recognition
+- Windows Hello PIN
+
+depending on the device configuration.
+
+Do NOT falsely claim the application can force fingerprint-only verification.
+
+UI wording should therefore use:
+
+**فتح بالبصمة / Windows Hello**
+
+or:
+
+**الدخول البيومتري**
+
+rather than promising fingerprint-only authentication.
+
+---
+
+# 4. ENROLLMENT MUST REQUIRE STEP-UP AUTHENTICATION
+
+An already unlocked session alone is NOT sufficient to enroll a new biometric credential.
+
+Before biometric enrollment, require the owner to confirm the current Aman Rayan PIN again.
+
+Flow:
+
+```text
+Settings
+↓
+Enable biometric unlock
+↓
+Enter current Aman Rayan PIN
+↓
+Server verifies PIN
+↓
+WebAuthn enrollment begins
+↓
+Windows Hello / device biometric prompt
+↓
+Credential registered
+↓
+Master key wrapped for biometric access
+↓
+Enrollment complete
+```
+
+This prevents someone with temporary access to an unlocked session from registering their own biometric credential.
+
+---
+
+# 5. PREFERRED CRYPTOGRAPHIC ARCHITECTURE
+
+Biometric unlock must not merely authenticate the user.
+
+It must also securely recover the same existing Aman Rayan master vault key.
+
+Use:
+
+# WebAuthn PRF Extension
+
+when supported.
+
+The PRF output associated with the WebAuthn credential must be used to derive a client-side key capable of decrypting a second wrapped copy of the existing master vault key.
+
+Architecture:
+
+```text
+Existing PIN route:
+
+PIN
+↓
+PBKDF2-derived key
+↓
+decrypt PIN-wrapped master key
+↓
+Master Vault Key
+
+
+New biometric route:
+
+WebAuthn credential
+↓
+user verification
+↓
+PRF output
+↓
+derived biometric wrapping key
+↓
+decrypt biometric-wrapped master key
+↓
+Same Master Vault Key
+```
+
+There must still be ONLY ONE logical vault master key.
+
+Do not create a second vault encryption system.
+
+---
+
+# 6. PRF IS REQUIRED FOR FULL BIOMETRIC VAULT UNLOCK
+
+Before offering biometric enrollment, detect whether the current browser/authenticator supports the WebAuthn PRF extension.
+
+If PRF is unavailable:
+
+Do NOT create an insecure workaround.
+
+Do NOT store the master key on the server.
+
+Do NOT store the master key in localStorage.
+
+Do NOT expose the master key through the API.
+
+Instead display:
+
+**هذا الجهاز يدعم المصادقة البيومترية، لكنه لا يدعم حالياً فتح الخزنة المشفرة مباشرة. استخدم رمز PIN.**
+
+The PIN must continue working normally.
+
+Biometric unlock should only be marked successfully enabled when the platform can perform the required secure key-unwrapping design.
+
+---
+
+# 7. MASTER KEY RULE
+
+The existing Aman Rayan Master Vault Key:
+
+- remains 256-bit
+- remains generated using Web Crypto
+- remains the encryption key protecting vault secrets
+- must never leave the client in plaintext
+- must never be stored plaintext in SQL
+- must never be logged
+
+When biometric enrollment occurs:
+
+the currently unlocked master key is re-wrapped using a biometric-derived wrapping key.
+
+Do NOT regenerate the master key merely because biometric login was enabled.
+
+---
+
+# 8. PRF KEY DERIVATION
+
+Use the 32-byte WebAuthn PRF result as cryptographic input.
+
+Prefer domain-separated HKDF-SHA256 before creating the AES wrapping key.
+
+Concept:
+
+```text
+WebAuthn PRF output
+↓
+HKDF-SHA256
+↓
+info:
+"AMAN RAYAN BIOMETRIC MASTER KEY WRAP v1"
+↓
+AES-256-GCM wrapping key
+```
+
+Use:
+
+- random HKDF salt
+- random AES-GCM IV
+- authenticated encryption
+
+The derived biometric wrapping key must never be persisted.
+
+Only retain it in memory long enough to unwrap the master key.
+
+---
+
+# 9. BIOMETRIC WRAPPED MASTER KEY
+
+Store only the encrypted biometric master-key envelope.
+
+Example logical fields:
+
+```text
+credential_id
+credential_public_key
+credential_counter
+credential_transports
+prf_input
+hkdf_salt
+biometric_wrapped_master_key
+created_at
+updated_at
+```
+
+The biometric-wrapped master key must use the existing encrypted format style or an explicitly versioned equivalent.
+
+Example:
+
+```text
+ENC:IV:CIPHERTEXT
+```
+
+Do not store:
+
+- fingerprint
+- face image
+- PIN
+- PRF result
+- biometric derived key
+- plaintext master key
+
+---
+
+# 10. DATABASE MIGRATION
+
+Create a safe additive migration.
+
+Recommended new table:
+
+```sql
+CREATE TABLE biometric_credentials (
+  id CHAR(36) NOT NULL,
+  owner_id TINYINT UNSIGNED NOT NULL,
+  credential_id TEXT NOT NULL,
+  public_key LONGTEXT NOT NULL,
+  sign_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  transports TEXT NULL,
+  prf_input VARCHAR(255) NOT NULL,
+  hkdf_salt VARCHAR(255) NOT NULL,
+  wrapped_master_key LONGTEXT NOT NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+
+  PRIMARY KEY (id)
+);
+```
+
+Adapt types if technically required by the WebAuthn library.
+
+Do not destroy existing tables.
+
+Do not change existing owner credentials.
+
+Migration must preserve all current user data.
+
+---
+
+# 11. WEBAUTHN CHALLENGES
+
+WebAuthn registration and authentication challenges must be:
+
+- cryptographically random
+- generated server-side
+- short-lived
+- single-use
+- tied to the current operation/session
+- deleted or invalidated after use
+
+Do not trust a client-generated challenge.
+
+Do not store reusable permanent challenges.
+
+Use an appropriate temporary database table or secure session-backed mechanism.
+
+Recommended expiry:
+
+approximately:
+
+```text
+3–5 minutes
+```
+
+---
+
+# 12. PRODUCTION ENVIRONMENT VARIABLES
+
+Add explicit WebAuthn production configuration.
+
+Example:
+
+```env
+WEBAUTHN_RP_NAME=Aman Rayan
+WEBAUTHN_RP_ID=aman.example.com
+WEBAUTHN_ORIGIN=https://aman.example.com
+```
+
+Use the actual deployment hostname later.
+
+Validate these settings at production startup.
+
+Do not silently use an unsafe origin.
+
+WebAuthn production must operate over HTTPS.
+
+---
+
+# 13. REGISTRATION OPTIONS
+
+Generate WebAuthn registration options server-side.
+
+Prefer:
+
+```text
+authenticatorAttachment: "platform"
+userVerification: "required"
+residentKey: "preferred"
+```
+
+Use appropriate modern WebAuthn APIs/library structures.
+
+The purpose is to prioritize built-in authenticators such as:
+
+- Windows Hello
+- Touch ID
+- Android biometrics
+- compatible platform authenticators
+
+Do not force external USB security keys as the primary UX for this feature.
+
+---
+
+# 14. REGISTRATION FLOW
+
+Implement dedicated endpoints.
+
+Suggested API:
+
+```text
+POST /api/auth/biometric/enroll/options
+POST /api/auth/biometric/enroll/verify
+```
+
+First endpoint requirements:
+
+- authenticated session
+- CSRF
+- current PIN re-verification
+- rate limiting
+- generate WebAuthn challenge
+- return registration options
+
+Client then calls:
+
+```ts
+navigator.credentials.create(...)
+```
+
+or a maintained WebAuthn browser helper library.
+
+After authenticator success:
+
+send registration response to:
+
+```text
+POST /api/auth/biometric/enroll/verify
+```
+
+The server must cryptographically verify:
+
+- challenge
+- origin
+- RP ID
+- credential
+- user verification
+
+Do not trust client booleans.
+
+---
+
+# 15. ENROLLMENT + PRF
+
+During enrollment, request PRF support.
+
+Generate a cryptographically random PRF input.
+
+Example logical length:
+
+```text
+32 bytes
+```
+
+Store the PRF input because the same input is needed later during biometric assertions.
+
+After successful platform registration, obtain the PRF evaluation result on the client when supported.
+
+Then:
+
+```text
+PRF result
+↓
+HKDF
+↓
+AES-GCM biometric wrap key
+↓
+encrypt current Master Vault Key
+↓
+biometricWrappedMasterKey
+```
+
+Send only the resulting encrypted wrapper and non-secret parameters required for future derivation.
+
+The raw PRF result must not be sent to the server.
+
+---
+
+# 16. ENROLLMENT TRANSACTION
+
+Do not mark biometric login as enabled until BOTH are complete:
+
+```text
+WebAuthn registration verified
++
+biometricWrappedMasterKey generated successfully
+```
+
+Then persist credential metadata and wrapper atomically.
+
+If any step fails:
+
+rollback enrollment.
+
+Do not leave partially registered biometric state.
+
+---
+
+# 17. SETTINGS SUCCESS STATE
+
+After successful enrollment show:
+
+**الدخول البيومتري مفعل**
+
+Secondary information:
+
+**تم ربط Windows Hello / وسيلة التحقق البيومترية بهذا الجهاز.**
+
+Show status such as:
+
+```text
+الحالة: مفعل
+الجهاز: هذا الجهاز
+الطريقة: Windows Hello / المصادقة البيومترية
+```
+
+Do not display biometric details that the browser does not actually expose.
+
+---
+
+# 18. LOGIN SCREEN AFTER ENROLLMENT
+
+Once biometric login exists, the lock screen must offer BOTH methods.
+
+Preserve the existing six mechanical PIN wheels.
+
+Add a second control beneath or near the PIN action.
+
+Recommended hierarchy:
+
+```text
+Mechanical PIN wheels
+
+[ فتح أمان ]
+
+──── أو ────
+
+[ fingerprint icon ]
+فتح بالبصمة / Windows Hello
+```
+
+Keep the biometric action visually secondary but premium.
+
+Do not hide the PIN.
+
+---
+
+# 19. BIOMETRIC BUTTON DESIGN
+
+Use the existing Aman Rayan Steel Mode.
+
+Create a premium physical biometric control.
+
+Visual:
+
+- brushed dark steel capsule or circular control
+- engraved fingerprint symbol
+- subtle cyan light
+- chrome rim
+- recessed center
+- hover illumination
+- physical press state
+
+Text:
+
+**فتح بالبصمة / Windows Hello**
+
+Do not use a generic bright-blue browser button.
+
+---
+
+# 20. BIOMETRIC READY ANIMATION
+
+When biometric unlock begins:
+
+1. fingerprint symbol receives cyan pulse
+2. surrounding ring slowly illuminates
+3. native Windows Hello / platform UI appears
+4. Aman Rayan waits for platform result
+
+Do not fake fingerprint scanning animation.
+
+Do not show artificial fingerprint progress percentages.
+
+---
+
+# 21. BIOMETRIC AUTHENTICATION ENDPOINTS
+
+Recommended API:
+
+```text
+POST /api/auth/biometric/options
+POST /api/auth/biometric/verify
+```
+
+The options endpoint:
+
+- checks biometric enrollment exists
+- creates new random authentication challenge
+- returns WebAuthn request options
+- includes required PRF input information
+
+The client invokes:
+
+```ts
+navigator.credentials.get(...)
+```
+
+with:
+
+```text
+userVerification: "required"
+```
+
+and PRF evaluation.
+
+---
+
+# 22. SERVER VERIFICATION
+
+Server must validate:
+
+- credential ID
+- challenge
+- RP ID
+- expected origin
+- cryptographic signature
+- authenticator data
+- user verification
+- credential public key
+- counter semantics where applicable
+
+Do not manually implement WebAuthn cryptography if a mature maintained library is available.
+
+Prefer an established WebAuthn server library.
+
+Do not accept an assertion based only on:
+
+```text
+credential ID exists
+```
+
+That is not authentication.
+
+---
+
+# 23. SIGN COUNTER
+
+Store and update authenticator sign count when supplied.
+
+Handle authenticators/passkeys whose counter may legitimately remain zero according to WebAuthn behavior.
+
+Do not incorrectly lock out valid modern passkeys solely because the sign counter is zero.
+
+Use the selected WebAuthn library's current verification semantics.
+
+---
+
+# 24. CLIENT-SIDE PRF HANDLING
+
+After:
+
+```text
+navigator.credentials.get()
+```
+
+read the PRF extension result.
+
+Conceptually:
+
+```ts
+const extensions =
+  credential.getClientExtensionResults();
+
+const prfOutput =
+  extensions.prf?.results?.first;
+```
+
+Use the actual TypeScript/WebAuthn types supported by the project's current toolchain.
+
+If the PRF result is absent:
+
+abort biometric vault unlock.
+
+Fall back to PIN.
+
+Never continue with an empty or fabricated key.
+
+---
+
+# 25. COMPLETE BIOMETRIC UNLOCK FLOW
+
+Correct flow:
+
+```text
+User clicks biometric unlock
+↓
+request challenge from server
+↓
+Windows Hello / biometric verification
+↓
+WebAuthn assertion generated
++
+PRF result generated locally
+↓
+assertion sent to server
+↓
+server verifies assertion
+↓
+server establishes authenticated HttpOnly session
+↓
+server returns encrypted biometric-wrapped master key
++
+CSRF token / required metadata
+↓
+client derives biometric wrapping key from PRF
+↓
+client unwraps Master Vault Key
+↓
+load encrypted vault
+↓
+client decrypts vault
+↓
+mechanical unlock animation
+↓
+Aman Rayan opens
+```
+
+---
+
+# 26. CRITICAL DATA BOUNDARY
+
+The server may receive:
+
+- WebAuthn assertion
+- public credential information
+- encrypted master-key wrapper
+- salts
+- PRF input
+- public metadata
+
+The server must NEVER receive:
+
+- PRF output
+- biometric wrapping key
+- plaintext master key
+- plaintext vault secrets
+- fingerprint template
+
+This boundary is mandatory.
+
+---
+
+# 27. SESSION CREATION
+
+After successful biometric server verification:
+
+create the same secure Aman Rayan authenticated session model currently used by PIN login.
+
+Reuse:
+
+- HttpOnly
+- Secure in production
+- SameSite
+- expiry
+- CSRF
+- server-side session tracking
+
+Do not create a weaker second session system for biometrics.
+
+---
+
+# 28. LOGIN SUCCESS ANIMATION
+
+After the master key has been successfully unwrapped:
+
+reuse the existing mechanical Aman Rayan success animation.
+
+Suggested sequence:
+
+```text
+Fingerprint cyan pulse
+↓
+biometric verified
+↓
+emerald pulse
+↓
+mechanical lock releases
+↓
+safe opens
+```
+
+Do not bypass the established visual unlock sequence.
+
+---
+
+# 29. BIOMETRIC FAILURE
+
+If Windows Hello / biometric verification fails or is cancelled:
+
+Do not clear the user's PIN configuration.
+
+Do not lock the user out.
+
+Display:
+
+**تعذر التحقق البيومتري**
+
+Secondary:
+
+**يمكنك المحاولة مرة أخرى أو استخدام رمز PIN.**
+
+Possible actions:
+
+```text
+إعادة المحاولة
+استخدام PIN
+```
+
+No alarming error screen.
+
+---
+
+# 30. BIOMETRIC DEVICE UNAVAILABLE
+
+If the credential exists but current device/browser cannot use it:
+
+show:
+
+**الدخول البيومتري غير متاح على هذا الجهاز. استخدم رمز PIN.**
+
+PIN remains fully functional.
+
+---
+
+# 31. PIN ALWAYS REMAINS RECOVERY METHOD
+
+Biometric login must never become the only way into Aman Rayan.
+
+The existing PIN is the permanent recovery/fallback credential.
+
+If:
+
+- fingerprint changes
+- Windows Hello resets
+- device is replaced
+- browser credential is deleted
+- biometric hardware fails
+- PRF support disappears
+
+the owner must still be able to open Aman Rayan using the six-digit PIN.
+
+---
+
+# 32. REMOVE BIOMETRIC ACCESS
+
+In:
+
+```text
+Settings
+→ Security
+→ Biometric Unlock
+```
+
+provide:
+
+**إلغاء الدخول البيومتري**
+
+Require:
+
+1. currently authenticated session
+2. current Aman Rayan PIN confirmation
+
+Then delete:
+
+- credential record
+- biometric wrapped master key
+- PRF input
+- associated metadata
+- pending biometric challenges
+
+Do NOT affect:
+
+- primary PIN
+- primary PIN-wrapped master key
+- vault data
+
+---
+
+# 33. REPLACE BIOMETRIC CREDENTIAL
+
+Provide:
+
+**إعادة تسجيل الدخول البيومتري**
+
+Use when the user changes device biometric configuration.
+
+Flow:
+
+```text
+confirm PIN
+↓
+register new credential
+↓
+create new biometric master-key wrapper
+↓
+verify complete
+↓
+atomically replace old biometric credential
+```
+
+Do not delete the old working credential before the new one is successfully completed.
+
+---
+
+# 34. CURRENT PIN CHANGE
+
+Existing PIN change behavior must continue to work.
+
+Because biometric and PIN wrappers both protect the SAME master key:
+
+changing PIN should:
+
+- re-wrap master key under new PIN
+- preserve biometric wrapper where safe
+
+Do not unnecessarily disable biometric access after normal PIN change.
+
+However, if the Master Vault Key itself is ever rotated:
+
+re-create BOTH wrappers.
+
+---
+
+# 35. VAULT WIPE
+
+A full vault wipe must also remove:
+
+- biometric credentials
+- biometric wrapped master keys
+- WebAuthn challenge records
+- biometric enrollment state
+
+After wipe:
+
+first-run setup must return to PIN-only mode.
+
+---
+
+# 36. BACKUP RULE — CRITICAL
+
+Do NOT include device biometric credentials in `.aman` backups.
+
+The following are device/security binding data and should not be restored to another device:
+
+- WebAuthn credential metadata
+- biometric-wrapped master key
+- PRF inputs
+- biometric enrollment state
+
+Backup continues using the existing compatible AMAN format.
+
+After restoring a backup:
+
+```text
+unlock using PIN
+↓
+open Settings
+↓
+enroll biometrics again
+```
+
+This is intentional.
+
+---
+
+# 37. EXCEL
+
+Do not modify Excel behavior.
+
+Biometric credentials have no relationship to Excel import/export.
+
+Never export biometric metadata to XLSX.
+
+---
+
+# 38. AUDIT EVENTS
+
+Add non-sensitive audit events:
+
+```text
+biometric_enrolled
+biometric_login_success
+biometric_login_failed
+biometric_removed
+biometric_replaced
+```
+
+Never log:
+
+- PRF output
+- credential private key
+- biometric data
+- PIN
+- master key
+- challenge secret material beyond what is operationally required
+
+---
+
+# 39. RATE LIMITING
+
+Apply rate limiting to:
+
+- biometric enrollment initiation
+- biometric authentication initiation
+- failed biometric verification
+- credential replacement/removal
+
+Do not let repeated requests generate unlimited pending challenges.
+
+---
+
+# 40. CSRF
+
+Enrollment, removal, replacement, and verification endpoints must follow the current Aman Rayan CSRF/session model where applicable.
+
+Do not weaken CSRF protection.
+
+---
+
+# 41. REPLAY PROTECTION
+
+Every WebAuthn challenge must be:
+
+- unique
+- short-lived
+- single-use
+
+After successful or terminal verification:
+
+invalidate it.
+
+A captured assertion must not be reusable.
+
+---
+
+# 42. ORIGIN / RP VALIDATION
+
+Production verification must strictly validate:
+
+```text
+origin
+RP ID
+challenge
+```
+
+Never accept arbitrary origins.
+
+Do not use wildcard RP validation.
+
+---
+
+# 43. HTTPS
+
+Biometric/WebAuthn production mode requires a secure context.
+
+Production must use:
+
+```text
+HTTPS
+```
+
+Do not introduce an HTTP production fallback.
+
+Localhost development may use browser-supported development exceptions.
+
+---
+
+# 44. PREVIEW MODE
+
+Google AI Studio Preview may not provide a WebAuthn environment suitable for real platform biometric enrollment.
+
+Do NOT fake a successful biometric identity.
+
+Preview behavior should be one of:
+
+```text
+Real WebAuthn if the preview environment supports it
+```
+
+or:
+
+```text
+Clearly display:
+"المصادقة البيومترية غير متاحة في بيئة المعاينة الحالية"
+```
+
+Do not create fake biometric credentials and treat them as production security.
+
+---
+
+# 45. FEATURE DETECTION
+
+Create a biometric capability service.
+
+Suggested:
+
+```text
+src/services/webauthn.ts
+```
+
+or:
+
+```text
+src/services/biometricAuth.ts
+```
+
+It should determine:
+
+- WebAuthn available
+- platform authenticator available where detectable
+- PRF extension usable
+- secure context available
+
+Expose a clean result such as:
+
+```ts
+interface BiometricCapability {
+  webAuthnAvailable: boolean;
+  platformAuthenticatorAvailable: boolean;
+  prfAvailable: boolean;
+  secureContext: boolean;
+  canEnableVaultUnlock: boolean;
+}
+```
+
+Do not duplicate capability logic across UI components.
+
+---
+
+# 46. SETTINGS UI STATES
+
+The Security Settings biometric card should support these states:
+
+## Unsupported
+
+**الدخول البيومتري غير مدعوم على هذا الجهاز**
+
+## Available but not enrolled
+
+**الدخول البيومتري متاح**
+
+Button:
+
+**تفعيل الدخول البيومتري**
+
+## Enrollment in progress
+
+**جاري إعداد Windows Hello...**
+
+## Enabled
+
+**الدخول البيومتري مفعل**
+
+Buttons:
+
+```text
+إعادة التسجيل
+إلغاء الدخول البيومتري
+```
+
+## Credential unavailable
+
+**بيانات الدخول البيومتري غير متاحة على هذا الجهاز**
+
+Button:
+
+**استخدم PIN لإعادة التسجيل**
+
+---
+
+# 47. VISUAL IDENTITY
+
+Use the approved:
+
+# Aman Rayan Steel Mode
+
+The biometric control should visually match:
+
+- brushed steel
+- chrome
+- dark gunmetal
+- cyan illumination
+- emerald success
+- restrained red failure
+
+Use the approved Aman Rayan logo without modification.
+
+---
+
+# 48. FINGERPRINT ICON
+
+Use a clean fingerprint symbol as UI iconography.
+
+Do NOT attempt to display or recreate the user's real fingerprint.
+
+The icon is symbolic only.
+
+On idle:
+
+dark steel / subtle cyan.
+
+On active biometric prompt:
+
+cyan pulse.
+
+On success:
+
+emerald.
+
+On failure:
+
+brief muted red.
+
+---
+
+# 49. MECHANICAL AUDIO
+
+Do not create a fake fingerprint scanner sound.
+
+Keep the established mechanical Aman Rayan sound language.
+
+Allowed:
+
+- subtle activation click when biometric button is pressed
+- small precision confirmation latch after success
+- existing mechanical unlock sound after successful vault unlock
+- restrained reject click on failure
+
+Do not use:
+
+- sci-fi scanner sweeps
+- medical biometric sounds
+- arcade beeps
+
+---
+
+# 50. API CONTRACT
+
+Recommended complete biometric routes:
+
+```text
+GET  /api/auth/biometric/status
+
+POST /api/auth/biometric/enroll/options
+POST /api/auth/biometric/enroll/verify
+
+POST /api/auth/biometric/options
+POST /api/auth/biometric/verify
+
+POST /api/auth/biometric/remove
+
+POST /api/auth/biometric/replace/options
+POST /api/auth/biometric/replace/verify
+```
+
+Consolidate replace/enroll routes if cleaner, but keep responsibilities explicit.
+
+---
+
+# 51. SERVER LIBRARY
+
+Do not manually implement CBOR parsing, signature verification, authenticator-data parsing, or COSE public-key verification unless unavoidable.
+
+Use a mature current WebAuthn library compatible with this Node/TypeScript application.
+
+Before adding it:
+
+- inspect package compatibility
+- use current supported APIs
+- commit lockfile changes
+- run dependency audit
+
+Do not use abandoned libraries.
+
+---
+
+# 52. CLIENT LIBRARY
+
+Native WebAuthn APIs are acceptable.
+
+A maintained client helper library is also acceptable if it improves serialization reliability.
+
+Avoid unnecessary large dependencies.
+
+---
+
+# 53. DATABASE INTEGRITY
+
+Biometric credential registration must have a unique credential identifier.
+
+Do not permit duplicate enrollment of the same credential record.
+
+Use appropriate indexes.
+
+Do not add destructive schema migrations.
+
+---
+
+# 54. SERVER STARTUP VALIDATION
+
+If biometric feature is enabled in production, validate:
+
+```text
+WEBAUTHN_RP_NAME
+WEBAUTHN_RP_ID
+WEBAUTHN_ORIGIN
+```
+
+If they are invalid:
+
+disable biometric feature with a clear diagnostic or fail startup according to the existing production security policy.
+
+Do not silently use localhost values in production.
+
+---
+
+# 55. SECURITY SETTINGS
+
+Do not bury this feature.
+
+Recommended Security Settings structure:
+
+```text
+Security
+├── PIN
+├── Biometric Unlock
+├── Auto Lock
+├── Clipboard
+└── Mechanical Sounds
+```
+
+Biometric section should clearly explain:
+
+**Aman Rayan لا يخزن بصمتك. التحقق يتم بواسطة نظام التشغيل أو Windows Hello.**
+
+---
+
+# 56. LOGIN UI AFTER ENROLLMENT
+
+Keep the current compact screen.
+
+Do not make it taller unnecessarily.
+
+Recommended:
+
+```text
+Aman Rayan identity
+↓
+Mechanical lock
+↓
+PIN wheels
+↓
+فتح أمان
+↓
+أو
+↓
+[ Fingerprint ] فتح بالبصمة / Windows Hello
+```
+
+For low-height screens:
+
+make the biometric button compact.
+
+Do not create another large card.
+
+---
+
+# 57. MOBILE
+
+On supported mobile browsers/platform authenticators, the same WebAuthn design may use:
+
+- fingerprint
+- face
+- device biometric verification
+
+Do not hard-code Windows-only behavior in the cryptographic architecture.
+
+UI can dynamically say:
+
+**الدخول البيومتري**
+
+instead of Windows Hello when not on Windows.
+
+---
+
+# 58. SUCCESSFUL BIOMETRIC LOGIN MUST UNLOCK ENCRYPTION
+
+This requirement is critical.
+
+Reject any implementation where biometric authentication only sets:
+
+```ts
+isAuthenticated = true
+```
+
+without obtaining the actual Master Vault Key.
+
+Aman Rayan must not display vault contents unless:
+
+```text
+WebAuthn authentication succeeded
++
+PRF output exists
++
+biometric wrapper decrypted successfully
++
+Master Vault Key recovered successfully
++
+server session authenticated
+```
+
+Only then:
+
+```text
+lockState = unlocked
+```
+
+---
+
+# 59. NO SERVER-SIDE MASTER KEY ESCROW
+
+Do NOT solve biometric login by placing the plaintext Master Vault Key or a server-decryptable copy in SQL.
+
+The server should not become capable of decrypting vault contents.
+
+Maintain the existing client-side secrecy architecture.
+
+---
+
+# 60. FAILURE CLEANUP
+
+If biometric unlock fails at any stage:
+
+clear from memory:
+
+- PRF output
+- derived HKDF material
+- biometric AES key
+- partially unwrapped key material
+
+Return to locked state.
+
+PIN remains available.
+
+---
+
+# 61. USER CANCEL
+
+If the native WebAuthn prompt is cancelled:
+
+treat it as cancellation, not as a security error.
+
+Display minimal feedback.
+
+Do not generate scary alerts.
+
+---
+
+# 62. TESTS — REQUIRED
+
+Add automated tests where feasible for:
+
+## Enrollment rules
+
+- biometric unavailable before PIN setup
+- unlocked session alone cannot enroll without PIN confirmation
+- invalid PIN blocks enrollment
+- duplicate credential rejected
+
+## PRF
+
+- no PRF → biometric vault unlock not enabled
+- valid PRF wrapper → correct master key restored
+- wrong PRF material → unwrap fails
+
+## Challenge
+
+- expired challenge rejected
+- reused challenge rejected
+- wrong challenge rejected
+
+## WebAuthn server verification
+
+- wrong origin rejected
+- wrong RP ID rejected
+- invalid signature rejected
+- unknown credential rejected
+
+## Removal
+
+- requires PIN
+- removes biometric credential only
+- PIN still unlocks vault
+
+## Wipe
+
+- biometric state deleted
+
+## Backup
+
+- biometric credentials excluded
+
+---
+
+# 63. MANUAL VERIFICATION
+
+Perform real-device verification where the environment allows.
+
+Minimum manual Windows test:
+
+```text
+1. Fresh Aman Rayan installation
+2. Create PIN
+3. Unlock with PIN
+4. Open Settings
+5. Enable biometric login
+6. Confirm current PIN
+7. Complete Windows Hello registration
+8. Lock Aman Rayan
+9. Verify PIN still works
+10. Lock again
+11. Choose biometric unlock
+12. Complete Windows Hello
+13. Confirm encrypted vault opens
+14. Restart browser/app
+15. Confirm biometric login still works
+16. Remove biometric login from Settings
+17. Lock
+18. Confirm biometric option is gone
+19. Confirm PIN still works
+```
+
+---
+
+# 64. FALLBACK TEST
+
+Simulate biometric credential unavailable.
+
+Confirm:
+
+```text
+Aman Rayan remains locked
+↓
+clear explanation displayed
+↓
+PIN entry remains fully functional
+```
+
+No data loss.
+
+---
+
+# 65. BUILD VERIFICATION
+
+After implementation run:
+
+```bash
+npm ci
+npm run lint
+npm run build
+npm test
+```
+
+Run security/dependency audit according to the existing project process.
+
+Do not claim completion if any critical build/test fails.
+
+---
+
+# 66. DO NOT CHANGE
+
+Do NOT change:
+
+- AMAN backup format compatibility identifiers
+- encryption algorithm
+- current PIN mechanical interactions
+- vault record structure unless needed for additive biometric metadata
+- Excel
+- categories
+- search
+- current Steel identity
+- Aman Rayan approved logo
+- designer signature
+
+Preserve:
+
+**تصميم : عبدالله المخلافي 2026**
+
+---
+
+# 67. FINAL USER EXPERIENCE
+
+The intended product experience is:
+
+## First use
+
+```text
+Create PIN
+↓
+PIN becomes primary recovery credential
+↓
+enter vault
+↓
+optionally enable biometric login from Settings
+```
+
+## Future login — Method 1
+
+```text
+Mechanical PIN
+↓
+Master Key unwrapped
+↓
+Vault opens
+```
+
+## Future login — Method 2
+
+```text
+Fingerprint / Windows Hello
+↓
+WebAuthn verifies user
+↓
+PRF securely derives local wrapping key
+↓
+Master Key unwrapped
+↓
+Vault opens
+```
+
+Both methods unlock the SAME encrypted Aman Rayan vault.
+
+---
+
+# 68. FINAL REPORT
+
+After implementation provide:
+
+## Files changed
+
+## Database migration
+
+## Added dependencies
+
+## WebAuthn architecture
+
+## PRF capability result
+
+## Security controls
+
+## PIN regression results
+
+## Biometric tests
+
+## Build results
+
+## Real-device verification status
+
+Clearly distinguish:
+
+```text
+VERIFIED
+NOT VERIFIED
+ENVIRONMENT LIMITATION
+```
+
+Do not claim Windows Hello / biometric success unless it was actually tested on compatible real hardware.
+
+---
+
+# FINAL RULE
+
+Biometric login is an additional secure key-unlock mechanism.
+
+It is NOT a replacement for the existing PIN.
+
+The final Aman Rayan authentication model is:
+
+# PIN + Biometric / Windows Hello
+
+with PIN always retained as the owner's recovery and fallback method.
+
+Security and encrypted master-key recovery are more important than convenience.

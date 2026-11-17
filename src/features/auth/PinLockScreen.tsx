@@ -1,8 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Fingerprint } from 'lucide-react';
 import { AmanRayanEmblem } from '../../components/AmanRayanEmblem';
 import { DigitWheel, type LedState } from '../../components/DigitWheel';
 import { MechanicalPadlock } from '../../components/MechanicalPadlock';
 import {
+  getBiometricButtonLabel,
+} from '../../services/biometricAuth';
+import {
+  playBiometricActivate,
+  playBiometricConfirmLatch,
   playKeyboardEngage,
   playRejectMechanism,
   playReverseDetent,
@@ -10,21 +16,28 @@ import {
   playWheelDetent,
   playWheelSettle,
 } from '../../services/mechanicalAudio';
+import type { BiometricCapability, BiometricStatus } from '../../types/aman';
 import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
 
 interface PinLockScreenProps {
   mode: PinScreenMode;
+  biometricStatus?: BiometricStatus | null;
+  biometricCapability?: BiometricCapability | null;
   onSetupComplete: (pin: string, bootstrapToken?: string) => Promise<void>;
   onUnlockAttempt: (pin: string) => Promise<{ ok: boolean; error?: string }>;
+  onBiometricUnlockAttempt?: () => Promise<{ ok: boolean; cancelled?: boolean; error?: string }>;
   onUnlockAnimationFinished: () => void;
 }
 
 export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   mode,
+  biometricStatus,
+  biometricCapability,
   onSetupComplete,
   onUnlockAttempt,
+  onBiometricUnlockAttempt,
   onUnlockAnimationFinished,
 }) => {
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
@@ -35,6 +48,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   const [statusPhase, setStatusPhase] = useState<
     'idle' | 'submitting' | 'error' | 'unlock-gold' | 'unlock-emerald'
   >('idle');
+  const [biometricPhase, setBiometricPhase] = useState<
+    'idle' | 'prompting' | 'success' | 'error'
+  >('idle');
+  const [biometricError, setBiometricError] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [bootstrapToken, setBootstrapToken] = useState<string>('');
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,6 +84,8 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     setSetupStage('create');
     setFirstPin('');
     setStatusPhase('idle');
+    setBiometricPhase('idle');
+    setBiometricError('');
     setErrorMessage('');
     setBootstrapToken('');
   }, [mode]);
@@ -252,6 +271,59 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     setupStage,
     statusPhase,
   ]);
+
+  const triggerBiometricUnlock = useCallback(async () => {
+    if (
+      mode !== 'locked' ||
+      !onBiometricUnlockAttempt ||
+      biometricPhase === 'prompting' ||
+      statusPhase === 'submitting' ||
+      statusPhase === 'unlock-gold' ||
+      statusPhase === 'unlock-emerald'
+    ) {
+      return;
+    }
+
+    setErrorMessage('');
+    setBiometricError('');
+    setBiometricPhase('prompting');
+    playBiometricActivate();
+
+    const result = await onBiometricUnlockAttempt();
+    if (!result.ok) {
+      if (result.cancelled) {
+        setBiometricPhase('idle');
+        setBiometricError(result.error || 'يمكنك المحاولة مرة أخرى أو استخدام رمز PIN.');
+        return;
+      }
+
+      setBiometricPhase('error');
+      setBiometricError(result.error || 'يمكنك المحاولة مرة أخرى أو استخدام رمز PIN.');
+      playRejectMechanism();
+      const tReset = window.setTimeout(() => {
+        setBiometricPhase('idle');
+      }, 1400);
+      timersRef.current.push(tReset);
+      return;
+    }
+
+    setBiometricPhase('success');
+    playBiometricConfirmLatch();
+    setStatusPhase('unlock-gold');
+    setPulseNonces((prev) => prev.map((n) => n + 1));
+    playUnlockMechanism();
+
+    const tEmerald = window.setTimeout(() => {
+      setStatusPhase('unlock-emerald');
+      setPulseNonces((prev) => prev.map((n) => n + 1));
+    }, 150);
+
+    const tEnter = window.setTimeout(() => {
+      onUnlockAnimationFinished();
+    }, 980);
+
+    timersRef.current.push(tEmerald, tEnter);
+  }, [biometricPhase, mode, onBiometricUnlockAttempt, onUnlockAnimationFinished, statusPhase]);
 
   const restorePinInputFocus = useCallback((wasDrag: boolean) => {
     const isCoarsePointer =
@@ -607,7 +679,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         <div className="aman-pin-action relative z-10 mt-3">
           <button
             type="button"
-            disabled={!isComplete || statusPhase === 'submitting' || isUnlocking}
+            disabled={!isComplete || statusPhase === 'submitting' || isUnlocking || biometricPhase === 'prompting'}
             onClick={() => void submitPin()}
             className={`aman-unlock-btn inline-flex items-center justify-center ${
               isUnlockedVisual
@@ -621,8 +693,81 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           </button>
         </div>
 
+        {/* 7b. Secondary Biometric / Windows Hello Unlock (ONLY when locked & enrolled) */}
+        {mode === 'locked' && biometricStatus?.enrolled ? (
+          <div className="aman-biometric-row relative z-10 mt-2.5 flex w-full max-w-[340px] flex-col items-center gap-2">
+            <div className="aman-biometric-divider" aria-hidden="true">
+              <span className="aman-biometric-divider-line" />
+              <span>أو</span>
+              <span className="aman-biometric-divider-line" />
+            </div>
+
+            {biometricCapability?.canEnableVaultUnlock && biometricStatus.serverConfigured ? (
+              <>
+                <button
+                  type="button"
+                  disabled={isUnlocking || statusPhase === 'submitting' || biometricPhase === 'prompting'}
+                  onClick={() => void triggerBiometricUnlock()}
+                  className={`aman-biometric-btn ${
+                    biometricPhase === 'prompting'
+                      ? 'aman-biometric-btn--prompting'
+                      : biometricPhase === 'success' || isUnlockedVisual
+                        ? 'aman-biometric-btn--success'
+                        : biometricPhase === 'error'
+                          ? 'aman-biometric-btn--error'
+                          : ''
+                  }`}
+                >
+                  <span className="aman-biometric-icon-socket" aria-hidden="true">
+                    <Fingerprint className="aman-biometric-icon h-4 w-4" />
+                  </span>
+                  <span>
+                    {biometricPhase === 'prompting'
+                      ? biometricCapability.isWindows
+                        ? 'بانتظار Windows Hello...'
+                        : 'بانتظار التحقق البيومتري...'
+                      : getBiometricButtonLabel(biometricCapability.isWindows)}
+                  </span>
+                </button>
+
+                {biometricError ? (
+                  <div className="steel-recess flex w-full flex-col items-center gap-1 rounded-xl border-[#58d9ff]/25 px-3 py-1.5 text-center">
+                    <p className="text-[11px] font-bold text-[#f2f5f5]">تعذر التحقق البيومتري</p>
+                    <p className="text-[10.5px] text-[#c2cccf]">{biometricError}</p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[10.5px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => void triggerBiometricUnlock()}
+                        className="text-[#76e5ff] transition hover:underline"
+                      >
+                        إعادة المحاولة
+                      </button>
+                      <span className="text-white/25">·</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBiometricError('');
+                          setBiometricPhase('idle');
+                          restorePinInputFocus(false);
+                        }}
+                        className="text-[#dce2e3] transition hover:text-white hover:underline"
+                      >
+                        استخدام PIN
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <p className="steel-recess rounded-xl px-3 py-1.5 text-center text-[11px] font-medium text-[#c2cccf]">
+                الدخول البيومتري غير متاح على هذا الجهاز. استخدم رمز PIN.
+              </p>
+            )}
+          </div>
+        ) : null}
+
         {/* 8. Designer Signature */}
-        <footer className="aman-safe-signature relative z-10 mt-5 text-center text-[11px] font-medium">
+        <footer className="aman-safe-signature relative z-10 mt-4 text-center text-[11px] font-medium">
           {APP_SIGNATURE}
         </footer>
       </section>

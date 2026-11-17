@@ -1783,6 +1783,139 @@ body,
 }
 
 /* =====================================================
+   BIOMETRIC / WINDOWS HELLO STEEL CAPSULE CONTROL
+   ===================================================== */
+.aman-biometric-divider {
+  display: flex;
+  width: 196px;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c2cccf;
+  text-shadow: 0 1px 1px rgba(9, 13, 14, 0.7);
+}
+
+.aman-biometric-divider-line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(220, 235, 238, 0.36), transparent);
+}
+
+.aman-biometric-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 242px;
+  max-width: 100%;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f2f5f5;
+  background: linear-gradient(180deg, #323e42 0%, #20292c 55%, #161d1f 100%);
+  border: 1px solid rgba(220, 235, 238, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.62),
+    0 0 10px rgba(88, 217, 255, 0.12),
+    0 8px 16px rgba(9, 13, 14, 0.42);
+  transition: transform 140ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.aman-biometric-btn:hover:not(:disabled) {
+  border-color: rgba(118, 229, 255, 0.68);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.62),
+    0 0 16px rgba(88, 217, 255, 0.28),
+    0 10px 18px rgba(9, 13, 14, 0.48);
+}
+
+.aman-biometric-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.65);
+}
+
+.aman-biometric-btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.aman-biometric-icon-socket {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #13191b 0%, #1d2528 100%);
+  border: 1px solid rgba(88, 217, 255, 0.42);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 8px rgba(88, 217, 255, 0.2);
+  color: #76e5ff;
+  transition: border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+.aman-biometric-btn--prompting {
+  border-color: rgba(118, 229, 255, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 0 18px rgba(88, 217, 255, 0.36);
+}
+
+.aman-biometric-btn--prompting .aman-biometric-icon-socket {
+  border-color: #76e5ff;
+  color: #a6f0ff;
+  animation: amanBiometricPulse 1.3s ease-in-out infinite;
+}
+
+@keyframes amanBiometricPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.85),
+      0 0 6px rgba(88, 217, 255, 0.45);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.85),
+      0 0 16px rgba(118, 229, 255, 0.85);
+  }
+}
+
+.aman-biometric-btn--success {
+  border-color: rgba(54, 229, 164, 0.78);
+  color: #dcfaef;
+}
+
+.aman-biometric-btn--success .aman-biometric-icon-socket {
+  border-color: rgba(54, 229, 164, 0.85);
+  color: #36e5a4;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 12px rgba(54, 229, 164, 0.55);
+}
+
+.aman-biometric-btn--error {
+  border-color: rgba(217, 92, 92, 0.7);
+}
+
+.aman-biometric-btn--error .aman-biometric-icon-socket {
+  border-color: rgba(217, 92, 92, 0.85);
+  color: #d95c5c;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 10px rgba(217, 92, 92, 0.45);
+}
+
+/* =====================================================
    HEIGHT & WIDTH RESPONSIVE SCALING (DESKTOP, LAPTOP, MOBILE)
    ===================================================== */
 @media (max-height: 820px) and (min-width: 581px) {
@@ -1840,6 +1973,14 @@ body,
   .aman-unlock-btn {
     height: 42px;
   }
+  .aman-biometric-row {
+    margin-top: 8px;
+    gap: 6px;
+  }
+  .aman-biometric-btn {
+    height: 38px;
+    font-size: 12.5px;
+  }
   .aman-safe-signature {
     margin-top: 10px !important;
   }
@@ -1867,6 +2008,9 @@ body,
   }
   .aman-wheel-column {
     gap: 8px;
+  }
+  .aman-biometric-btn {
+    height: 36px;
   }
 }
 
@@ -1945,6 +2089,12 @@ body,
     width: 204px;
     height: 44px;
     font-size: 14px;
+  }
+  .aman-biometric-btn {
+    min-width: 214px;
+    height: 38px;
+    font-size: 12.5px;
+    padding: 0 14px;
   }
 }
 

@@ -92,6 +92,37 @@ export async function ensureSchema(): Promise<void> {
       PRIMARY KEY (id),
       INDEX idx_sessions_expires (expires_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `CREATE TABLE IF NOT EXISTS biometric_credentials (
+      id CHAR(36) NOT NULL,
+      owner_id TINYINT UNSIGNED NOT NULL DEFAULT 1,
+      credential_id VARCHAR(512) NOT NULL,
+      public_key LONGTEXT NOT NULL,
+      sign_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      transports TEXT NULL,
+      prf_input VARCHAR(255) NOT NULL,
+      hkdf_salt VARCHAR(255) NOT NULL,
+      wrapped_master_key LONGTEXT NOT NULL,
+      device_type VARCHAR(32) NULL,
+      backed_up BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at DATETIME NOT NULL,
+      updated_at DATETIME NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY uniq_biometric_credential_id (credential_id),
+      INDEX idx_biometric_owner (owner_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `CREATE TABLE IF NOT EXISTS webauthn_challenges (
+      id CHAR(36) NOT NULL,
+      challenge VARCHAR(255) NOT NULL,
+      operation ENUM('enroll', 'replace', 'authenticate') NOT NULL,
+      session_id VARCHAR(128) NULL,
+      prf_input VARCHAR(255) NULL,
+      staged_credential_json LONGTEXT NULL,
+      expires_at DATETIME NOT NULL,
+      created_at DATETIME NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY uniq_webauthn_challenge (challenge),
+      INDEX idx_webauthn_expires (expires_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   ];
 
   for (const sql of statements) {

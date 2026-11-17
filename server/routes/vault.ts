@@ -598,6 +598,8 @@ apiRouter.post('/wipe', destructiveLimiter, async (req, res) => {
       await conn.execute('DELETE FROM categories');
       await conn.execute('DELETE FROM audit_events');
       await conn.execute('DELETE FROM app_settings');
+      await conn.execute('DELETE FROM biometric_credentials');
+      await conn.execute('DELETE FROM webauthn_challenges');
       await conn.execute('DELETE FROM sessions');
       await conn.execute('DELETE FROM owner_security');
     });

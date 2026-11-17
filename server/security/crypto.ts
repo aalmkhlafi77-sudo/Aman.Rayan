@@ -26,6 +26,11 @@ export const ALLOWED_AUDIT_ACTIONS = new Set([
   'excel_export',
   'excel_import',
   'pin_changed',
+  'biometric_enrolled',
+  'biometric_login_success',
+  'biometric_login_failed',
+  'biometric_removed',
+  'biometric_replaced',
   'wipe',
 ]);
 

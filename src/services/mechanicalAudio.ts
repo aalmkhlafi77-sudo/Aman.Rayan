@@ -606,3 +606,62 @@ export function playRejectMechanism(): void {
     });
   });
 }
+
+/**
+ * Subtle tactile mechanical switch click when biometric unlock is initiated.
+ */
+export function playBiometricActivate(): void {
+  runWithAudio((ctx) => {
+    const now = ctx.currentTime;
+    const vol = getVolumeScale();
+    const dest = createDestWithPan(ctx, 0);
+
+    scheduleNoiseBurst(ctx, dest, {
+      startTime: now,
+      duration: 0.018,
+      filterType: 'bandpass',
+      frequency: 2850,
+      q: 3.0,
+      peakGain: 0.16 * vol,
+    });
+
+    scheduleMechanicalImpulse(ctx, dest, {
+      startTime: now,
+      duration: 0.016,
+      type: 'triangle',
+      startFreq: 840,
+      endFreq: 280,
+      peakGain: 0.11 * vol,
+    });
+  });
+}
+
+/**
+ * Small precision mechanical confirmation latch upon successful biometric verification.
+ */
+export function playBiometricConfirmLatch(): void {
+  runWithAudio((ctx) => {
+    const now = ctx.currentTime;
+    const vol = getVolumeScale();
+    const dest = createDestWithPan(ctx, 0);
+
+    scheduleNoiseBurst(ctx, dest, {
+      startTime: now,
+      duration: 0.02,
+      filterType: 'bandpass',
+      frequency: 3400,
+      q: 3.6,
+      peakGain: 0.18 * vol,
+    });
+
+    scheduleMechanicalImpulse(ctx, dest, {
+      startTime: now,
+      duration: 0.018,
+      type: 'triangle',
+      startFreq: 1080,
+      endFreq: 390,
+      peakGain: 0.12 * vol,
+    });
+  });
+}
+

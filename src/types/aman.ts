@@ -70,6 +70,11 @@ export type AuditAction =
   | 'lock'
   | 'logout'
   | 'pin_changed'
+  | 'biometric_enrolled'
+  | 'biometric_login_success'
+  | 'biometric_login_failed'
+  | 'biometric_removed'
+  | 'biometric_replaced'
   | 'create'
   | 'update'
   | 'delete'
@@ -78,6 +83,27 @@ export type AuditAction =
   | 'excel_export'
   | 'excel_import'
   | 'wipe';
+
+export interface BiometricCapability {
+  webAuthnAvailable: boolean;
+  platformAuthenticatorAvailable: boolean;
+  prfAvailable: boolean;
+  secureContext: boolean;
+  canEnableVaultUnlock: boolean;
+  isWindows: boolean;
+  reason?: string;
+}
+
+export interface BiometricStatus {
+  initialized: boolean;
+  serverConfigured: boolean;
+  rpId?: string;
+  enrolled: boolean;
+  credentialCount: number;
+  updatedAt?: string;
+  previewUnsupported?: boolean;
+  diagnostic?: string;
+}
 
 export interface AuditEvent {
   id: string;

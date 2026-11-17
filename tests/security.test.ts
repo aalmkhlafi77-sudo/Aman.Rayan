@@ -14,7 +14,12 @@ import {
   validateBackupEnvelopeFormat,
   wrapMasterKeyWithPin,
 } from '../src/services/crypto';
-import { validateProductionConfig, type ServerEnvConfig } from '../server/config/env';
+import {
+  resolveWebAuthnConfig,
+  validateProductionConfig,
+  validateWebAuthnProductionSettings,
+  type ServerEnvConfig,
+} from '../server/config/env';
 import {
   hashPinVerifier,
   isValidEncryptedField,
@@ -39,6 +44,9 @@ function makeValidProdEnv(overrides: Partial<ServerEnvConfig> = {}): ServerEnvCo
     dbPassword: 'strong-production-db-password-987654',
     sessionSecret: 'a-very-long-random-production-session-secret-64-chars-minimum-ok',
     amanBootstrapToken: '',
+    webauthnRpName: 'Aman Rayan',
+    webauthnRpId: '',
+    webauthnOrigin: '',
     ...overrides,
   };
 }
@@ -97,6 +105,52 @@ test('validateProductionConfig rejects placeholders/invalid values and allows re
   assert.throws(
     () => validateProductionConfig(makeValidProdEnv(), 'preview'),
     /VITE_APP_MODE/
+  );
+});
+
+test('WebAuthn production validation enforces HTTPS, exact RP/origin match, and rejects localhost/example.com', () => {
+  const disabledProd = resolveWebAuthnConfig(makeValidProdEnv());
+  assert.equal(disabledProd.enabled, false);
+
+  const validWebAuthn = makeValidProdEnv({
+    webauthnRpName: 'Aman Rayan',
+    webauthnRpId: 'vault.aman-secure.org',
+    webauthnOrigin: 'https://vault.aman-secure.org',
+  });
+  assert.deepEqual(validateWebAuthnProductionSettings(validWebAuthn), []);
+  assert.equal(resolveWebAuthnConfig(validWebAuthn).enabled, true);
+
+  assert.ok(
+    validateWebAuthnProductionSettings(
+      makeValidProdEnv({
+        webauthnRpId: 'localhost',
+        webauthnOrigin: 'http://localhost:3000',
+      })
+    ).length > 0
+  );
+  assert.ok(
+    validateWebAuthnProductionSettings(
+      makeValidProdEnv({
+        webauthnRpId: 'vault.aman-secure.org',
+        webauthnOrigin: 'http://vault.aman-secure.org',
+      })
+    ).length > 0
+  );
+  assert.ok(
+    validateWebAuthnProductionSettings(
+      makeValidProdEnv({
+        webauthnRpId: 'vault.aman-secure.org',
+        webauthnOrigin: 'https://other-domain.org',
+      })
+    ).length > 0
+  );
+  assert.ok(
+    validateWebAuthnProductionSettings(
+      makeValidProdEnv({
+        webauthnRpId: '*.aman-secure.org',
+        webauthnOrigin: 'https://vault.aman-secure.org',
+      })
+    ).length > 0
   );
 });
 

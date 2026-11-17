@@ -2,6 +2,7 @@ import type {
   AppSettings,
   AuditAction,
   AuditEvent,
+  BiometricStatus,
   Category,
   CategoryInput,
   EncryptedVaultItem,
@@ -51,6 +52,12 @@ export interface AmanDataAdapter {
     newPinSalt: string,
     newWrappedMasterKey: string
   ): Promise<void>;
+
+  getBiometricStatus(): Promise<BiometricStatus>;
+  enrollBiometric(pin: string, masterKey: CryptoKey): Promise<BiometricStatus>;
+  replaceBiometric(pin: string, masterKey: CryptoKey): Promise<BiometricStatus>;
+  removeBiometric(pin: string): Promise<void>;
+  unlockWithBiometric(): Promise<{ masterKey: CryptoKey }>;
 
   getVault(): Promise<VaultSnapshot>;
   createItem(item: EncryptedVaultItemInput): Promise<EncryptedVaultItem>;

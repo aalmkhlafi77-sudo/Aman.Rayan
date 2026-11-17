@@ -7,6 +7,10 @@ import { ToastContainer } from './components/ToastContainer';
 import { PinLockScreen } from './features/auth/PinLockScreen';
 import { VaultDashboard } from './features/vault/VaultDashboard';
 import {
+  detectBiometricCapability,
+  mapBiometricError,
+} from './services/biometricAuth';
+import {
   decryptVaultItem,
   encryptVaultItemInput,
   generateMasterVaultKey,
@@ -21,6 +25,8 @@ import {
 import type {
   AppSettings,
   AuditEvent,
+  BiometricCapability,
+  BiometricStatus,
   Category,
   LockState,
   ToastMessage,
@@ -50,6 +56,8 @@ function AmanApplication() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [biometricCapability, setBiometricCapability] = useState<BiometricCapability | null>(null);
 
   const pendingUnlockDataRef = useRef<{
     key: CryptoKey;
@@ -81,13 +89,32 @@ function AmanApplication() {
     setAuditEvents([]);
   }, []);
 
+  const refreshBiometricState = useCallback(async () => {
+    try {
+      const [status, cap] = await Promise.all([
+        dataAdapter.getBiometricStatus(),
+        detectBiometricCapability(),
+      ]);
+      setBiometricStatus(status);
+      setBiometricCapability(cap);
+    } catch {
+      // Keep PIN authentication fully functional even if biometric status fails
+    }
+  }, []);
+
   // Initial auth bootstrap
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const status = await dataAdapter.getAuthStatus();
+        const [status, bioStatus, bioCap] = await Promise.all([
+          dataAdapter.getAuthStatus(),
+          dataAdapter.getBiometricStatus().catch(() => null),
+          detectBiometricCapability().catch(() => null),
+        ]);
         if (!active) return;
+        setBiometricStatus(bioStatus);
+        setBiometricCapability(bioCap);
         setLockState(status.initialized ? 'locked' : 'setup');
       } catch (err) {
         if (!active) return;
@@ -145,6 +172,7 @@ function AmanApplication() {
     const wrappedMasterKey = await wrapMasterKeyWithPin(freshMasterKey, pin, pinSalt);
 
     await dataAdapter.setupOwner(pin, pinSalt, wrappedMasterKey, bootstrapToken);
+    await refreshBiometricState();
     setLockState('locked');
     notify('success', 'تم إنشاء رمز أمان وتهيئة الخزنة بنجاح', 'أدخل الرمز الآن لفتح الخزنة');
   };
@@ -173,6 +201,31 @@ function AmanApplication() {
     }
   };
 
+  const handleBiometricUnlockAttempt = async (): Promise<{
+    ok: boolean;
+    cancelled?: boolean;
+    error?: string;
+  }> => {
+    try {
+      const { masterKey: recoveredKey } = await dataAdapter.unlockWithBiometric();
+      const loaded = await decryptAndLoadVault(recoveredKey);
+      pendingUnlockDataRef.current = {
+        key: recoveredKey,
+        ...loaded,
+      };
+      return { ok: true };
+    } catch (err) {
+      clearSensitiveMemory();
+      await dataAdapter.lock().catch(() => undefined);
+      const mapped = mapBiometricError(err);
+      return {
+        ok: false,
+        cancelled: mapped.cancelled,
+        error: mapped.message,
+      };
+    }
+  };
+
   const handleUnlockAnimationFinished = useCallback(() => {
     const pending = pendingUnlockDataRef.current;
     if (!pending) return;
@@ -193,12 +246,13 @@ function AmanApplication() {
       } catch {
         // Session cleared locally regardless of network state
       }
+      void refreshBiometricState();
       notify(
         'info',
         isAutoLock ? 'تم قفل الخزنة تلقائياً لعدم النشاط' : 'تم قفل الخزنة'
       );
     },
-    [clearSensitiveMemory, notify]
+    [clearSensitiveMemory, notify, refreshBiometricState]
   );
 
   const handleLogout = useCallback(async () => {
@@ -350,11 +404,29 @@ function AmanApplication() {
     await dataAdapter.changePin(currentPin, newPin, newSalt, newWrapped);
   };
 
+  const handleEnrollBiometric = async (pin: string) => {
+    if (!masterKey) throw new Error('الخزنة مقفلة');
+    const updatedStatus = await dataAdapter.enrollBiometric(pin, masterKey);
+    setBiometricStatus(updatedStatus);
+  };
+
+  const handleReplaceBiometric = async (pin: string) => {
+    if (!masterKey) throw new Error('الخزنة مقفلة');
+    const updatedStatus = await dataAdapter.replaceBiometric(pin, masterKey);
+    setBiometricStatus(updatedStatus);
+  };
+
+  const handleRemoveBiometric = async (pin: string) => {
+    await dataAdapter.removeBiometric(pin);
+    await refreshBiometricState();
+  };
+
   const handleWipeVault = async (pin: string) => {
     await dataAdapter.wipeVault(pin);
     clearSensitiveMemory();
     setMechanicalAudioConfig({ enabled: true, volume: 45 });
     setSettings(getDefaultSettings());
+    await refreshBiometricState();
     setLockState('setup');
   };
 
@@ -388,6 +460,8 @@ function AmanApplication() {
           auditEvents={auditEvents}
           auditLoading={auditLoading}
           masterKey={masterKey}
+          biometricStatus={biometricStatus}
+          biometricCapability={biometricCapability}
           onCreateItem={handleCreateItem}
           onUpdateItem={handleUpdateItem}
           onDeleteItem={handleDeleteItem}
@@ -398,6 +472,9 @@ function AmanApplication() {
           onRefreshAudit={handleRefreshAudit}
           onSaveSettings={handleSaveSettings}
           onChangePin={handleChangePin}
+          onEnrollBiometric={handleEnrollBiometric}
+          onReplaceBiometric={handleReplaceBiometric}
+          onRemoveBiometric={handleRemoveBiometric}
           onWipeVault={handleWipeVault}
           onReloadVault={handleReloadVault}
           onLock={() => handleLock(false)}
@@ -407,8 +484,11 @@ function AmanApplication() {
       ) : (
         <PinLockScreen
           mode={lockState === 'setup' ? 'setup' : 'locked'}
+          biometricStatus={biometricStatus}
+          biometricCapability={biometricCapability}
           onSetupComplete={handleSetupComplete}
           onUnlockAttempt={handleUnlockAttempt}
+          onBiometricUnlockAttempt={handleBiometricUnlockAttempt}
           onUnlockAnimationFinished={handleUnlockAnimationFinished}
         />
       )}

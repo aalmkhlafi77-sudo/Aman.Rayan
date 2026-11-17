@@ -1,7 +1,19 @@
 import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/browser';
+import {
+  performBiometricAuthentication,
+  performBiometricEnrollment,
+  zeroUint8Array,
+  type StagedAssertionChallenge,
+} from '../services/biometricAuth';
+import { unwrapMasterKeyWithBiometricPrf } from '../services/crypto';
+import type {
   AppSettings,
   AuditAction,
   AuditEvent,
+  BiometricStatus,
   Category,
   CategoryInput,
   EncryptedVaultItem,
@@ -117,6 +129,111 @@ export class ApiDataAdapter implements AmanDataAdapter {
         newWrappedMasterKey,
       }),
     });
+  }
+
+  async getBiometricStatus(): Promise<BiometricStatus> {
+    return this.request<BiometricStatus>('/api/auth/biometric/status', { method: 'GET' });
+  }
+
+  private async runRegistrationFlow(
+    operation: 'enroll' | 'replace',
+    pin: string,
+    masterKey: CryptoKey
+  ): Promise<BiometricStatus> {
+    const base = `/api/auth/biometric/${operation}`;
+    const { options, prfInput } = await this.request<{
+      options: PublicKeyCredentialCreationOptionsJSON;
+      prfInput: string;
+    }>(`${base}/options`, {
+      method: 'POST',
+      body: JSON.stringify({ pin }),
+    });
+
+    const enrollmentResult = await performBiometricEnrollment({
+      options,
+      prfInput,
+      masterKey,
+      onStageAssertion: (challenge, registrationResponse) =>
+        this.request<StagedAssertionChallenge>(`${base}/stage`, {
+          method: 'POST',
+          body: JSON.stringify({ challenge, registrationResponse }),
+        }),
+    });
+
+    if (enrollmentResult.mode === 'direct') {
+      await this.request(`${base}/verify`, {
+        method: 'POST',
+        body: JSON.stringify({
+          challenge: enrollmentResult.challenge,
+          registrationResponse: enrollmentResult.registrationResponse,
+          hkdfSalt: enrollmentResult.hkdfSalt,
+          wrappedMasterKey: enrollmentResult.wrappedMasterKey,
+        }),
+      });
+    } else {
+      await this.request(`${base}/finalize`, {
+        method: 'POST',
+        body: JSON.stringify({
+          challenge: enrollmentResult.challenge,
+          authenticationResponse: enrollmentResult.authenticationResponse,
+          hkdfSalt: enrollmentResult.hkdfSalt,
+          wrappedMasterKey: enrollmentResult.wrappedMasterKey,
+        }),
+      });
+    }
+
+    return this.getBiometricStatus();
+  }
+
+  async enrollBiometric(pin: string, masterKey: CryptoKey): Promise<BiometricStatus> {
+    return this.runRegistrationFlow('enroll', pin, masterKey);
+  }
+
+  async replaceBiometric(pin: string, masterKey: CryptoKey): Promise<BiometricStatus> {
+    return this.runRegistrationFlow('replace', pin, masterKey);
+  }
+
+  async removeBiometric(pin: string): Promise<void> {
+    await this.request('/api/auth/biometric/remove', {
+      method: 'POST',
+      body: JSON.stringify({ pin }),
+    });
+  }
+
+  async unlockWithBiometric(): Promise<{ masterKey: CryptoKey }> {
+    const { options, prfInput } = await this.request<{
+      options: PublicKeyCredentialRequestOptionsJSON;
+      prfInput: string;
+    }>('/api/auth/biometric/options', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+
+    const assertion = await performBiometricAuthentication({ options, prfInput });
+    try {
+      const verifyResp = await this.request<{
+        ok: boolean;
+        hkdfSalt: string;
+        prfInput: string;
+        wrappedMasterKey: string;
+        csrfToken?: string;
+      }>('/api/auth/biometric/verify', {
+        method: 'POST',
+        body: JSON.stringify({
+          challenge: assertion.challenge,
+          authenticationResponse: assertion.authenticationResponse,
+        }),
+      });
+
+      const masterKey = await unwrapMasterKeyWithBiometricPrf(
+        verifyResp.wrappedMasterKey,
+        assertion.prfOutputCopy,
+        verifyResp.hkdfSalt
+      );
+      return { masterKey };
+    } finally {
+      zeroUint8Array(assertion.prfOutputCopy);
+    }
   }
 
   async getVault(): Promise<VaultSnapshot> {

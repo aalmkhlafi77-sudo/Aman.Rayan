@@ -15,6 +15,11 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   lock: 'قفل الخزنة',
   logout: 'تسجيل خروج',
   pin_changed: 'تحديث الرمز',
+  biometric_enrolled: 'تفعيل الدخول البيومتري',
+  biometric_login_success: 'دخول بيومتري ناجح',
+  biometric_login_failed: 'فشل الدخول البيومتري',
+  biometric_removed: 'إلغاء الدخول البيومتري',
+  biometric_replaced: 'إعادة تسجيل بيومتري',
   create: 'إضافة عنصر',
   update: 'تعديل عنصر',
   delete: 'حذف عنصر',
@@ -95,9 +100,14 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({
                     <tr key={ev.id} className="steel-table-row">
                       <td
                         className={`px-4 py-3 text-xs font-bold ${
-                          ev.action === 'login_failed' || ev.action === 'wipe'
+                          ev.action === 'login_failed' ||
+                          ev.action === 'biometric_login_failed' ||
+                          ev.action === 'wipe'
                             ? 'text-[#d95c5c]'
-                            : ev.action === 'login_success' || ev.action === 'restore'
+                            : ev.action === 'login_success' ||
+                                ev.action === 'biometric_login_success' ||
+                                ev.action === 'biometric_enrolled' ||
+                                ev.action === 'restore'
                               ? 'text-[#36e5a4]'
                               : 'text-[#76e5ff]'
                         }`}
