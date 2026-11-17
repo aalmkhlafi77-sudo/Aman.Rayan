@@ -114,8 +114,14 @@ export const MechanicalPadlock: React.FC<MechanicalPadlockProps> = ({ status }) 
           </svg>
         </div>
 
-        {/* Physical Beveled Graphite & Steel Padlock Body */}
+        {/* Physical Beveled Brushed-Steel Padlock Body */}
         <div className="aman-lock-body">
+          {/* Machined Corner Rivets */}
+          <span className="aman-lock-rivet aman-lock-rivet--tl" />
+          <span className="aman-lock-rivet aman-lock-rivet--tr" />
+          <span className="aman-lock-rivet aman-lock-rivet--bl" />
+          <span className="aman-lock-rivet aman-lock-rivet--br" />
+
           {/* Shackle Entry Collar Sockets */}
           <span className="aman-lock-collar aman-lock-collar--left" />
           <span className="aman-lock-collar aman-lock-collar--right" />

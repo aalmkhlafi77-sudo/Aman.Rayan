@@ -181,18 +181,18 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
       dir="rtl"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm sm:p-6"
     >
-      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#101616] shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/8 px-6 py-4">
+      <div className="steel-modal-shell flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl p-1.5 shadow-2xl">
+        {/* Raised Steel Title Bar */}
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e5b440]/12 text-[#e5b440]">
+            <div className="steel-recess flex h-9 w-9 items-center justify-center rounded-xl text-[#58d9ff]">
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#f3f6f5]">
+              <h2 className="text-base font-extrabold text-[#161e21] sm:text-lg">
                 {editingItem ? 'تعديل عنصر الخزنة' : 'إضافة عنصر جديد إلى الخزنة'}
               </h2>
-              <p className="text-xs text-[#8b9997]">
+              <p className="text-xs font-semibold text-[#2d3a3f]">
                 تُشفّر الحقول الحساسة محلياً بتشفير AES-256-GCM قبل الحفظ
               </p>
             </div>
@@ -201,23 +201,26 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="إغلاق"
-            className="rounded-lg p-2 text-[#93a19f] transition hover:bg-white/5 hover:text-white"
+            className="rounded-lg p-2 text-[#2d3a3f] transition hover:bg-black/10 hover:text-[#161e21]"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex-1 space-y-5 overflow-y-auto p-6">
+        {/* Recessed Form Body */}
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          className="steel-modal-body flex-1 space-y-5 overflow-y-auto rounded-xl p-5 sm:p-6"
+        >
           {formError ? (
-            <div className="rounded-xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300">
+            <div className="steel-recess rounded-xl border-[#d95c5c]/65 px-4 py-3 text-sm font-semibold text-[#f8c4c4]">
               {formError}
             </div>
           ) : null}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">
+              <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">
                 عنوان العنصر *
               </label>
               <div className="flex items-center gap-2">
@@ -227,16 +230,16 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="مثال: لوحة تحكم الخادم أو حساب البريد"
-                  className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                  className="steel-input w-full rounded-xl px-3.5 py-2.5 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setIsFavorite((f) => !f)}
                   title={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${
+                  className={`steel-recess flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
                     isFavorite
-                      ? 'border-[#e5b440]/60 bg-[#e5b440]/15 text-[#ffd365]'
-                      : 'border-white/10 bg-[#0a0e0e] text-[#7c8a88] hover:text-white'
+                      ? 'border-[#d7aa45]/65 text-[#f0c761]'
+                      : 'text-[#94a4a9] hover:text-[#f2f5f5]'
                   }`}
                 >
                   <Star className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
@@ -245,11 +248,11 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">التصنيف</label>
+              <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">التصنيف</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] px-3.5 py-2.5 text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                className="steel-input w-full rounded-xl px-3.5 py-2.5 text-sm"
               >
                 <option value="">بدون تصنيف</option>
                 {categories.map((cat) => (
@@ -261,7 +264,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">
+              <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">
                 اسم المستخدم
               </label>
               <input
@@ -270,12 +273,12 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
-                className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] px-3.5 py-2.5 text-left text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                className="steel-input w-full rounded-xl px-3.5 py-2.5 text-left text-sm"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">
+              <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">
                 البريد الإلكتروني
               </label>
               <input
@@ -284,12 +287,12 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] px-3.5 py-2.5 text-left text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                className="steel-input w-full rounded-xl px-3.5 py-2.5 text-left text-sm"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">
+              <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">
                 كلمة المرور
               </label>
               <div className="flex items-center gap-1.5">
@@ -300,13 +303,13 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="font-mono-tabular w-full rounded-xl border border-white/10 bg-[#0a0e0e] py-2.5 pl-10 pr-3.5 text-left text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                    className="steel-input font-mono-tabular w-full rounded-xl py-2.5 pl-10 pr-3.5 text-left text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
                     aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
-                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8b9997] hover:text-white"
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94a4a9] hover:text-[#f2f5f5]"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -318,9 +321,9 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                     setShowPassword(true);
                   }}
                   title="توليد كلمة مرور قوية"
-                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-[#e5b440]/30 bg-[#e5b440]/10 px-3 text-xs font-semibold text-[#ffd365] transition hover:bg-[#e5b440]/20"
+                  className="steel-btn-secondary flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold"
                 >
-                  <Wand2 className="h-3.5 w-3.5" />
+                  <Wand2 className="h-3.5 w-3.5 text-[#58d9ff]" />
                   توليد
                 </button>
               </div>
@@ -328,16 +331,16 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
           </div>
 
           {/* Multiple URLs */}
-          <div className="space-y-2 border-t border-white/8 pt-4">
+          <div className="space-y-2 border-t border-white/10 pt-4">
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-[#b9c4c2]">
-                <Globe className="h-3.5 w-3.5 text-[#e5b440]" />
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-[#c2cccf]">
+                <Globe className="h-3.5 w-3.5 text-[#58d9ff]" />
                 الروابط المرتبطة
               </label>
               <button
                 type="button"
                 onClick={() => setUrls((prev) => [...prev, ''])}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#e5b440] hover:text-[#ffd365]"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#76e5ff] hover:text-[#f2f5f5]"
               >
                 <Plus className="h-3.5 w-3.5" />
                 إضافة رابط
@@ -354,14 +357,14 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                       setUrls((prev) => prev.map((u, i) => (i === idx ? e.target.value : u)))
                     }
                     placeholder="https://example.com"
-                    className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] px-3.5 py-2 text-left text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+                    className="steel-input w-full rounded-xl px-3.5 py-2 text-left text-sm"
                   />
                   {urls.length > 1 ? (
                     <button
                       type="button"
                       onClick={() => setUrls((prev) => prev.filter((_, i) => i !== idx))}
                       aria-label="حذف الرابط"
-                      className="rounded-lg p-2 text-[#8b9997] hover:bg-red-500/10 hover:text-red-400"
+                      className="rounded-lg p-2 text-[#94a4a9] hover:bg-[#d95c5c]/15 hover:text-[#f29b9b]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -372,12 +375,12 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
           </div>
 
           {/* Structured Secrets Tabs */}
-          <div className="space-y-3 border-t border-white/8 pt-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#b9c4c2]">
-              <KeyRound className="h-3.5 w-3.5 text-[#e5b440]" />
+          <div className="space-y-3 border-t border-white/10 pt-4">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#c2cccf]">
+              <KeyRound className="h-3.5 w-3.5 text-[#58d9ff]" />
               البيانات والمفاتيح السرية المشفرة
             </div>
-            <div className="flex flex-wrap gap-1.5 rounded-xl bg-[#0a0e0e] p-1">
+            <div className="steel-switch-slot flex flex-wrap gap-1.5 rounded-xl p-1">
               {SECRET_GROUPS.map((group) => {
                 const count = secrets[group.key].length;
                 const active = activeSecretTab === group.key;
@@ -386,10 +389,8 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                     key={group.key}
                     type="button"
                     onClick={() => setActiveSecretTab(group.key)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
-                      active
-                        ? 'bg-[#1b2424] text-[#ffd365]'
-                        : 'text-[#8b9997] hover:text-white'
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition ${
+                      active ? 'steel-switch-lever' : 'text-[#c2cccf] hover:text-white'
                     }`}
                   >
                     {group.label}
@@ -411,7 +412,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                     placeholder={
                       SECRET_GROUPS.find((g) => g.key === activeSecretTab)?.placeholder
                     }
-                    className="rounded-xl border border-white/10 bg-[#0a0e0e] px-3 py-2 text-sm text-white outline-none focus:border-[#e5b440]/70"
+                    className="steel-input rounded-xl px-3 py-2 text-sm"
                   />
                   <input
                     type="text"
@@ -421,13 +422,13 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                       updateSecretRow(activeSecretTab, entry.id, 'value', e.target.value)
                     }
                     placeholder="القيمة السرية..."
-                    className="font-mono-tabular rounded-xl border border-white/10 bg-[#0a0e0e] px-3 py-2 text-left text-sm text-white outline-none focus:border-[#e5b440]/70"
+                    className="steel-input font-mono-tabular rounded-xl px-3 py-2 text-left text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => removeSecretRow(activeSecretTab, entry.id)}
                     aria-label="إزالة"
-                    className="rounded-xl border border-white/10 bg-[#0a0e0e] px-3 py-2 text-[#8b9997] hover:border-red-500/40 hover:text-red-400"
+                    className="steel-btn-danger rounded-xl px-3 py-2"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -437,17 +438,17 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               <button
                 type="button"
                 onClick={() => addSecretRow(activeSecretTab)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-white/15 px-3.5 py-2 text-xs font-semibold text-[#b9c4c2] transition hover:border-[#e5b440]/50 hover:text-[#ffd365]"
+                className="steel-btn-secondary inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-3.5 w-3.5 text-[#58d9ff]" />
                 إضافة {SECRET_GROUPS.find((g) => g.key === activeSecretTab)?.label}
               </button>
             </div>
           </div>
 
           {/* Notes */}
-          <div className="border-t border-white/8 pt-4">
-            <label className="mb-1.5 block text-xs font-semibold text-[#b9c4c2]">
+          <div className="border-t border-white/10 pt-4">
+            <label className="mb-1.5 block text-xs font-semibold text-[#c2cccf]">
               ملاحظات حساسة (مشفرة)
             </label>
             <textarea
@@ -455,24 +456,24 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="أي تعليمات وصول أو رموز استرداد إضافية..."
-              className="w-full rounded-xl border border-white/10 bg-[#0a0e0e] p-3.5 text-sm text-white outline-none transition focus:border-[#e5b440]/70"
+              className="steel-input w-full rounded-xl p-3.5 text-sm"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-white/8 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-white/10 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-semibold text-[#b9c4c2] transition hover:bg-white/5"
+              className="steel-btn-secondary rounded-xl px-4 py-2.5 text-sm font-bold"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-xl bg-[#e5b440] px-6 py-2.5 text-sm font-bold text-[#0b0e0e] transition hover:bg-[#ffd365] disabled:opacity-50"
+              className="steel-btn-primary rounded-xl px-6 py-2.5 text-sm font-extrabold"
             >
               {isSaving ? 'جاري التشفير والحفظ...' : editingItem ? 'حفظ التعديلات' : 'حفظ في الخزنة'}
             </button>

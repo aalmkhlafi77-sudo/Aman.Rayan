@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { playWheelSettle } from '../services/mechanicalAudio';
 
 const RAIL_DIGITS = ['9', '•', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const;
 const DRAG_STEP_PX = 30;
@@ -42,6 +43,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
   const dragStartYRef = useRef<number | null>(null);
   const lastStepRef = useRef(0);
   const didDragRef = useRef(false);
+  const dragStepsMovedRef = useRef(0);
   const wheelAccumRef = useRef(0);
 
   const onRotateRef = useRef(onRotateDigit);
@@ -116,6 +118,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
     dragStartYRef.current = event.clientY;
     lastStepRef.current = 0;
     didDragRef.current = false;
+    dragStepsMovedRef.current = 0;
     setIsDragging(true);
     onSelectWheel(index);
   };
@@ -131,6 +134,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
     const difference = step - lastStepRef.current;
     const dir: 1 | -1 = difference < 0 ? 1 : -1;
     const stepsCount = Math.min(Math.abs(difference), 3);
+    dragStepsMovedRef.current += stepsCount;
 
     for (let i = 0; i < stepsCount; i++) {
       onRotateDigit(index, dir);
@@ -141,9 +145,11 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
 
   const finishPointerInteraction = (event: React.PointerEvent<HTMLDivElement>) => {
     const wasDrag = didDragRef.current;
+    const stepsMoved = dragStepsMovedRef.current;
     dragStartYRef.current = null;
     lastStepRef.current = 0;
     didDragRef.current = false;
+    dragStepsMovedRef.current = 0;
     setIsDragging(false);
 
     try {
@@ -152,6 +158,10 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
       }
     } catch {
       // Safe no-op
+    }
+
+    if (wasDrag && stepsMoved >= 2) {
+      playWheelSettle(index, 0.11);
     }
 
     onRestoreFocus?.(wasDrag);

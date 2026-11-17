@@ -60,6 +60,8 @@ export interface CategoryInput {
 export interface AppSettings {
   autoLockMinutes: number;
   clipboardClearSeconds: number;
+  mechanicalSoundsEnabled?: boolean;
+  mechanicalSoundsVolume?: number;
 }
 
 export type AuditAction =

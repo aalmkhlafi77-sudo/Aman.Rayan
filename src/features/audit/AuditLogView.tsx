@@ -41,8 +41,8 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({
     <div className="mx-auto max-w-5xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#f3f6f5]">سجل التدقيق الأمني</h2>
-          <p className="mt-1 text-sm text-[#8b9997]">
+          <h2 className="text-xl font-extrabold text-[#f2f5f5]">سجل التدقيق الأمني</h2>
+          <p className="mt-1 text-sm text-[#c2cccf]">
             يسجّل الأحداث الأمنية والإدارية فقط دون تسجيل أي كلمات مرور أو مفاتيح أو رمز PIN
           </p>
         </div>
@@ -51,7 +51,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({
           <select
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value as 'all' | AuditAction)}
-            className="rounded-xl border border-white/10 bg-[#101616] px-3 py-2 text-xs font-semibold text-white outline-none"
+            className="steel-input rounded-xl px-3 py-2 text-xs font-semibold"
           >
             <option value="all">جميع الأحداث</option>
             {Object.entries(ACTION_LABELS).map(([key, label]) => (
@@ -65,7 +65,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({
             type="button"
             onClick={() => void onRefresh()}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#101616] px-3.5 py-2 text-xs font-bold text-[#dce3e1] transition hover:bg-white/5"
+            className="steel-btn-secondary inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             تحديث
@@ -73,46 +73,48 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101616]">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 text-center">
-            <History className="mb-3 h-8 w-8 text-[#5d6b69]" />
-            <p className="text-sm font-semibold text-[#b9c4c2]">لا توجد أحداث مسجلة</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[540px] border-collapse text-right text-sm">
-              <thead className="border-b border-white/8 bg-[#0b1010] text-xs text-[#8b9997]">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">الحدث</th>
-                  <th className="px-4 py-3 font-semibold">التفاصيل</th>
-                  <th className="px-4 py-3 font-semibold">التاريخ والوقت</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/6">
-                {filtered.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-white/[0.02]">
-                    <td
-                      className={`px-4 py-3 text-xs font-bold ${
-                        ev.action === 'login_failed' || ev.action === 'wipe'
-                          ? 'text-red-400'
-                          : ev.action === 'login_success' || ev.action === 'restore'
-                            ? 'text-emerald-400'
-                            : 'text-[#ffd365]'
-                      }`}
-                    >
-                      {ACTION_LABELS[ev.action] || ev.action}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[#dce3e1]">{ev.summary}</td>
-                    <td className="font-mono-tabular px-4 py-3 text-xs text-[#8b9997]">
-                      {formatArabicDate(ev.createdAt)}
-                    </td>
+      <div className="steel-plate rounded-2xl p-1.5">
+        <div className="steel-module-dark overflow-hidden rounded-xl">
+          {filtered.length === 0 ? (
+            <div className="steel-recess flex flex-col items-center justify-center rounded-xl py-14 text-center">
+              <History className="mb-3 h-8 w-8 text-[#94a4a9]" />
+              <p className="text-sm font-semibold text-[#c2cccf]">لا توجد أحداث مسجلة</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[540px] border-collapse text-right text-sm">
+                <thead className="steel-table-head text-xs">
+                  <tr>
+                    <th className="px-4 py-3 font-extrabold">الحدث</th>
+                    <th className="px-4 py-3 font-extrabold">التفاصيل</th>
+                    <th className="px-4 py-3 font-extrabold">التاريخ والوقت</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-white/8">
+                  {filtered.map((ev) => (
+                    <tr key={ev.id} className="steel-table-row">
+                      <td
+                        className={`px-4 py-3 text-xs font-bold ${
+                          ev.action === 'login_failed' || ev.action === 'wipe'
+                            ? 'text-[#d95c5c]'
+                            : ev.action === 'login_success' || ev.action === 'restore'
+                              ? 'text-[#36e5a4]'
+                              : 'text-[#76e5ff]'
+                        }`}
+                      >
+                        {ACTION_LABELS[ev.action] || ev.action}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-[#f2f5f5]">{ev.summary}</td>
+                      <td className="font-mono-tabular px-4 py-3 text-xs text-[#94a4a9]">
+                        {formatArabicDate(ev.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

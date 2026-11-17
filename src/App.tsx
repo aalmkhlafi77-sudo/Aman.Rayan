@@ -13,6 +13,10 @@ import {
   unwrapMasterKeyWithPin,
   wrapMasterKeyWithPin,
 } from './services/crypto';
+import {
+  getMechanicalAudioConfig,
+  setMechanicalAudioConfig,
+} from './services/mechanicalAudio';
 import type {
   AppSettings,
   AuditEvent,
@@ -24,10 +28,17 @@ import type {
 } from './types/aman';
 import { normalizeCategory } from './utils/normalize';
 
-const DEFAULT_SETTINGS: AppSettings = {
-  autoLockMinutes: 5,
-  clipboardClearSeconds: 20,
-};
+function getDefaultSettings(): AppSettings {
+  const audio = getMechanicalAudioConfig();
+  return {
+    autoLockMinutes: 5,
+    clipboardClearSeconds: 20,
+    mechanicalSoundsEnabled: audio.enabled,
+    mechanicalSoundsVolume: audio.volume,
+  };
+}
+
+const DEFAULT_SETTINGS: AppSettings = getDefaultSettings();
 
 function AmanApplication() {
   const [lockState, setLockState] = useState<LockState>('loading');
@@ -102,10 +113,28 @@ function AmanApplication() {
       .map((c) => normalizeCategory(c))
       .filter((c): c is Category => c !== null);
 
+    const currentAudio = getMechanicalAudioConfig();
+    const resolvedEnabled =
+      typeof snapshot.settings?.mechanicalSoundsEnabled === 'boolean'
+        ? snapshot.settings.mechanicalSoundsEnabled
+        : currentAudio.enabled;
+    const resolvedVolume =
+      typeof snapshot.settings?.mechanicalSoundsVolume === 'number'
+        ? snapshot.settings.mechanicalSoundsVolume
+        : currentAudio.volume;
+    const syncedAudio = setMechanicalAudioConfig({
+      enabled: resolvedEnabled,
+      volume: resolvedVolume,
+    });
+
     return {
       items: decryptedItems,
       categories: safeCats,
-      settings: snapshot.settings || DEFAULT_SETTINGS,
+      settings: {
+        ...(snapshot.settings || DEFAULT_SETTINGS),
+        mechanicalSoundsEnabled: syncedAudio.enabled,
+        mechanicalSoundsVolume: syncedAudio.volume,
+      },
     };
   }, []);
 
@@ -294,8 +323,23 @@ function AmanApplication() {
   };
 
   const handleSaveSettings = async (next: AppSettings) => {
-    const saved = await dataAdapter.saveSettings(next);
-    setSettings(saved);
+    const syncedAudio = setMechanicalAudioConfig({
+      enabled: next.mechanicalSoundsEnabled !== false,
+      volume:
+        typeof next.mechanicalSoundsVolume === 'number'
+          ? next.mechanicalSoundsVolume
+          : getMechanicalAudioConfig().volume,
+    });
+    const saved = await dataAdapter.saveSettings({
+      ...next,
+      mechanicalSoundsEnabled: syncedAudio.enabled,
+      mechanicalSoundsVolume: syncedAudio.volume,
+    });
+    setSettings({
+      ...saved,
+      mechanicalSoundsEnabled: syncedAudio.enabled,
+      mechanicalSoundsVolume: syncedAudio.volume,
+    });
   };
 
   const handleChangePin = async (currentPin: string, newPin: string) => {
@@ -308,7 +352,8 @@ function AmanApplication() {
   const handleWipeVault = async (pin: string) => {
     await dataAdapter.wipeVault(pin);
     clearSensitiveMemory();
-    setSettings(DEFAULT_SETTINGS);
+    setMechanicalAudioConfig({ enabled: true, volume: 45 });
+    setSettings(getDefaultSettings());
     setLockState('setup');
   };
 
@@ -319,9 +364,9 @@ function AmanApplication() {
           dir="rtl"
           className="aman-safe-bg flex min-h-screen items-center justify-center"
         >
-          <div className="text-center">
-            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#e5b440]/25 border-t-[#e5b440]" />
-            <p className="text-xs font-semibold text-[#93a19f]">جاري تهيئة أمان...</p>
+          <div className="steel-module-dark rounded-2xl px-8 py-6 text-center">
+            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#58d9ff]/25 border-t-[#58d9ff]" />
+            <p className="text-xs font-semibold text-[#dce2e3]">جاري تهيئة أمان...</p>
           </div>
         </div>
       ) : lockState === 'unlocked' && masterKey ? (

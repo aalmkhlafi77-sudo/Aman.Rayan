@@ -19,43 +19,47 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
       {toasts.map((toast) => {
         const styleMap = {
           success: {
-            border: 'border-emerald-500/35',
-            icon: <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />,
+            accent: 'border-[#36e5a4]/55',
+            icon: <CheckCircle2 className="h-5 w-5 shrink-0 text-[#36e5a4]" />,
           },
           error: {
-            border: 'border-red-500/40',
-            icon: <XCircle className="h-5 w-5 shrink-0 text-red-400" />,
+            accent: 'border-[#d95c5c]/65',
+            icon: <XCircle className="h-5 w-5 shrink-0 text-[#d95c5c]" />,
           },
           warning: {
-            border: 'border-amber-500/40',
-            icon: <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400" />,
+            accent: 'border-[#d7aa45]/60',
+            icon: <AlertTriangle className="h-5 w-5 shrink-0 text-[#f0c761]" />,
           },
           info: {
-            border: 'border-white/15',
-            icon: <Info className="h-5 w-5 shrink-0 text-[#e5b440]" />,
+            accent: 'border-[#58d9ff]/55',
+            icon: <Info className="h-5 w-5 shrink-0 text-[#58d9ff]" />,
           },
         }[toast.type];
 
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start gap-3 rounded-xl border ${styleMap.border} bg-[#111717]/95 p-3.5 shadow-2xl backdrop-blur-md transition-all`}
+            className="steel-plate pointer-events-auto rounded-2xl p-[2px] shadow-2xl transition-all"
           >
-            <div className="mt-0.5">{styleMap.icon}</div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-[#f3f6f5]">{toast.title}</p>
-              {toast.description ? (
-                <p className="mt-0.5 text-xs text-[#93a19f]">{toast.description}</p>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              onClick={() => onDismiss(toast.id)}
-              aria-label="إغلاق الإشعار"
-              className="rounded-lg p-1 text-[#93a19f] transition hover:bg-white/5 hover:text-white"
+            <div
+              className={`steel-module-dark flex items-start gap-3 rounded-[14px] border ${styleMap.accent} p-3.5`}
             >
-              <X className="h-4 w-4" />
-            </button>
+              <div className="mt-0.5">{styleMap.icon}</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-[#f2f5f5]">{toast.title}</p>
+                {toast.description ? (
+                  <p className="mt-0.5 text-xs text-[#c2cccf]">{toast.description}</p>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => onDismiss(toast.id)}
+                aria-label="إغلاق الإشعار"
+                className="rounded-lg p-1 text-[#94a4a9] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         );
       })}

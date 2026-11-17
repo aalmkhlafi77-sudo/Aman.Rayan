@@ -324,22 +324,23 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
     <div className="flex h-full flex-col justify-between p-4">
       <div className="space-y-6">
         {/* Brand */}
-        <div className="flex items-center justify-between px-2">
+        <div className="flex items-center justify-between px-1.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e5b440]/30 bg-gradient-to-b from-[#1a2624] to-[#0c1211] text-[#ffd365]">
+            <div className="steel-plate flex h-9 w-9 items-center justify-center rounded-xl text-[#161e21]">
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-[#f3f6f5]">
+              <h1 className="text-base font-extrabold tracking-tight text-[#f2f5f5]">
                 {APP_NAME_AR}
               </h1>
-              <p className="text-[11px] text-[#83918f]">AMAN · {APP_VERSION}</p>
+              <p className="font-mono-tabular text-[11px] text-[#94a4a9]">AMAN · {APP_VERSION}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setMobileMenuOpen(false)}
-            className="rounded-lg p-1.5 text-[#8b9997] hover:bg-white/5 lg:hidden"
+            aria-label="إغلاق القائمة"
+            className="steel-btn-secondary rounded-lg p-1.5 lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
@@ -360,18 +361,22 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                   }
                   setMobileMenuOpen(false);
                 }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold whitespace-nowrap transition ${
-                  active
-                    ? 'bg-[#e5b440]/14 text-[#ffd365]'
-                    : 'text-[#a3b0ae] hover:bg-white/[0.04] hover:text-white'
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold whitespace-nowrap ${
+                  active ? 'steel-nav-item--active' : 'steel-nav-item'
                 }`}
               >
                 <span className="flex items-center gap-2.5">
-                  {nav.icon}
+                  <span className={active ? 'text-[#58d9ff]' : 'text-[#94a4a9]'}>{nav.icon}</span>
                   <span>{nav.label}</span>
                 </span>
                 {typeof nav.count === 'number' ? (
-                  <span className="font-mono-tabular text-[11px] opacity-75">{nav.count}</span>
+                  <span
+                    className={`font-mono-tabular text-[11px] ${
+                      active ? 'text-[#76e5ff]' : 'text-[#94a4a9]'
+                    }`}
+                  >
+                    {nav.count}
+                  </span>
                 ) : null}
               </button>
             );
@@ -380,8 +385,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
 
         {/* Categories */}
         {isVaultListing ? (
-          <div className="space-y-1.5 border-t border-white/8 pt-4">
-            <p className="px-3 text-[11px] font-bold text-[#758482]">التصنيفات</p>
+          <div className="space-y-1.5 border-t border-white/12 pt-4">
+            <p className="px-2 text-[11px] font-bold text-[#94a4a9]">التصنيفات</p>
             <button
               type="button"
               onClick={() => {
@@ -389,52 +394,55 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                 setMobileMenuOpen(false);
               }}
               className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                selectedCategoryId === 'all'
-                  ? 'bg-white/8 text-white'
-                  : 'text-[#8b9997] hover:bg-white/[0.04] hover:text-white'
+                selectedCategoryId === 'all' ? 'steel-tag steel-tag--active' : 'steel-tag hover:text-white'
               }`}
             >
-              <Folder className="h-3.5 w-3.5" />
+              <Folder className={`h-3.5 w-3.5 ${selectedCategoryId === 'all' ? 'text-[#58d9ff]' : ''}`} />
               <span>جميع التصنيفات</span>
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setSelectedCategoryId(cat.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                  selectedCategoryId === cat.id
-                    ? 'bg-white/8 text-white'
-                    : 'text-[#8b9997] hover:bg-white/[0.04] hover:text-white'
-                }`}
-              >
-                <span className="truncate">{cat.name}</span>
-                <span className="font-mono-tabular text-[11px] opacity-65">
-                  {items.filter((i) => i.categoryId === cat.id).length}
-                </span>
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const catActive = selectedCategoryId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategoryId(cat.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                    catActive ? 'steel-tag steel-tag--active' : 'steel-tag hover:text-white'
+                  }`}
+                >
+                  <span className="truncate">{cat.name}</span>
+                  <span
+                    className={`font-mono-tabular text-[11px] ${
+                      catActive ? 'text-[#76e5ff]' : 'text-[#94a4a9]'
+                    }`}
+                  >
+                    {items.filter((i) => i.categoryId === cat.id).length}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         ) : null}
       </div>
 
-      {/* Bottom Lock & Signature */}
-      <div className="space-y-2 border-t border-white/8 pt-4">
+      {/* Bottom Lock & Logout */}
+      <div className="space-y-2 border-t border-white/12 pt-4">
         <button
           type="button"
           onClick={() => void onLock()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#e5b440]/30 bg-[#e5b440]/10 py-2.5 text-xs font-bold text-[#ffd365] transition hover:bg-[#e5b440]/20"
+          className="steel-btn-secondary flex w-full items-center justify-center gap-2 rounded-xl border-[#58d9ff]/45 py-2.5 text-xs font-bold text-[#f2f5f5]"
         >
-          <Lock className="h-4 w-4" />
+          <Lock className="h-4 w-4 text-[#58d9ff]" />
           قفل الخزنة الآن
         </button>
         <button
           type="button"
           onClick={() => void onLogout()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-2 text-xs font-semibold text-[#93a19f] transition hover:bg-white/5 hover:text-white"
+          className="steel-btn-secondary flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold text-[#c2cccf]"
         >
           <LogOut className="h-3.5 w-3.5" />
           تسجيل الخروج
@@ -444,20 +452,20 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
   );
 
   return (
-    <div dir="rtl" className="aman-safe-bg flex min-h-screen w-full text-[#f3f6f5]">
+    <div dir="rtl" className="aman-safe-bg flex min-h-screen w-full text-[#f2f5f5]">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 shrink-0 border-l border-white/8 bg-[#0b1010]/90 lg:block">
+      <aside className="steel-sidebar hidden w-64 shrink-0 lg:block">
         {sidebarContent}
       </aside>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen ? (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="w-72 border-l border-white/10 bg-[#0b1010] shadow-2xl">
+          <div className="steel-sidebar w-72 shadow-2xl">
             {sidebarContent}
           </div>
           <div
-            className="flex-1 bg-black/70"
+            className="flex-1 bg-black/65 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
         </div>
@@ -465,31 +473,31 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Clean Workspace Header */}
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 bg-[#0c1212]/80 px-4 py-3.5 backdrop-blur-md sm:px-6">
+        {/* Polished Medium-Steel Workspace Top Bar */}
+        <header className="steel-topbar flex flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="فتح القائمة"
-              className="rounded-xl border border-white/10 p-2 text-[#b9c4c2] hover:bg-white/5 lg:hidden"
+              className="steel-btn-secondary rounded-xl p-2 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
 
             {isVaultListing ? (
               <div className="relative w-56 sm:w-80">
-                <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7c8a88]" />
+                <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a4a9]" />
                 <input
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="بحث بالعنوان، المستخدم، البريد، الرابط..."
-                  className="w-full rounded-xl border border-white/10 bg-[#070a0a] py-2 pr-9 pl-3 text-xs text-white outline-none transition focus:border-[#e5b440]/60 sm:text-sm"
+                  className="steel-search w-full rounded-xl py-2 pr-9 pl-3 text-xs sm:text-sm"
                 />
               </div>
             ) : (
-              <h2 className="text-sm font-bold text-[#dce3e1]">
+              <h2 className="text-sm font-bold text-[#f2f5f5]">
                 {navItems.find((n) => n.id === activeSection)?.label}
               </h2>
             )}
@@ -502,7 +510,7 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                 setEditingItem(null);
                 setEditorOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e5b440] px-4 py-2 text-xs font-bold text-[#0b0e0e] whitespace-nowrap transition hover:bg-[#ffd365]"
+              className="steel-btn-primary inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
               إضافة عنصر
@@ -516,8 +524,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
             <div className="mx-auto max-w-6xl space-y-5">
               {/* View & Sort Controls */}
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-xs text-[#8b9997]">
-                  عرض <span className="font-mono-tabular font-bold text-[#f3f6f5]">{filteredItems.length}</span>{' '}
+                <div className="text-xs font-semibold text-[#dce2e3]">
+                  عرض <span className="font-mono-tabular font-bold text-[#76e5ff]">{filteredItems.length}</span>{' '}
                   عنصر
                   {selectedCategoryId !== 'all'
                     ? ` · ${categoryMap.get(selectedCategoryId) || ''}`
@@ -528,14 +536,14 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                   <select
                     value={sortMode}
                     onChange={(e) => setSortMode(e.target.value as SortMode)}
-                    className="rounded-xl border border-white/10 bg-[#101616] px-3 py-1.5 text-xs font-semibold text-[#dce3e1] outline-none"
+                    className="steel-input rounded-xl px-3 py-1.5 text-xs font-semibold"
                   >
                     <option value="updated">الأحدث تحديثاً</option>
                     <option value="title">أبجدياً حسب العنوان</option>
                     <option value="favorite">المفضلة أولاً</option>
                   </select>
 
-                  <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-[#101616] p-1">
+                  <div className="steel-switch-slot flex items-center gap-1 rounded-xl p-1">
                     {[
                       { mode: 'cards' as const, icon: <LayoutGrid className="h-3.5 w-3.5" />, label: 'بطاقات' },
                       { mode: 'compact' as const, icon: <Rows3 className="h-3.5 w-3.5" />, label: 'مضغوط' },
@@ -546,10 +554,10 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                         type="button"
                         onClick={() => setViewMode(v.mode)}
                         title={v.label}
-                        className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                        className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
                           viewMode === v.mode
-                            ? 'bg-white/10 text-[#ffd365]'
-                            : 'text-[#8b9997] hover:text-white'
+                            ? 'steel-switch-lever'
+                            : 'text-[#c2cccf] hover:text-white'
                         }`}
                       >
                         {v.icon}
@@ -562,125 +570,129 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
 
               {/* Empty State */}
               {filteredItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#101616] px-6 py-16 text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-[#e5b440]">
-                    <Shield className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#f3f6f5]">
-                    {items.length === 0 ? 'خزنة أمان فارغة حالياً' : 'لا توجد نتائج مطابقة'}
-                  </h3>
-                  <p className="mt-1.5 max-w-md text-xs leading-relaxed text-[#8b9997]">
-                    {items.length === 0
-                      ? 'ابدأ بإضافة حساباتك، كلمات المرور، مفاتيح API، التراخيص أو الشهادات، وسيتم تشفيرها وحفظها بأمان.'
-                      : 'جرّب تعديل كلمات البحث أو تغيير تصفية التصنيف.'}
-                  </p>
-                  <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingItem(null);
-                        setEditorOpen(true);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#e5b440] px-5 py-2.5 text-xs font-bold text-[#0b0e0e] transition hover:bg-[#ffd365]"
-                    >
-                      <Plus className="h-4 w-4" />
-                      إضافة أول عنصر
-                    </button>
-
-                    {IS_PREVIEW_MODE && previewAdapter && items.length === 0 ? (
+                <div className="steel-plate rounded-2xl p-1.5">
+                  <div className="steel-recess flex flex-col items-center justify-center rounded-xl px-6 py-16 text-center">
+                    <div className="steel-plate mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-[#161e21]">
+                      <Shield className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-base font-bold text-[#f2f5f5]">
+                      {items.length === 0 ? 'خزنة أمان فارغة حالياً' : 'لا توجد نتائج مطابقة'}
+                    </h3>
+                    <p className="mt-1.5 max-w-md text-xs leading-relaxed text-[#c2cccf]">
+                      {items.length === 0
+                        ? 'ابدأ بإضافة حساباتك، كلمات المرور، مفاتيح API، التراخيص أو الشهادات، وسيتم تشفيرها وحفظها بأمان.'
+                        : 'جرّب تعديل كلمات البحث أو تغيير تصفية التصنيف.'}
+                    </p>
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                       <button
                         type="button"
-                        disabled={loadingDemo}
-                        onClick={() => void handleLoadPreviewDemo()}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-amber-400/20 disabled:opacity-50"
+                        onClick={() => {
+                          setEditingItem(null);
+                          setEditorOpen(true);
+                        }}
+                        className="steel-btn-primary inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-extrabold"
                       >
-                        <FlaskConical className="h-4 w-4" />
-                        {loadingDemo
-                          ? 'جاري التعبئة...'
-                          : 'تعبئة بيانات تجريبية (وضع المعاينة فقط)'}
+                        <Plus className="h-4 w-4" />
+                        إضافة أول عنصر
                       </button>
-                    ) : null}
+
+                      {IS_PREVIEW_MODE && previewAdapter && items.length === 0 ? (
+                        <button
+                          type="button"
+                          disabled={loadingDemo}
+                          onClick={() => void handleLoadPreviewDemo()}
+                          className="steel-btn-secondary inline-flex items-center gap-1.5 rounded-xl border-[#d7aa45]/50 px-4 py-2.5 text-xs font-bold text-[#f0c761]"
+                        >
+                          <FlaskConical className="h-4 w-4" />
+                          {loadingDemo
+                            ? 'جاري التعبئة...'
+                            : 'تعبئة بيانات تجريبية (وضع المعاينة فقط)'}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ) : viewMode === 'list' ? (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101616]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px] border-collapse text-right text-xs">
-                      <thead className="border-b border-white/8 bg-[#0b1010] text-[#8b9997]">
-                        <tr>
-                          <th className="px-4 py-3 font-semibold">العنوان</th>
-                          <th className="px-4 py-3 font-semibold">التصنيف</th>
-                          <th className="px-4 py-3 font-semibold">المستخدم / البريد</th>
-                          <th className="px-4 py-3 font-semibold">التحديث</th>
-                          <th className="px-4 py-3 font-semibold">إجراءات</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/6">
-                        {filteredItems.map((item) => (
-                          <tr
-                            key={item.id}
-                            onClick={() => setDetailItem(item)}
-                            className="cursor-pointer transition hover:bg-white/[0.03]"
-                          >
-                            <td className="px-4 py-3 font-bold text-white">
-                              <span className="inline-flex items-center gap-1.5">
-                                {item.isFavorite ? (
-                                  <Star className="h-3.5 w-3.5 fill-[#ffd365] text-[#ffd365]" />
-                                ) : null}
-                                {item.title}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-[#93a19f]">
-                              {item.categoryId ? categoryMap.get(item.categoryId) || '—' : '—'}
-                            </td>
-                            <td dir="ltr" className="px-4 py-3 text-right text-[#b9c4c2]">
-                              {item.username || item.email || '—'}
-                            </td>
-                            <td className="font-mono-tabular px-4 py-3 text-[#7c8a88]">
-                              {formatArabicDate(item.updatedAt)}
-                            </td>
-                            <td
-                              className="px-4 py-3"
-                              onClick={(e) => e.stopPropagation()}
+                <div className="steel-plate overflow-hidden rounded-2xl p-1">
+                  <div className="steel-module-dark overflow-hidden rounded-xl">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[640px] border-collapse text-right text-xs">
+                        <thead className="steel-table-head">
+                          <tr>
+                            <th className="px-4 py-3 font-extrabold">العنوان</th>
+                            <th className="px-4 py-3 font-extrabold">التصنيف</th>
+                            <th className="px-4 py-3 font-extrabold">المستخدم / البريد</th>
+                            <th className="px-4 py-3 font-extrabold">التحديث</th>
+                            <th className="px-4 py-3 font-extrabold">إجراءات</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/8">
+                          {filteredItems.map((item) => (
+                            <tr
+                              key={item.id}
+                              onClick={() => setDetailItem(item)}
+                              className="steel-table-row cursor-pointer"
                             >
-                              <div className="flex items-center gap-1">
-                                {item.password ? (
+                              <td className="px-4 py-3 font-bold text-[#f2f5f5]">
+                                <span className="inline-flex items-center gap-1.5">
+                                  {item.isFavorite ? (
+                                    <Star className="h-3.5 w-3.5 fill-[#d7aa45] text-[#f0c761]" />
+                                  ) : null}
+                                  {item.title}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-[#c2cccf]">
+                                {item.categoryId ? categoryMap.get(item.categoryId) || '—' : '—'}
+                              </td>
+                              <td dir="ltr" className="px-4 py-3 text-right text-[#dce2e3]">
+                                {item.username || item.email || '—'}
+                              </td>
+                              <td className="font-mono-tabular px-4 py-3 text-[#94a4a9]">
+                                {formatArabicDate(item.updatedAt)}
+                              </td>
+                              <td
+                                className="px-4 py-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="flex items-center gap-1">
+                                  {item.password ? (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        void handleCopySecret(item.password!, 'كلمة المرور', true)
+                                      }
+                                      title="نسخ كلمة المرور"
+                                      className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                                    >
+                                      <Copy className="h-3.5 w-3.5" />
+                                    </button>
+                                  ) : null}
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      void handleCopySecret(item.password!, 'كلمة المرور', true)
-                                    }
-                                    title="نسخ كلمة المرور"
-                                    className="rounded-lg p-1.5 text-[#93a19f] hover:bg-white/5 hover:text-[#ffd365]"
+                                    onClick={() => {
+                                      setEditingItem(item);
+                                      setEditorOpen(true);
+                                    }}
+                                    title="تعديل"
+                                    className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
                                   >
-                                    <Copy className="h-3.5 w-3.5" />
+                                    <Pencil className="h-3.5 w-3.5" />
                                   </button>
-                                ) : null}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingItem(item);
-                                    setEditorOpen(true);
-                                  }}
-                                  title="تعديل"
-                                  className="rounded-lg p-1.5 text-[#93a19f] hover:bg-white/5 hover:text-white"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setDeleteTarget(item)}
-                                  title="حذف"
-                                  className="rounded-lg p-1.5 text-[#93a19f] hover:bg-red-500/10 hover:text-red-400"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget(item)}
+                                    title="حذف"
+                                    className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-[#d95c5c]/15 hover:text-[#f29b9b]"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -704,16 +716,21 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                       <article
                         key={item.id}
                         onClick={() => setDetailItem(item)}
-                        className={`group cursor-pointer rounded-2xl border border-white/10 bg-[#101616] transition hover:border-[#e5b440]/40 ${
-                          viewMode === 'compact' ? 'p-3.5' : 'p-5'
+                        className={`steel-card-module group cursor-pointer rounded-2xl ${
+                          viewMode === 'compact' ? 'p-1' : 'p-1.5'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        {/* Outer Machined Steel Header Strip */}
+                        <div
+                          className={`flex items-start justify-between gap-2.5 ${
+                            viewMode === 'compact' ? 'px-2.5 py-2' : 'px-3.5 py-2.5'
+                          }`}
+                        >
                           <div className="min-w-0">
-                            <h3 className="truncate text-sm font-bold text-[#f3f6f5] group-hover:text-[#ffd365]">
+                            <h3 className="truncate text-sm font-extrabold text-[#161e21]">
                               {item.title}
                             </h3>
-                            <p className="mt-1 truncate text-xs text-[#8b9997]">
+                            <p className="mt-0.5 truncate text-xs font-semibold text-[#2d3a3f]">
                               {catName || 'بدون تصنيف'}
                               {item.username || item.email
                                 ? ` · ${item.username || item.email}`
@@ -729,8 +746,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                             aria-label="المفضلة"
                             className={`rounded-lg p-1.5 transition ${
                               item.isFavorite
-                                ? 'text-[#ffd365]'
-                                : 'text-[#5b6967] hover:text-white'
+                                ? 'text-[#d7aa45] drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]'
+                                : 'text-[#354145] hover:bg-black/10 hover:text-[#161e21]'
                             }`}
                           >
                             <Star
@@ -739,83 +756,90 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                           </button>
                         </div>
 
-                        {viewMode === 'cards' ? (
-                          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#7c8a88]">
-                            <span>{item.password ? 'كلمة مرور مشفرة' : 'بدون كلمة مرور'}</span>
-                            {secretsTotal > 0 ? (
-                              <>
-                                <span>·</span>
-                                <span>{secretsTotal} مفاتيح/أسرار</span>
-                              </>
-                            ) : null}
-                            {item.urls.length > 0 ? (
-                              <>
-                                <span>·</span>
-                                <span>{item.urls.length} رابط</span>
-                              </>
-                            ) : null}
-                          </div>
-                        ) : null}
-
+                        {/* Dark Recessed Inner Instrument Bay */}
                         <div
-                          className={`flex items-center justify-between border-t border-white/6 ${
-                            viewMode === 'compact' ? 'mt-2.5 pt-2' : 'mt-4 pt-3'
+                          className={`steel-card-bay rounded-xl ${
+                            viewMode === 'compact' ? 'px-2.5 py-2' : 'px-3.5 py-3'
                           }`}
-                          onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex items-center gap-1">
-                            {item.password ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  void handleCopySecret(item.password!, 'كلمة المرور', true)
-                                }
-                                title="نسخ كلمة المرور"
-                                className="rounded-lg p-1.5 text-[#93a19f] transition hover:bg-white/5 hover:text-[#ffd365]"
-                              >
-                                <Copy className="h-3.5 w-3.5" />
-                              </button>
-                            ) : null}
-                            {item.urls[0] ? (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenUrl(item.urls[0])}
-                                title="فتح الرابط بأمان"
-                                className="rounded-lg p-1.5 text-[#93a19f] transition hover:bg-white/5 hover:text-emerald-300"
-                              >
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </button>
-                            ) : null}
-                            <button
-                              type="button"
-                              onClick={() => void handleDuplicate(item)}
-                              title="تكرار (نسخة)"
-                              className="rounded-lg p-1.5 text-[#93a19f] transition hover:bg-white/5 hover:text-white"
-                            >
-                              <Files className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                          {viewMode === 'cards' ? (
+                            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-[#c2cccf]">
+                              <span>{item.password ? 'كلمة مرور مشفرة' : 'بدون كلمة مرور'}</span>
+                              {secretsTotal > 0 ? (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-mono-tabular">{secretsTotal} مفاتيح/أسرار</span>
+                                </>
+                              ) : null}
+                              {item.urls.length > 0 ? (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-mono-tabular">{item.urls.length} رابط</span>
+                                </>
+                              ) : null}
+                            </div>
+                          ) : null}
 
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingItem(item);
-                                setEditorOpen(true);
-                              }}
-                              title="تعديل"
-                              className="rounded-lg p-1.5 text-[#93a19f] transition hover:bg-white/5 hover:text-white"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget(item)}
-                              title="حذف"
-                              className="rounded-lg p-1.5 text-[#93a19f] transition hover:bg-red-500/10 hover:text-red-400"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                          <div
+                            className={`flex items-center justify-between ${
+                              viewMode === 'cards' ? 'border-t border-white/10 pt-2.5' : ''
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center gap-1">
+                              {item.password ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleCopySecret(item.password!, 'كلمة المرور', true)
+                                  }
+                                  title="نسخ كلمة المرور"
+                                  className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </button>
+                              ) : null}
+                              {item.urls[0] ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenUrl(item.urls[0])}
+                                  title="فتح الرابط بأمان"
+                                  className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#58f3bc]"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => void handleDuplicate(item)}
+                                title="تكرار (نسخة)"
+                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                              >
+                                <Files className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setEditorOpen(true);
+                                }}
+                                title="تعديل"
+                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(item)}
+                                title="حذف"
+                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-[#d95c5c]/15 hover:text-[#f29b9b]"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </article>
@@ -868,9 +892,9 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
           )}
         </main>
 
-        {/* Quiet Signature Footer */}
-        <footer className="border-t border-white/6 px-6 py-3 text-center text-[11px] text-[#788785]">
-          {APP_SIGNATURE} · الإصدار {APP_VERSION}
+        {/* Quiet Etched Signature Footer */}
+        <footer className="border-t border-white/14 px-6 py-3 text-center text-[11px] font-medium text-[#c2cccf]/85 [text-shadow:0_1px_1px_rgba(9,13,14,0.65)]">
+          {APP_SIGNATURE} · الإصدار <span className="font-mono-tabular">{APP_VERSION}</span>
         </footer>
       </div>
 
@@ -907,29 +931,33 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
       {/* Delete Confirmation Dialog */}
       {deleteTarget ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-red-500/35 bg-[#101616] p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-white">تأكيد حذف العنصر</h3>
-            <p className="text-xs leading-relaxed text-[#b9c4c2]">
-              هل أنت متأكد من حذف العنصر{' '}
-              <span className="font-bold text-white">"{deleteTarget.title}"</span> نهائياً؟
-            </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={() => setDeleteTarget(null)}
-                className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-[#b9c4c2] hover:bg-white/5"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={() => void handleConfirmDelete()}
-                className="rounded-xl bg-red-600 px-5 py-2 text-xs font-bold text-white transition hover:bg-red-500 disabled:opacity-50"
-              >
-                {deleting ? 'جاري الحذف...' : 'حذف نهائياً'}
-              </button>
+          <div className="steel-modal-shell w-full max-w-md overflow-hidden rounded-2xl p-1.5 shadow-2xl">
+            <div className="px-4 py-3">
+              <h3 className="text-base font-extrabold text-[#161e21]">تأكيد حذف العنصر</h3>
+            </div>
+            <div className="steel-modal-body space-y-4 rounded-xl p-5">
+              <p className="text-xs leading-relaxed text-[#c2cccf]">
+                هل أنت متأكد من حذف العنصر{' '}
+                <span className="font-bold text-[#f2f5f5]">"{deleteTarget.title}"</span> نهائياً؟
+              </p>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => setDeleteTarget(null)}
+                  className="steel-btn-secondary rounded-xl px-4 py-2 text-xs font-bold"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => void handleConfirmDelete()}
+                  className="steel-btn-danger rounded-xl px-5 py-2 text-xs font-bold"
+                >
+                  {deleting ? 'جاري الحذف...' : 'حذف نهائياً'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

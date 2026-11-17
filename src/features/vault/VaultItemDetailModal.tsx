@@ -52,8 +52,8 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
   const renderSecretGroup = (title: string, entries: SecretEntry[]) => {
     if (entries.length === 0) return null;
     return (
-      <div className="space-y-2 border-t border-white/8 pt-4">
-        <h4 className="flex items-center gap-1.5 text-xs font-bold text-[#e5b440]">
+      <div className="space-y-2 border-t border-white/10 pt-4">
+        <h4 className="flex items-center gap-1.5 text-xs font-bold text-[#76e5ff]">
           <KeyRound className="h-3.5 w-3.5" />
           {title}
         </h4>
@@ -63,13 +63,13 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
             return (
               <div
                 key={entry.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0a0e0e] px-3.5 py-2.5"
+                className="steel-recess-deep flex flex-wrap items-center justify-between gap-2 rounded-xl px-3.5 py-2.5"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-[#93a19f]">{entry.label || 'قيمة سرية'}</p>
+                  <p className="text-xs font-semibold text-[#94a4a9]">{entry.label || 'قيمة سرية'}</p>
                   <p
                     dir="ltr"
-                    className="font-mono-tabular mt-0.5 truncate text-left text-sm text-[#f3f6f5]"
+                    className="font-mono-tabular mt-0.5 truncate text-left text-sm text-[#f2f5f5]"
                   >
                     {revealed ? entry.value : '••••••••••••••••••••'}
                   </p>
@@ -79,7 +79,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
                     type="button"
                     onClick={() => toggleReveal(entry.id)}
                     aria-label={revealed ? 'إخفاء' : 'إظهار'}
-                    className="rounded-lg p-2 text-[#93a19f] transition hover:bg-white/5 hover:text-white"
+                    className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
                   >
                     {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -87,7 +87,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
                     type="button"
                     onClick={() => onCopySecret(entry.value, entry.label || title, true)}
                     aria-label="نسخ"
-                    className="rounded-lg p-2 text-[#93a19f] transition hover:bg-white/5 hover:text-[#ffd365]"
+                    className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -105,24 +105,24 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
       dir="rtl"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm sm:p-6"
     >
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#101616] shadow-2xl">
-        {/* Top Bar */}
-        <div className="flex items-start justify-between gap-4 border-b border-white/8 px-6 py-4">
+      <div className="steel-modal-shell flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl p-1.5 shadow-2xl">
+        {/* Raised Steel Title Strip */}
+        <div className="flex items-start justify-between gap-4 px-4 py-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-bold text-[#f3f6f5]">{item.title}</h2>
-            <p className="mt-1 text-xs text-[#8b9997]">
+            <h2 className="truncate text-lg font-extrabold text-[#161e21]">{item.title}</h2>
+            <p className="mt-0.5 text-xs font-semibold text-[#2d3a3f]">
               {categoryName || 'بدون تصنيف'} · آخر تحديث {formatArabicDate(item.updatedAt)}
             </p>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => onToggleFavorite(item)}
               aria-label="تبديل المفضلة"
               className={`rounded-lg p-2 transition ${
                 item.isFavorite
-                  ? 'text-[#ffd365] hover:bg-white/5'
-                  : 'text-[#8b9997] hover:bg-white/5 hover:text-white'
+                  ? 'text-[#d7aa45] drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]'
+                  : 'text-[#2d3a3f] hover:bg-black/10 hover:text-[#161e21]'
               }`}
             >
               <Star className={`h-4 w-4 ${item.isFavorite ? 'fill-current' : ''}`} />
@@ -131,27 +131,27 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="إغلاق"
-              className="rounded-lg p-2 text-[#8b9997] transition hover:bg-white/5 hover:text-white"
+              className="rounded-lg p-2 text-[#2d3a3f] transition hover:bg-black/10 hover:text-[#161e21]"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
+        {/* Dark Recessed Body */}
+        <div className="steel-modal-body flex-1 space-y-4 overflow-y-auto rounded-t-xl p-5">
           {item.username ? (
-            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-[#0a0e0e] px-4 py-3">
+            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
               <div>
-                <p className="text-xs text-[#8b9997]">اسم المستخدم</p>
-                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-white">
+                <p className="text-xs text-[#94a4a9]">اسم المستخدم</p>
+                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-[#f2f5f5]">
                   {item.username}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => onCopySecret(item.username!, 'اسم المستخدم', false)}
-                className="rounded-lg p-2 text-[#93a19f] hover:bg-white/5 hover:text-[#ffd365]"
+                className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
               >
                 <Copy className="h-4 w-4" />
               </button>
@@ -159,17 +159,17 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
           ) : null}
 
           {item.email ? (
-            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-[#0a0e0e] px-4 py-3">
+            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
               <div>
-                <p className="text-xs text-[#8b9997]">البريد الإلكتروني</p>
-                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-white">
+                <p className="text-xs text-[#94a4a9]">البريد الإلكتروني</p>
+                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-[#f2f5f5]">
                   {item.email}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => onCopySecret(item.email!, 'البريد الإلكتروني', false)}
-                className="rounded-lg p-2 text-[#93a19f] hover:bg-white/5 hover:text-[#ffd365]"
+                className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
               >
                 <Copy className="h-4 w-4" />
               </button>
@@ -177,10 +177,10 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
           ) : null}
 
           {item.password ? (
-            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-[#0a0e0e] px-4 py-3">
+            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-[#8b9997]">كلمة المرور</p>
-                <p dir="ltr" className="font-mono-tabular mt-0.5 truncate text-left text-sm text-white">
+                <p className="text-xs text-[#94a4a9]">كلمة المرور</p>
+                <p dir="ltr" className="font-mono-tabular mt-0.5 truncate text-left text-sm text-[#f2f5f5]">
                   {revealedKeys['__password'] ? item.password : '••••••••••••••••••••'}
                 </p>
               </div>
@@ -188,7 +188,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
                 <button
                   type="button"
                   onClick={() => toggleReveal('__password')}
-                  className="rounded-lg p-2 text-[#93a19f] hover:bg-white/5 hover:text-white"
+                  className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
                 >
                   {revealedKeys['__password'] ? (
                     <EyeOff className="h-4 w-4" />
@@ -199,7 +199,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
                 <button
                   type="button"
                   onClick={() => onCopySecret(item.password!, 'كلمة المرور', true)}
-                  className="rounded-lg p-2 text-[#93a19f] hover:bg-white/5 hover:text-[#ffd365]"
+                  className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
@@ -208,23 +208,23 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
           ) : null}
 
           {item.urls.length > 0 ? (
-            <div className="space-y-2 border-t border-white/8 pt-4">
-              <h4 className="text-xs font-bold text-[#93a19f]">الروابط</h4>
+            <div className="space-y-2 border-t border-white/10 pt-4">
+              <h4 className="text-xs font-bold text-[#c2cccf]">الروابط</h4>
               <div className="space-y-2">
                 {item.urls.map((url, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0a0e0e] px-4 py-2.5"
+                    className="steel-recess-deep flex items-center justify-between gap-2 rounded-xl px-4 py-2.5"
                   >
-                    <span dir="ltr" className="truncate text-left text-sm text-emerald-300">
+                    <span dir="ltr" className="truncate text-left text-sm text-[#76e5ff]">
                       {url}
                     </span>
                     <button
                       type="button"
                       onClick={() => onOpenUrl(url)}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
+                      className="steel-btn-secondary inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
+                      <ExternalLink className="h-3.5 w-3.5 text-[#58d9ff]" />
                       فتح آمن
                     </button>
                   </div>
@@ -240,21 +240,21 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
           {renderSecretGroup('الشهادات', item.certificates)}
 
           {item.notes ? (
-            <div className="space-y-1.5 border-t border-white/8 pt-4">
-              <h4 className="text-xs font-bold text-[#93a19f]">الملاحظات</h4>
-              <div className="whitespace-pre-wrap rounded-xl border border-white/8 bg-[#0a0e0e] p-3.5 text-sm text-[#dce3e1]">
+            <div className="space-y-1.5 border-t border-white/10 pt-4">
+              <h4 className="text-xs font-bold text-[#c2cccf]">الملاحظات</h4>
+              <div className="steel-recess-deep whitespace-pre-wrap rounded-xl p-3.5 text-sm text-[#dce2e3]">
                 {item.notes}
               </div>
             </div>
           ) : null}
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/8 px-6 py-4">
+        {/* Machined Button Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
           <button
             type="button"
             onClick={() => onDelete(item)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2 text-xs font-bold text-red-300 transition hover:bg-red-500/20"
+            className="steel-btn-danger inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold"
           >
             <Trash2 className="h-4 w-4" />
             حذف
@@ -263,7 +263,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
             <button
               type="button"
               onClick={() => onDuplicate(item)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-[#dce3e1] transition hover:bg-white/5"
+              className="steel-btn-secondary inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold"
             >
               <Files className="h-4 w-4" />
               تكرار (نسخة)
@@ -271,7 +271,7 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
             <button
               type="button"
               onClick={() => onEdit(item)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e5b440] px-4 py-2 text-xs font-bold text-[#0b0e0e] transition hover:bg-[#ffd365]"
+              className="steel-btn-primary inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold"
             >
               <Pencil className="h-4 w-4" />
               تعديل

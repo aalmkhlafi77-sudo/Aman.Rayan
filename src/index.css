@@ -1,18 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --aman-bg-top: #0c1413;
-  --aman-bg-bottom: #050808;
-  --aman-surface: #0f1515;
-  --aman-surface-elevated: #141c1c;
-  --aman-border: rgba(120, 160, 150, 0.17);
-  --aman-gold: #d4ab48;
-  --aman-gold-bright: #ffd365;
-  --aman-emerald: #4bffb3;
-  --aman-emerald-dim: #10b981;
-  --aman-crimson: #ef4444;
-  --aman-text: #f3f6f5;
-  --aman-text-muted: #93a19f;
+:root,
+[data-theme="steel"] {
+  /* Core Steel Material Scale */
+  --steel-0: #f2f5f5;
+  --steel-highlight: #dce2e3;
+  --steel-1: #cbd1d3;
+  --steel-light: #b7c0c3;
+  --steel-2: #9fa9ad;
+  --steel-mid: #7f8a8e;
+  --steel-3: #6b777b;
+  --steel-4: #354145;
+  --steel-dark: #283236;
+  --steel-5: #1e272a;
+  --steel-6: #111719;
+  --steel-deep: #090d0e;
+
+  /* Edges, Specular Light & Depth */
+  --steel-edge: rgba(220, 235, 238, 0.35);
+  --steel-edge-soft: rgba(220, 235, 238, 0.18);
+  --steel-edge-bright: rgba(255, 255, 255, 0.52);
+  --steel-shadow: rgba(9, 13, 14, 0.45);
+  --steel-rim-top: rgba(255, 255, 255, 0.42);
+  --steel-rim-bottom: rgba(0, 0, 0, 0.36);
+
+  /* Controlled Accents */
+  --accent-cyan: #58d9ff;
+  --accent-cyan-bright: #76e5ff;
+  --accent-emerald: #36e5a4;
+  --accent-emerald-bright: #58f3bc;
+  --accent-gold: #d7aa45;
+  --accent-gold-bright: #f0c761;
+  --accent-red: #d95c5c;
+
+  /* Optical Typography Pairs */
+  --text-on-steel: #161e21;
+  --text-on-steel-muted: #2d3a3f;
+  --text-on-dark: #f2f5f5;
+  --text-on-dark-muted: #c2cccf;
+  --text-on-dark-subtle: #94a4a9;
 }
 
 * {
@@ -25,11 +51,34 @@ body,
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #050808;
-  color: var(--aman-text);
+  background-color: var(--steel-deep);
+  color: var(--text-on-dark);
   font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--steel-3) var(--steel-6);
+}
+
+/* Thin Dark-Metal Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--steel-6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--steel-mid), var(--steel-4));
+  border-radius: 9999px;
+  border: 1px solid rgba(220, 235, 238, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--steel-2), var(--steel-3));
+  border-color: rgba(88, 217, 255, 0.55);
 }
 
 .font-mono-tabular {
@@ -37,29 +86,23 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
-/* Main Dark Studio Safe Atmosphere */
+/* =====================================================
+   MAIN BRUSHED STEEL STUDIO BACKGROUND
+   ===================================================== */
 .aman-safe-bg {
   position: relative;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.03), transparent 45%),
-    radial-gradient(circle at 50% 34%, rgba(16, 98, 70, 0.14), transparent 44%),
-    linear-gradient(180deg, #0c1413 0%, #050808 100%);
-}
-
-.aman-safe-bg::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.011) 0px,
-    rgba(255, 255, 255, 0.011) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  opacity: 0.4;
+    radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.08), transparent 44%),
+    radial-gradient(circle at 52% 28%, rgba(88, 217, 255, 0.07), transparent 46%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.016) 0px,
+      rgba(255, 255, 255, 0.016) 1px,
+      rgba(0, 0, 0, 0.022) 2px,
+      rgba(0, 0, 0, 0.022) 3px
+    ),
+    linear-gradient(145deg, #3b474b 0%, #6b777b 34%, #414c50 66%, #20292c 100%);
 }
 
 .aman-ambient-glow {
@@ -67,58 +110,429 @@ body,
   top: -110px;
   left: 50%;
   transform: translateX(-50%);
-  width: 660px;
+  width: 680px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(22, 118, 84, 0.13) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(88, 217, 255, 0.11) 0%, transparent 68%);
   pointer-events: none;
 }
 
-/* Compact Centered 3D Security Console Panel */
+/* =====================================================
+   REUSABLE STEEL MATERIAL SURFACES (DASHBOARD & MODALS)
+   ===================================================== */
+.steel-sidebar {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.05), transparent 34%),
+    linear-gradient(180deg, #384347 0%, #273135 55%, #1e2629 100%);
+  border-left: 1px solid rgba(220, 235, 238, 0.24);
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.14),
+    4px 0 22px rgba(9, 13, 14, 0.34);
+}
+
+.steel-topbar {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.09), transparent 36%),
+    linear-gradient(180deg, #4b575c 0%, #343f43 100%);
+  border-bottom: 1px solid rgba(220, 235, 238, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(9, 13, 14, 0.45),
+    0 6px 18px rgba(9, 13, 14, 0.24);
+}
+
+/* Machined Brushed-Steel Outer Plate (Sections, Header Strips, Equipment Bays) */
+.steel-plate {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 30%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
+      rgba(0, 0, 0, 0.015) 2px,
+      rgba(0, 0, 0, 0.015) 3px
+    ),
+    linear-gradient(145deg, #aeb7ba 0%, #94a0a4 45%, #778387 100%);
+  border: 1px solid rgba(220, 235, 238, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.32),
+    0 12px 28px rgba(0, 0, 0, 0.28);
+  color: var(--text-on-steel);
+}
+
+/* Dark Brushed-Steel Structural Module */
+.steel-module-dark {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.05), transparent 30%),
+    linear-gradient(180deg, #2d373b 0%, #1d2528 100%);
+  border: 1px solid rgba(220, 235, 238, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.48),
+    0 10px 24px rgba(9, 13, 14, 0.3);
+  color: var(--text-on-dark);
+}
+
+/* Vault Item Card: Steel Outer Frame + Machined Strip + Dark Recessed Bay */
+.steel-card-module {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.13), transparent 28%),
+    linear-gradient(145deg, #aeb7ba 0%, #869296 52%, #6d797d 100%);
+  border: 1px solid rgba(220, 235, 238, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.32),
+    0 10px 24px rgba(9, 13, 14, 0.28);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.steel-card-module:hover {
+  border-color: rgba(118, 229, 255, 0.65);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(88, 217, 255, 0.22),
+    0 14px 28px rgba(9, 13, 14, 0.34);
+}
+
+.steel-card-bay {
+  background: linear-gradient(180deg, #30393c 0%, #1e2729 100%);
+  border: 1px solid rgba(9, 13, 14, 0.55);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.52),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--text-on-dark);
+}
+
+/* Deep Recessed Instrument Slot (Secret Fields, Inputs, Search, Selects) */
+.steel-recess {
+  background: linear-gradient(180deg, #1d2528 0%, #13191b 100%);
+  border: 1px solid rgba(220, 235, 238, 0.16);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--text-on-dark);
+}
+
+.steel-recess-deep {
+  background: linear-gradient(180deg, #12181a 0%, #1d2528 100%);
+  border: 1px solid rgba(220, 235, 238, 0.14);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.68),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--text-on-dark);
+}
+
+.steel-input {
+  background: linear-gradient(180deg, #20282b 0%, #151b1d 100%);
+  border: 1px solid rgba(220, 235, 238, 0.18);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+  color: var(--text-on-dark);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.steel-input::placeholder {
+  color: #88989d;
+}
+
+.steel-input:focus {
+  outline: none;
+  border-color: rgba(88, 217, 255, 0.78);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(88, 217, 255, 0.28),
+    0 0 12px rgba(88, 217, 255, 0.14);
+}
+
+.steel-search {
+  background: linear-gradient(180deg, #313b3e 0%, #1f292c 100%);
+  border: 1px solid rgba(220, 235, 238, 0.22);
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  color: var(--text-on-dark);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.steel-search::placeholder {
+  color: #9baab0;
+}
+
+.steel-search:focus {
+  outline: none;
+  border-color: rgba(88, 217, 255, 0.78);
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(88, 217, 255, 0.16);
+}
+
+/* Raised Brushed-Silver Primary Control */
+.steel-btn-primary {
+  background: linear-gradient(180deg, #f2f5f5 0%, #c1cacd 48%, #8e9a9e 100%);
+  color: var(--text-on-steel);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.85),
+    inset 0 -3px 5px rgba(45, 55, 60, 0.35),
+    0 6px 12px rgba(9, 13, 14, 0.28);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 140ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.steel-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.04);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 5px rgba(45, 55, 60, 0.32),
+    0 0 10px rgba(88, 217, 255, 0.2),
+    0 8px 14px rgba(9, 13, 14, 0.32);
+}
+
+.steel-btn-primary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.24);
+}
+
+.steel-btn-primary:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+/* Dark Steel Secondary Control */
+.steel-btn-secondary {
+  background: linear-gradient(180deg, #3c484d 0%, #263034 100%);
+  color: var(--text-on-dark);
+  border: 1px solid rgba(220, 235, 238, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.42),
+    0 4px 8px rgba(9, 13, 14, 0.24);
+  transition: transform 140ms ease, border-color 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+
+.steel-btn-secondary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  border-color: rgba(118, 229, 255, 0.5);
+}
+
+.steel-btn-secondary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.48);
+}
+
+.steel-btn-secondary:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+/* Destructive Dark Steel Control with Muted Red Illuminated Edge */
+.steel-btn-danger {
+  background: linear-gradient(180deg, #38272a 0%, #221719 100%);
+  color: #f4c6c6;
+  border: 1px solid rgba(217, 92, 92, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.48),
+    0 0 10px rgba(217, 92, 92, 0.14),
+    0 4px 8px rgba(9, 13, 14, 0.28);
+  transition: transform 140ms ease, filter 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.steel-btn-danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+  border-color: rgba(217, 92, 92, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 14px rgba(217, 92, 92, 0.24);
+}
+
+.steel-btn-danger:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.55);
+}
+
+.steel-btn-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Emerald Accent Steel Action (Commit / Restore / Confirm) */
+.steel-btn-emerald {
+  background: linear-gradient(180deg, #2d443e 0%, #1c2c28 100%);
+  color: #dcfaef;
+  border: 1px solid rgba(54, 229, 164, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(54, 229, 164, 0.15),
+    0 4px 8px rgba(9, 13, 14, 0.26);
+  transition: transform 140ms ease, border-color 160ms ease, filter 160ms ease;
+}
+
+.steel-btn-emerald:hover:not(:disabled) {
+  filter: brightness(1.1);
+  border-color: rgba(88, 243, 188, 0.8);
+}
+
+.steel-btn-emerald:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.52);
+}
+
+.steel-btn-emerald:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Sidebar Navigation Buttons */
+.steel-nav-item {
+  color: var(--text-on-dark-muted);
+  border: 1px solid transparent;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.steel-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--steel-0);
+}
+
+.steel-nav-item--active {
+  background: linear-gradient(180deg, #435156 0%, #2c373b 100%);
+  color: var(--steel-0);
+  border: 1px solid rgba(88, 217, 255, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 12px rgba(88, 217, 255, 0.14);
+}
+
+/* Engraved Metal Category Tag */
+.steel-tag {
+  background: linear-gradient(180deg, #252e31 0%, #192023 100%);
+  border: 1px solid rgba(220, 235, 238, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: var(--text-on-dark-muted);
+}
+
+.steel-tag--active {
+  border-color: rgba(88, 217, 255, 0.65);
+  color: var(--steel-0);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 10px rgba(88, 217, 255, 0.16);
+}
+
+/* Modal Outer Brushed Steel Frame & Inner Recessed Shell */
+.steel-modal-shell {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.12), transparent 30%),
+    linear-gradient(145deg, #aeb7ba 0%, #838f93 52%, #687478 100%);
+  border: 1px solid rgba(220, 235, 238, 0.5);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.58),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+    0 24px 60px rgba(9, 13, 14, 0.58);
+}
+
+.steel-modal-body {
+  background: linear-gradient(180deg, #263034 0%, #192023 100%);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.55);
+}
+
+/* Table Header Brushed Steel Strip */
+.steel-table-head {
+  background: linear-gradient(180deg, #a7b1b4 0%, #838f93 100%);
+  border-bottom: 1px solid rgba(9, 13, 14, 0.45);
+  color: var(--text-on-steel);
+}
+
+.steel-table-row {
+  background: rgba(25, 33, 36, 0.92);
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.steel-table-row:nth-child(even) {
+  background: rgba(33, 42, 46, 0.92);
+}
+
+.steel-table-row:hover {
+  background: rgba(45, 58, 63, 0.98);
+  box-shadow: inset 2px 0 0 var(--accent-cyan);
+}
+
+/* Physical Mechanical Toggle Switch Slot */
+.steel-switch-slot {
+  background: linear-gradient(180deg, #13191b 0%, #1d2528 100%);
+  border: 1px solid rgba(220, 235, 238, 0.16);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.68);
+}
+
+.steel-switch-lever {
+  background: linear-gradient(180deg, #ecefef 0%, #b7c0c3 55%, #899599 100%);
+  color: var(--text-on-steel);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* =====================================================
+   STAINLESS-STEEL SAFE CONTROL PANEL (PIN SCREEN)
+   ===================================================== */
 .aman-pin-card {
   position: relative;
   overflow: hidden;
   width: min(612px, calc(100vw - 28px));
   max-height: calc(100vh - 28px);
   border-radius: 30px;
-  background: linear-gradient(145deg, rgba(21, 31, 31, 0.97), rgba(8, 13, 13, 0.99));
-  border: 1px solid rgba(120, 160, 150, 0.17);
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 30%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.018) 0px,
+      rgba(255, 255, 255, 0.018) 1px,
+      rgba(0, 0, 0, 0.018) 2px,
+      rgba(0, 0, 0, 0.018) 3px
+    ),
+    linear-gradient(145deg, #6b777b 0%, #9fa9ad 24%, #6a767a 56%, #414d51 86%, #2f393c 100%);
+  border: 1px solid rgba(220, 235, 238, 0.46);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.75),
-    0 28px 70px rgba(0, 0, 0, 0.55);
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.62),
+    inset 0 -2px 5px rgba(9, 13, 14, 0.55),
+    0 26px 64px rgba(9, 13, 14, 0.55);
   transition: border-color 280ms ease, box-shadow 280ms ease;
 }
 
-/* Subtle top-left metallic studio sheen on panel edge */
 .aman-pin-card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(
-    138deg,
-    rgba(255, 255, 255, 0.045) 0%,
-    rgba(255, 255, 255, 0.008) 26%,
-    transparent 52%
-  );
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, transparent 18%, transparent 88%, rgba(0, 0, 0, 0.18) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, transparent 10%, transparent 90%, rgba(0, 0, 0, 0.12) 100%);
 }
 
-/* Localized faint emerald reflection strictly behind lock area */
+/* Localized Atmospheric Reflection Behind Lock & Top/Bottom Bevel Glints */
 .aman-card-lock-backdrop {
   position: absolute;
-  top: 8px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 300px;
-  height: 156px;
+  width: 310px;
+  height: 162px;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(
     ellipse at 50% 48%,
-    rgba(28, 132, 92, 0.22) 0%,
-    rgba(16, 84, 58, 0.08) 46%,
+    rgba(88, 217, 255, 0.24) 0%,
+    rgba(88, 217, 255, 0.08) 46%,
     transparent 74%
   );
   transition: opacity 320ms ease, transform 320ms ease, background 320ms ease;
@@ -127,8 +541,8 @@ body,
 .aman-pin-card--unlocked .aman-card-lock-backdrop {
   background: radial-gradient(
     ellipse at 50% 48%,
-    rgba(75, 255, 179, 0.26) 0%,
-    rgba(20, 148, 100, 0.11) 48%,
+    rgba(54, 229, 164, 0.28) 0%,
+    rgba(54, 229, 164, 0.1) 48%,
     transparent 76%
   );
   transform: translateX(-50%) scale(1.06);
@@ -137,12 +551,11 @@ body,
 .aman-pin-card--error .aman-card-lock-backdrop {
   background: radial-gradient(
     ellipse at 50% 48%,
-    rgba(239, 68, 68, 0.16) 0%,
+    rgba(217, 92, 92, 0.22) 0%,
     transparent 70%
   );
 }
 
-/* Localized emerald edge glint along bottom rim when unlocked */
 .aman-card-bottom-reflection {
   position: absolute;
   bottom: 0;
@@ -150,39 +563,45 @@ body,
   right: 16%;
   height: 2px;
   pointer-events: none;
-  opacity: 0;
+  opacity: 0.68;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(75, 255, 179, 0.52) 50%,
+    rgba(118, 229, 255, 0.62) 50%,
     transparent 100%
   );
-  filter: blur(1px);
-  transition: opacity 320ms ease;
+  filter: blur(0.6px);
+  transition: opacity 320ms ease, background 320ms ease;
 }
 
 .aman-pin-card--unlocked .aman-card-bottom-reflection {
   opacity: 1;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(54, 229, 164, 0.85) 50%,
+    transparent 100%
+  );
 }
 
 .aman-pin-card--error {
-  border-color: rgba(239, 68, 68, 0.45);
+  border-color: rgba(217, 92, 92, 0.62);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
-    0 0 26px rgba(239, 68, 68, 0.12),
-    0 28px 70px rgba(0, 0, 0, 0.58);
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 5px rgba(9, 13, 14, 0.55),
+    0 0 26px rgba(217, 92, 92, 0.18),
+    0 26px 64px rgba(9, 13, 14, 0.58);
 }
 
 .aman-pin-card--unlocked {
-  border-color: rgba(75, 255, 179, 0.32);
+  border-color: rgba(54, 229, 164, 0.52);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -2px 10px rgba(75, 255, 179, 0.10),
-    0 28px 70px rgba(0, 0, 0, 0.58);
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 10px rgba(54, 229, 164, 0.16),
+    0 26px 64px rgba(9, 13, 14, 0.56);
 }
 
-/* Specular sweep on unlock only */
+/* Specular Sweep on Unlock Only */
 .aman-pin-card::after {
   content: '';
   position: absolute;
@@ -191,7 +610,7 @@ body,
   background: linear-gradient(
     110deg,
     transparent 35%,
-    rgba(75, 255, 179, 0.11) 48%,
+    rgba(88, 243, 188, 0.16) 48%,
     transparent 58%
   );
   transform: translateX(-125%);
@@ -208,7 +627,7 @@ body,
 }
 
 /* =====================================================
-   3D MECHANICAL PADLOCK (CSS + SVG + DOM, ~122px high)
+   3D BRUSHED STEEL MECHANICAL PADLOCK
    ===================================================== */
 .aman-lock-shell {
   position: relative;
@@ -224,17 +643,17 @@ body,
   inset: -14px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(21, 105, 76, 0.22) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(88, 217, 255, 0.28) 0%, transparent 68%);
   transition: background 320ms ease, transform 320ms ease;
 }
 
 .aman-lock--unlocked .aman-lock-aura {
-  background: radial-gradient(circle, rgba(75, 255, 179, 0.30) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(54, 229, 164, 0.34) 0%, transparent 70%);
   transform: scale(1.08);
 }
 
 .aman-lock--error .aman-lock-aura {
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.22) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(217, 92, 92, 0.28) 0%, transparent 68%);
 }
 
 .aman-lock-assembly {
@@ -262,21 +681,23 @@ body,
 
 .aman-lock-shackle-svg {
   display: block;
-  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.48));
+  filter: drop-shadow(0 8px 10px rgba(9, 13, 14, 0.52));
 }
 
 .aman-lock-body {
   position: relative;
   z-index: 2;
-  width: 82px;
+  width: 84px;
   height: 62px;
-  border-radius: 19px;
-  background: linear-gradient(145deg, #253031, #111718 48%, #080b0c);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 17px;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.22) 0%, transparent 38%),
+    linear-gradient(145deg, #c7cfd1 0%, #8c979b 30%, #4b565a 70%, #242d30 100%);
+  border: 1px solid rgba(242, 245, 245, 0.55);
   box-shadow:
-    inset 2px 2px 2px rgba(255, 255, 255, 0.11),
-    inset -3px -4px 5px rgba(0, 0, 0, 0.75),
-    0 12px 18px rgba(0, 0, 0, 0.48);
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.65),
+    inset -3px -4px 5px rgba(9, 13, 14, 0.62),
+    0 12px 20px rgba(9, 13, 14, 0.48);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,13 +705,30 @@ body,
 }
 
 .aman-lock--unlocked .aman-lock-body {
-  border-color: rgba(75, 255, 179, 0.24);
+  border-color: rgba(88, 243, 188, 0.62);
   box-shadow:
-    inset 2px 2px 2px rgba(255, 255, 255, 0.13),
-    inset -3px -4px 5px rgba(0, 0, 0, 0.78),
-    0 6px 14px rgba(75, 255, 179, 0.14),
-    0 12px 18px rgba(0, 0, 0, 0.48);
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.68),
+    inset -3px -4px 5px rgba(9, 13, 14, 0.64),
+    0 6px 16px rgba(54, 229, 164, 0.25),
+    0 12px 20px rgba(9, 13, 14, 0.48);
 }
+
+/* 4 Machined Corner Rivets */
+.aman-lock-rivet {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #eef2f3 0%, #6b777b 55%, #1c2427 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.72),
+    0 0.5px 0 rgba(255, 255, 255, 0.45);
+}
+
+.aman-lock-rivet--tl { top: 5px; left: 6px; }
+.aman-lock-rivet--tr { top: 5px; right: 6px; }
+.aman-lock-rivet--bl { bottom: 5px; left: 6px; }
+.aman-lock-rivet--br { bottom: 5px; right: 6px; }
 
 .aman-lock-collar {
   position: absolute;
@@ -298,19 +736,14 @@ body,
   width: 14px;
   height: 5px;
   border-radius: 999px;
-  background: radial-gradient(circle, #030505 46%, #454f50 100%);
+  background: radial-gradient(circle, #090d0e 46%, #8c979b 100%);
   box-shadow:
-    inset 0 2px 3px rgba(0, 0, 0, 0.96),
-    0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 2px 3px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
-.aman-lock-collar--left {
-  left: 13px;
-}
-
-.aman-lock-collar--right {
-  right: 13px;
-}
+.aman-lock-collar--left { left: 14px; }
+.aman-lock-collar--right { right: 14px; }
 
 .aman-lock-bevel-sheen {
   position: absolute;
@@ -318,11 +751,11 @@ body,
   left: 3px;
   right: 3px;
   height: 22px;
-  border-radius: 15px 15px 8px 8px;
+  border-radius: 14px 14px 8px 8px;
   background: linear-gradient(
     162deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.03) 48%,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.06) 48%,
     transparent 100%
   );
   pointer-events: none;
@@ -330,22 +763,30 @@ body,
 
 .aman-lock-index {
   position: absolute;
-  top: 5px;
+  top: 4px;
   left: 50%;
   transform: translateX(-50%);
   width: 7px;
   height: 5px;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  background: #d4ab48;
-  transition: background-color 240ms ease;
+  background: var(--accent-cyan);
+  filter: drop-shadow(0 0 4px rgba(88, 217, 255, 0.75));
+  transition: background-color 240ms ease, filter 240ms ease;
+}
+
+.aman-lock--unlocking .aman-lock-index {
+  background: var(--accent-gold-bright);
+  filter: drop-shadow(0 0 5px rgba(240, 199, 97, 0.8));
 }
 
 .aman-lock--unlocked .aman-lock-index {
-  background: #4bffb3;
+  background: var(--accent-emerald);
+  filter: drop-shadow(0 0 5px rgba(54, 229, 164, 0.85));
 }
 
 .aman-lock--error .aman-lock-index {
-  background: #ef4444;
+  background: var(--accent-red);
+  filter: drop-shadow(0 0 5px rgba(217, 92, 92, 0.8));
 }
 
 .aman-lock-dial-recess {
@@ -355,10 +796,10 @@ body,
   height: 42px;
   padding: 2.5px;
   border-radius: 50%;
-  background: radial-gradient(circle, #050708 62%, #192122 100%);
+  background: radial-gradient(circle, #090d0e 60%, #263034 100%);
   box-shadow:
-    inset 0 3px 6px rgba(0, 0, 0, 0.96),
-    0 1px 0 rgba(255, 255, 255, 0.10);
+    inset 0 3px 6px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .aman-lock-dial-ring {
@@ -368,38 +809,50 @@ body,
   border-radius: 50%;
   background: conic-gradient(
     from 315deg,
-    #f1cf76 0deg,
-    #b68928 100deg,
-    #6c4f13 195deg,
-    #d4ab48 285deg,
-    #f1cf76 360deg
+    #f2f5f5 0deg,
+    #889498 95deg,
+    #323c40 190deg,
+    #b7c0c3 285deg,
+    #f2f5f5 360deg
   );
-  box-shadow: 0 0 8px rgba(212, 171, 72, 0.20);
+  box-shadow: 0 0 8px rgba(88, 217, 255, 0.25);
   transition: background 260ms ease, box-shadow 260ms ease;
+}
+
+.aman-lock--unlocking .aman-lock-dial-ring {
+  background: conic-gradient(
+    from 315deg,
+    #f8dc88 0deg,
+    #d7aa45 100deg,
+    #7b5c19 195deg,
+    #f0c761 285deg,
+    #f8dc88 360deg
+  );
+  box-shadow: 0 0 11px rgba(240, 199, 97, 0.45);
 }
 
 .aman-lock--unlocked .aman-lock-dial-ring {
   background: conic-gradient(
     from 315deg,
-    #82ffcb 0deg,
-    #18b87a 100deg,
-    #0b5a3c 195deg,
-    #4bffb3 285deg,
-    #82ffcb 360deg
+    #8effd8 0deg,
+    #36e5a4 100deg,
+    #116244 195deg,
+    #58f3bc 285deg,
+    #8effd8 360deg
   );
-  box-shadow: 0 0 12px rgba(75, 255, 179, 0.45);
+  box-shadow: 0 0 12px rgba(54, 229, 164, 0.5);
 }
 
 .aman-lock--error .aman-lock-dial-ring {
   background: conic-gradient(
     from 315deg,
     #fca5a5 0deg,
-    #dc2626 110deg,
+    #d95c5c 110deg,
     #7f1d1d 200deg,
-    #ef4444 290deg,
+    #d95c5c 290deg,
     #fca5a5 360deg
   );
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.38);
+  box-shadow: 0 0 10px rgba(217, 92, 92, 0.45);
 }
 
 .aman-lock-dial-face {
@@ -413,14 +866,14 @@ body,
   background:
     radial-gradient(
       circle,
-      #cfd5d4 0 8%,
-      #676f70 9% 16%,
-      #0a0d0e 17% 68%,
-      #1b2324 69% 100%
+      #dce2e3 0 8%,
+      #788488 9% 16%,
+      #0c1113 17% 68%,
+      #1e272a 69% 100%
     );
   box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.88),
-    inset 1px 1px 1px rgba(255, 255, 255, 0.08);
+    inset 0 2px 4px rgba(0, 0, 0, 0.9),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.12);
 }
 
 .aman-lock-tick {
@@ -431,14 +884,14 @@ body,
   height: 2.4px;
   margin-left: -0.5px;
   transform-origin: 50% 14.5px;
-  background: rgba(215, 224, 223, 0.38);
+  background: rgba(220, 226, 227, 0.44);
 }
 
 .aman-lock-tick--major {
   width: 1.3px;
   height: 3.4px;
   margin-left: -0.65px;
-  background: rgba(240, 245, 244, 0.85);
+  background: rgba(242, 245, 245, 0.92);
 }
 
 .aman-lock-spindle {
@@ -447,10 +900,10 @@ body,
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #cfd5d4 34%, #676f70 72%, #293031 100%);
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #d2d9db 34%, #6e7a7e 72%, #283236 100%);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.85),
-    inset 0 1px 1px rgba(255, 255, 255, 0.72);
+    inset 0 1px 1px rgba(255, 255, 255, 0.78);
 }
 
 .aman-lock-bottom-glint {
@@ -461,7 +914,7 @@ body,
   height: 2px;
   border-radius: 999px;
   opacity: 0;
-  background: linear-gradient(90deg, transparent, rgba(75, 255, 179, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(54, 229, 164, 0.85), transparent);
   transition: opacity 280ms ease;
 }
 
@@ -470,11 +923,11 @@ body,
 }
 
 .aman-lock-cast-shadow {
-  width: 78px;
+  width: 80px;
   height: 10px;
   margin-top: 3px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, transparent 72%);
+  background: radial-gradient(ellipse at center, rgba(9, 13, 14, 0.72) 0%, transparent 72%);
   filter: blur(2px);
 }
 
@@ -486,7 +939,7 @@ body,
   height: 70px;
   margin-top: -35px;
   margin-left: -35px;
-  border: 1.5px solid rgba(75, 255, 179, 0.78);
+  border: 1.5px solid rgba(54, 229, 164, 0.82);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
@@ -512,36 +965,39 @@ body,
 }
 
 /* =====================================================
-   TITLE, SUBTITLE & HELPER READABILITY
+   TITLE, SUBTITLE & HELPER READABILITY ON BRUSHED STEEL
    ===================================================== */
 .aman-safe-title {
-  color: #f3f7f6;
+  color: var(--steel-0);
   text-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.85),
-    0 1px 0 rgba(255, 255, 255, 0.08);
+    0 2px 4px rgba(9, 13, 14, 0.78),
+    0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .aman-safe-title--unlocked {
-  color: #f1fcf7;
+  color: #f3fff9;
   text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.85),
-    0 0 14px rgba(75, 255, 179, 0.36);
+    0 2px 4px rgba(9, 13, 14, 0.78),
+    0 0 14px rgba(54, 229, 164, 0.45);
 }
 
 .aman-safe-subtitle {
-  color: #b4c2c0;
+  color: #e4eaec;
+  text-shadow: 0 1px 2px rgba(9, 13, 14, 0.65);
 }
 
 .aman-safe-helper {
-  color: #96a7a4;
+  color: #dce3e5;
+  text-shadow: 0 1px 2px rgba(9, 13, 14, 0.65);
 }
 
 .aman-safe-signature {
-  color: #8b9c99;
+  color: #c5cfd2;
+  text-shadow: 0 1px 1px rgba(9, 13, 14, 0.6);
 }
 
 /* =====================================================
-   RECESSED WHEEL HOUSING + RAISED CYLINDRICAL DRUM
+   DARK GUNMETAL WHEEL HOUSING + CYLINDRICAL DRUM
    ===================================================== */
 .aman-wheels-stage {
   position: relative;
@@ -558,7 +1014,7 @@ body,
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(ellipse at center, rgba(75, 255, 179, 0.24) 0%, transparent 72%);
+  background: radial-gradient(ellipse at center, rgba(54, 229, 164, 0.3) 0%, transparent 72%);
   filter: blur(5px);
   transition: opacity 320ms ease;
 }
@@ -607,61 +1063,66 @@ body,
   gap: 11px;
 }
 
-/* Outer Recessed Safe Socket Carved Into Panel */
+/* Outer Recessed Socket Carved Into Steel Panel */
 .wheel-housing {
   position: relative;
   width: 78px;
   height: 124px;
   border-radius: 22px;
-  background: linear-gradient(145deg, #050707, #121718);
+  background: linear-gradient(145deg, #0b1012, #1c2427);
+  border: 1px solid rgba(220, 235, 238, 0.34);
   box-shadow:
-    inset 0 8px 12px rgba(0, 0, 0, 0.85),
-    inset 0 -2px 2px rgba(255, 255, 255, 0.04),
-    0 1px 0 rgba(255, 255, 255, 0.05);
-  transition: box-shadow 200ms ease;
+    inset 0 8px 12px rgba(0, 0, 0, 0.88),
+    inset 0 -2px 2px rgba(255, 255, 255, 0.08),
+    0 2px 0 rgba(255, 255, 255, 0.28);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
 }
 
+/* Cool Cyan Active Selection Rim */
 .wheel-housing--active {
+  border-color: rgba(118, 229, 255, 0.92);
   box-shadow:
-    inset 0 8px 12px rgba(0, 0, 0, 0.82),
-    inset 0 0 0 1px rgba(229, 180, 64, 0.62),
-    0 0 12px rgba(229, 180, 64, 0.24);
+    inset 0 8px 12px rgba(0, 0, 0, 0.84),
+    inset 0 0 0 1px rgba(118, 229, 255, 0.85),
+    0 0 16px rgba(88, 217, 255, 0.52);
 }
 
 .wheel-housing--error {
+  border-color: rgba(217, 92, 92, 0.88);
   box-shadow:
-    inset 0 8px 12px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 1px rgba(239, 68, 68, 0.72),
-    0 0 14px rgba(239, 68, 68, 0.24);
+    inset 0 8px 12px rgba(0, 0, 0, 0.86),
+    inset 0 0 0 1px rgba(217, 92, 92, 0.78),
+    0 0 14px rgba(217, 92, 92, 0.36);
 }
 
 .wheel-housing--unlocked {
+  border-color: rgba(54, 229, 164, 0.85);
   box-shadow:
     inset 0 8px 12px rgba(0, 0, 0, 0.82),
-    inset 0 0 0 1px rgba(75, 255, 179, 0.56),
-    0 0 14px rgba(75, 255, 179, 0.20);
+    inset 0 0 0 1px rgba(54, 229, 164, 0.7),
+    0 0 14px rgba(54, 229, 164, 0.32);
 }
 
-/* Protruding Cylindrical Drum Inside Recessed Housing */
+/* Protruding Gunmetal Cylindrical Drum Inside Recessed Housing */
 .wheel-drum {
   position: absolute;
   inset: 5px;
   border-radius: 18px;
   background: linear-gradient(
     90deg,
-    #020303 0%,
-    #090c0d 12%,
-    #171e1f 30%,
-    #252f30 50%,
-    #171e1f 70%,
-    #070a0a 88%,
-    #010202 100%
+    #070a0b 0%,
+    #13191b 12%,
+    #252f33 32%,
+    #364348 50%,
+    #242e32 68%,
+    #101517 88%,
+    #06090a 100%
   );
   box-shadow:
-    inset 7px 0 12px rgba(0, 0, 0, 0.55),
-    inset -7px 0 12px rgba(0, 0, 0, 0.65),
-    inset 0 2px 2px rgba(255, 255, 255, 0.09),
-    inset 0 -5px 8px rgba(0, 0, 0, 0.72),
+    inset 7px 0 12px rgba(0, 0, 0, 0.6),
+    inset -7px 0 12px rgba(0, 0, 0, 0.68),
+    inset 0 2px 2px rgba(255, 255, 255, 0.16),
+    inset 0 -5px 8px rgba(0, 0, 0, 0.74),
     0 7px 10px rgba(0, 0, 0, 0.55);
   transform-style: preserve-3d;
   overflow: hidden;
@@ -676,7 +1137,7 @@ body,
   box-shadow:
     inset 7px 0 12px rgba(0, 0, 0, 0.55),
     inset -7px 0 12px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 1px rgba(255, 211, 101, 0.75),
+    inset 0 0 0 1px rgba(118, 229, 255, 0.85),
     0 7px 10px rgba(0, 0, 0, 0.55);
 }
 
@@ -686,23 +1147,23 @@ body,
 
 .wheel-drum--active {
   box-shadow:
-    inset 7px 0 12px rgba(0, 0, 0, 0.52),
+    inset 7px 0 12px rgba(0, 0, 0, 0.54),
     inset -7px 0 12px rgba(0, 0, 0, 0.62),
-    inset 0 2px 2px rgba(255, 218, 128, 0.22),
+    inset 0 2px 2px rgba(118, 229, 255, 0.28),
     inset 0 -5px 8px rgba(0, 0, 0, 0.72),
-    0 7px 12px rgba(0, 0, 0, 0.60);
+    0 7px 12px rgba(0, 0, 0, 0.6);
 }
 
 .wheel-drum--unlocked {
   box-shadow:
     inset 7px 0 12px rgba(0, 0, 0, 0.52),
     inset -7px 0 12px rgba(0, 0, 0, 0.62),
-    inset 0 2px 2px rgba(75, 255, 179, 0.20),
+    inset 0 2px 2px rgba(54, 229, 164, 0.28),
     inset 0 -5px 8px rgba(0, 0, 0, 0.72),
     0 7px 12px rgba(0, 0, 0, 0.56);
 }
 
-/* Front-Face Convex Bulge Illusion */
+/* Front-Face Convex Bulge */
 .wheel-drum::before {
   content: '';
   position: absolute;
@@ -710,8 +1171,8 @@ body,
   border-radius: inherit;
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 255, 255, 0.09) 0%,
-    rgba(255, 255, 255, 0.03) 36%,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.04) 36%,
     transparent 70%
   );
   pointer-events: none;
@@ -727,12 +1188,12 @@ body,
   z-index: 3;
   background: linear-gradient(
     180deg,
-    rgba(1, 2, 2, 0.78) 0%,
-    rgba(1, 2, 2, 0.14) 24%,
+    rgba(6, 9, 10, 0.82) 0%,
+    rgba(6, 9, 10, 0.18) 24%,
     transparent 38%,
     transparent 62%,
-    rgba(1, 2, 2, 0.18) 76%,
-    rgba(1, 2, 2, 0.84) 100%
+    rgba(6, 9, 10, 0.2) 76%,
+    rgba(6, 9, 10, 0.86) 100%
   );
 }
 
@@ -746,11 +1207,11 @@ body,
   transform: translateY(-50%);
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.025),
-    rgba(255, 255, 255, 0.075),
-    rgba(0, 0, 0, 0.15)
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.12),
+    rgba(0, 0, 0, 0.18)
   );
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 1px solid rgba(0, 0, 0, 0.85);
   pointer-events: none;
   z-index: 4;
@@ -760,11 +1221,11 @@ body,
 .wheel-drum--active .wheel-center-band {
   background: linear-gradient(
     180deg,
-    rgba(255, 214, 110, 0.045),
-    rgba(255, 255, 255, 0.10),
-    rgba(0, 0, 0, 0.16)
+    rgba(88, 217, 255, 0.09),
+    rgba(255, 255, 255, 0.14),
+    rgba(0, 0, 0, 0.18)
   );
-  border-top-color: rgba(255, 218, 128, 0.22);
+  border-top-color: rgba(118, 229, 255, 0.34);
 }
 
 .wheel-perspective {
@@ -785,7 +1246,7 @@ body,
 
 .wheel-drum--spinning .wheel-rail {
   will-change: transform, filter;
-  filter: blur(1.2px) brightness(0.84);
+  filter: blur(1.2px) brightness(0.86);
 }
 
 .wheel-digit {
@@ -799,37 +1260,37 @@ body,
   transition: opacity 160ms ease, transform 180ms ease, color 160ms ease, text-shadow 160ms ease;
 }
 
-/* Deeply Engraved Center Selected Digit */
+/* Deeply Engraved Light Machined Silver Center Digit */
 .wheel-digit--active {
   font-size: 28px;
   font-weight: 800;
-  color: #eef2f1;
-  -webkit-text-stroke: 0.45px rgba(0, 0, 0, 0.70);
+  color: #f2f5f5;
+  -webkit-text-stroke: 0.45px rgba(9, 13, 14, 0.72);
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.40),
+    0 1px 0 rgba(255, 255, 255, 0.48),
     0 -2px 2px rgba(0, 0, 0, 0.95),
-    1px 2px 2px rgba(0, 0, 0, 0.80);
+    1px 2px 2px rgba(0, 0, 0, 0.82);
   transform: translateZ(8px) scale(1.03);
 }
 
 .wheel-digit--placeholder {
   font-size: 22px;
   font-weight: 700;
-  color: #8d9c9a;
+  color: #aeb8bc;
   text-shadow:
     0 -1px 2px rgba(0, 0, 0, 0.92),
-    0 1px 0 rgba(255, 255, 255, 0.22);
+    0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Readable Receding Drum Digits Above & Below */
+/* Medium Steel Gray Side Digits */
 .wheel-digit--side {
   font-size: 16px;
   font-weight: 600;
-  color: #93a19f;
-  opacity: 0.72;
+  color: #9ba8ac;
+  opacity: 0.78;
   text-shadow:
-    0 -1px 1px rgba(0, 0, 0, 0.92),
-    0 1px 0 rgba(255, 255, 255, 0.14);
+    0 -1px 1px rgba(0, 0, 0, 0.94),
+    0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .wheel-digit--prev {
@@ -840,7 +1301,7 @@ body,
   transform: rotateX(-24deg) scale(0.88);
 }
 
-/* Specular Light Reflection Flash ONLY on Wheel Spin */
+/* Specular Reflection Flash ONLY on Wheel Spin */
 .wheel-specular {
   position: absolute;
   inset: 0;
@@ -856,7 +1317,7 @@ body,
   background: linear-gradient(
     110deg,
     transparent 35%,
-    rgba(255, 255, 255, 0.13) 48%,
+    rgba(255, 255, 255, 0.16) 48%,
     transparent 58%
   );
   transform: translateY(-100%);
@@ -882,7 +1343,7 @@ body,
 }
 
 /* =====================================================
-   EMBEDDED PHYSICAL LED INDICATORS
+   EMBEDDED PHYSICAL STEEL / CYAN LED INDICATORS
    ===================================================== */
 .aman-led-socket {
   display: inline-flex;
@@ -890,10 +1351,10 @@ body,
   justify-content: center;
   padding: 2.5px;
   border-radius: 999px;
-  background: #050708;
+  background: #141b1d;
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.96),
-    0 1px 0 rgba(255, 255, 255, 0.06);
+    0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 .wheel-led {
@@ -904,17 +1365,16 @@ body,
   background: radial-gradient(
     circle at 35% 30%,
     #ffffff,
-    currentColor 30%,
-    #07100e 72%
+    currentColor 34%,
+    #0b1113 76%
   );
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.45),
-    0 0 5px currentColor,
-    0 0 12px color-mix(in srgb, currentColor 55%, transparent);
+    inset 0 1px 1px rgba(255, 255, 255, 0.55),
+    0 0 6px currentColor,
+    0 0 13px color-mix(in srgb, currentColor 60%, transparent);
   transition: color 180ms ease, box-shadow 180ms ease;
 }
 
-/* Surface reflection bloom halo */
 .wheel-led::before {
   content: '';
   position: absolute;
@@ -927,30 +1387,30 @@ body,
 }
 
 .wheel-led--empty {
-  color: #2f403e;
+  color: #465357;
   background: radial-gradient(
     circle at 35% 30%,
-    rgba(255, 255, 255, 0.25),
-    #2f403e 38%,
-    #07100e 82%
+    rgba(255, 255, 255, 0.42),
+    #465357 42%,
+    #111719 85%
   );
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.88);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .wheel-led--entered {
-  color: #e5b440;
+  color: var(--accent-cyan);
 }
 
 .wheel-led--gold-flash {
-  color: #ffd365;
+  color: var(--accent-gold-bright);
 }
 
 .wheel-led--emerald {
-  color: #4bffb3;
+  color: var(--accent-emerald);
 }
 
 .wheel-led--error {
-  color: #ef4444;
+  color: var(--accent-red);
   animation: amanLedErrorPulse 420ms ease-in-out;
 }
 
@@ -995,7 +1455,7 @@ body,
 }
 
 /* =====================================================
-   RAISED PHYSICAL METALLIC CAPSULE BUTTON
+   RAISED BRUSHED SILVER CAPSULE BUTTON (UNLOCK)
    ===================================================== */
 .aman-unlock-btn {
   width: 224px;
@@ -1008,56 +1468,73 @@ body,
 }
 
 .aman-unlock-btn--ready {
-  background: linear-gradient(180deg, #fafcfc, #ced6d7 48%, #a6b1b1);
-  color: #090e0e;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, #f0f3f3 0%, #bdc6c8 48%, #8e9a9e 100%);
+  color: var(--text-on-steel);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   box-shadow:
-    inset 0 2px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -5px 7px rgba(60, 70, 70, 0.34),
-    0 11px 16px rgba(0, 0, 0, 0.48);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    inset 0 2px 1px rgba(255, 255, 255, 0.92),
+    inset 0 -5px 7px rgba(45, 55, 60, 0.36),
+    0 0 12px rgba(88, 217, 255, 0.24),
+    0 11px 18px rgba(9, 13, 14, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.52);
   cursor: pointer;
 }
 
 .aman-unlock-btn--ready:hover:not(:disabled) {
-  background: linear-gradient(180deg, #ffffff, #d8e0e0 48%, #b1bcbc);
+  background: linear-gradient(180deg, #ffffff 0%, #ccd4d6 48%, #9ba7ab 100%);
   transform: translateY(-1px);
   box-shadow:
     inset 0 2px 1px rgba(255, 255, 255, 0.98),
-    inset 0 -5px 7px rgba(60, 70, 70, 0.30),
-    0 13px 20px rgba(0, 0, 0, 0.54);
+    inset 0 -5px 7px rgba(45, 55, 60, 0.32),
+    0 0 16px rgba(118, 229, 255, 0.36),
+    0 13px 20px rgba(9, 13, 14, 0.52);
 }
 
 .aman-unlock-btn--ready:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow:
-    inset 0 3px 8px rgba(0, 0, 0, 0.28),
-    0 3px 6px rgba(0, 0, 0, 0.36);
+    inset 0 4px 8px rgba(0, 0, 0, 0.35),
+    0 3px 6px rgba(0, 0, 0, 0.34);
 }
 
 .aman-unlock-btn--disabled {
-  background: linear-gradient(180deg, #212a2b 0%, #13191a 52%, #0a0e0f 100%);
-  color: rgba(232, 240, 238, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #3c474b 0%, #273135 55%, #1c2427 100%);
+  color: rgba(242, 245, 245, 0.68);
+  border: 1px solid rgba(220, 235, 238, 0.24);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.65),
-    0 7px 12px rgba(0, 0, 0, 0.42);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.6),
+    0 7px 14px rgba(9, 13, 14, 0.38);
   cursor: not-allowed;
 }
 
 .aman-unlock-btn--unlocked {
   background: linear-gradient(180deg, #f3fcf8 0%, #c8e3d9 50%, #96beb0 100%);
-  color: #06150f;
-  border: 1px solid rgba(160, 255, 218, 0.62);
+  color: #091c14;
+  border: 1px solid rgba(88, 243, 188, 0.72);
   box-shadow:
     inset 0 2px 1px rgba(255, 255, 255, 0.92),
-    inset 0 -4px 6px rgba(16, 84, 58, 0.30),
-    0 0 18px rgba(75, 255, 179, 0.24),
-    0 10px 16px rgba(0, 0, 0, 0.44);
+    inset 0 -4px 6px rgba(16, 84, 58, 0.3),
+    0 0 20px rgba(54, 229, 164, 0.36),
+    0 10px 16px rgba(9, 13, 14, 0.44);
 }
 
-/* Responsive Proportional Wheel Scaling on Mobile */
+/* =====================================================
+   MOBILE RESPONSIVE SCALING (PERFORMANCE & DEPTH)
+   ===================================================== */
+@media (max-width: 640px) {
+  .aman-safe-bg {
+    background: linear-gradient(155deg, #3b474b 0%, #576367 40%, #283236 100%);
+  }
+  .steel-plate,
+  .steel-card-module,
+  .steel-modal-shell {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.38),
+      0 6px 14px rgba(9, 13, 14, 0.28);
+  }
+}
+
 @media (max-width: 580px) {
   .aman-pin-card {
     border-radius: 28px;

@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DigitWheel, type LedState } from '../../components/DigitWheel';
 import { MechanicalPadlock } from '../../components/MechanicalPadlock';
+import {
+  playKeyboardEngage,
+  playRejectMechanism,
+  playReverseDetent,
+  playUnlockMechanism,
+  playWheelDetent,
+  playWheelSettle,
+} from '../../services/mechanicalAudio';
 import { APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
@@ -30,6 +38,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   const [bootstrapToken, setBootstrapToken] = useState<string>('');
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
   const timersRef = useRef<number[]>([]);
+  const digitsRef = useRef<string[]>(digits);
+  const activeIndexRef = useRef<number>(activeIndex);
+
+  digitsRef.current = digits;
+  activeIndexRef.current = activeIndex;
 
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) {
@@ -44,7 +57,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
   // Reset local wheel state when switching between setup and locked
   useEffect(() => {
-    setDigits(['', '', '', '', '', '']);
+    const empty = ['', '', '', '', '', ''];
+    digitsRef.current = empty;
+    activeIndexRef.current = 0;
+    setDigits(empty);
     setActiveIndex(0);
     setPulseNonces([0, 0, 0, 0, 0, 0]);
     setSetupStage('create');
@@ -57,8 +73,12 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   const resetWheelsWithError = useCallback((message: string) => {
     setStatusPhase('error');
     setErrorMessage(message);
+    playRejectMechanism();
     const t = window.setTimeout(() => {
-      setDigits(['', '', '', '', '', '']);
+      const empty = ['', '', '', '', '', ''];
+      digitsRef.current = empty;
+      activeIndexRef.current = 0;
+      setDigits(empty);
       setActiveIndex(0);
       setStatusPhase('idle');
       if (mobileInputRef.current) {
@@ -80,29 +100,31 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         setErrorMessage('');
       }
 
-      setDigits((prev) => {
-        const next = [...prev];
-        let target = activeIndex;
-        if (target >= 6) target = 5;
-        next[target] = digit;
+      const prev = digitsRef.current;
+      const next = [...prev];
+      const target = Math.min(activeIndexRef.current, 5);
+      next[target] = digit;
+      digitsRef.current = next;
 
-        setPulseNonces((nonces) => {
-          const updated = [...nonces];
-          updated[target] = updated[target] + 1;
-          return updated;
-        });
-
-        const nextEmpty = next.findIndex((d, idx) => idx > target && d === '');
-        if (nextEmpty !== -1) {
-          setActiveIndex(nextEmpty);
-        } else {
+      const nextEmpty = next.findIndex((d, idx) => idx > target && d === '');
+      const resolvedNextIndex =
+        nextEmpty !== -1 ? nextEmpty : (() => {
           const anyEmpty = next.findIndex((d) => d === '');
-          setActiveIndex(anyEmpty !== -1 ? anyEmpty : 5);
-        }
-        return next;
+          return anyEmpty !== -1 ? anyEmpty : 5;
+        })();
+      activeIndexRef.current = resolvedNextIndex;
+
+      setDigits(next);
+      setActiveIndex(resolvedNextIndex);
+      setPulseNonces((nonces) => {
+        const updated = [...nonces];
+        updated[target] = updated[target] + 1;
+        return updated;
       });
+
+      playKeyboardEngage(target);
     },
-    [activeIndex, errorMessage, statusPhase]
+    [errorMessage, statusPhase]
   );
 
   const removeLastDigit = useCallback(() => {
@@ -110,29 +132,42 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
       return;
     }
     setErrorMessage('');
-    setDigits((prev) => {
-      const next = [...prev];
-      if (next[activeIndex] !== '') {
-        next[activeIndex] = '';
-        return next;
-      }
-      for (let i = Math.min(activeIndex - 1, 5); i >= 0; i--) {
-        if (next[i] !== '') {
-          next[i] = '';
-          setActiveIndex(i);
-          return next;
+    const prev = digitsRef.current;
+    const currentActive = activeIndexRef.current;
+    let removedIndex = -1;
+
+    if (prev[currentActive] !== '') {
+      removedIndex = currentActive;
+    } else {
+      for (let i = Math.min(currentActive - 1, 5); i >= 0; i--) {
+        if (prev[i] !== '') {
+          removedIndex = i;
+          break;
         }
       }
-      for (let i = 5; i >= 0; i--) {
-        if (next[i] !== '') {
-          next[i] = '';
-          setActiveIndex(i);
-          return next;
+      if (removedIndex === -1) {
+        for (let i = 5; i >= 0; i--) {
+          if (prev[i] !== '') {
+            removedIndex = i;
+            break;
+          }
         }
       }
-      return next;
-    });
-  }, [activeIndex, statusPhase]);
+    }
+
+    if (removedIndex === -1) {
+      return;
+    }
+
+    const next = [...prev];
+    next[removedIndex] = '';
+    digitsRef.current = next;
+    activeIndexRef.current = removedIndex;
+
+    setDigits(next);
+    setActiveIndex(removedIndex);
+    playReverseDetent(removedIndex);
+  }, [statusPhase]);
 
   const submitPin = useCallback(async () => {
     if (digits.some((d) => !d) || statusPhase !== 'idle') return;
@@ -140,13 +175,17 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
     if (mode === 'setup') {
       if (setupStage === 'create') {
+        const empty = ['', '', '', '', '', ''];
+        digitsRef.current = empty;
+        activeIndexRef.current = 0;
         setFirstPin(pin);
         setSetupStage('confirm');
-        setDigits(['', '', '', '', '', '']);
+        setDigits(empty);
         setActiveIndex(0);
         setPulseNonces([0, 0, 0, 0, 0, 0]);
         setErrorMessage('');
         if (mobileInputRef.current) mobileInputRef.current.value = '';
+        playWheelSettle();
         return;
       }
 
@@ -165,6 +204,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
       setStatusPhase('submitting');
       try {
         await onSetupComplete(pin, !IS_PREVIEW_MODE ? bootstrapToken.trim() : undefined);
+        playWheelSettle();
       } catch (err) {
         setStatusPhase('idle');
         resetWheelsWithError(
@@ -182,9 +222,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
       return;
     }
 
-    // 0-150ms: all six LEDs flash bright gold together
+    // 0-150ms: all six LEDs flash bright gold together + mechanical unlock audio sequence
     setStatusPhase('unlock-gold');
     setPulseNonces((prev) => prev.map((n) => n + 1));
+    playUnlockMechanism();
 
     // 150ms+: gold transitions to emerald, rings emit, shackle lifts, card sweeps
     const tEmerald = window.setTimeout(() => {
@@ -232,24 +273,34 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         setErrorMessage('');
       }
 
+      const prev = digitsRef.current;
+      const current = prev[index];
+      const nextDigit =
+        current === ''
+          ? direction > 0
+            ? '0'
+            : '9'
+          : String((Number(current) + direction + 10) % 10);
+
+      activeIndexRef.current = index;
       setActiveIndex(index);
-      setDigits((prev) => {
-        const next = [...prev];
-        const current = next[index];
-        if (current === '') {
-          // Consistent rail direction from neutral '•': upward -> '0', downward -> '9'
-          next[index] = direction > 0 ? '0' : '9';
-        } else {
-          const currentNum = Number(current);
-          next[index] = String((currentNum + direction + 10) % 10);
-        }
-        return next;
-      });
+
+      if (nextDigit === current) {
+        return;
+      }
+
+      const next = [...prev];
+      next[index] = nextDigit;
+      digitsRef.current = next;
+      setDigits(next);
+
       setPulseNonces((nonces) => {
         const updated = [...nonces];
         updated[index] = updated[index] + 1;
         return updated;
       });
+
+      playWheelDetent(index);
     },
     [errorMessage, statusPhase]
   );
@@ -307,20 +358,43 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   }, [digits, inputDigit, removeLastDigit, statusPhase, submitPin]);
 
   const handleMobileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const prevDigits = digitsRef.current;
     const raw = e.target.value.replace(/\D/g, '').slice(0, 6);
     const nextDigits = ['', '', '', '', '', ''];
     for (let i = 0; i < raw.length; i++) {
       nextDigits[i] = raw[i];
     }
+
+    let addedIdx = -1;
+    let removedIdx = -1;
+    for (let i = 0; i < 6; i++) {
+      if (nextDigits[i] && nextDigits[i] !== prevDigits[i]) {
+        addedIdx = i;
+      } else if (!nextDigits[i] && prevDigits[i]) {
+        removedIdx = i;
+      }
+    }
+
+    const nextActive = Math.min(raw.length, 5);
+    digitsRef.current = nextDigits;
+    activeIndexRef.current = nextActive;
+
     setDigits(nextDigits);
-    setActiveIndex(Math.min(raw.length, 5));
+    setActiveIndex(nextActive);
     setPulseNonces((prev) =>
-      prev.map((n, idx) => (nextDigits[idx] && nextDigits[idx] !== digits[idx] ? n + 1 : n))
+      prev.map((n, idx) => (nextDigits[idx] && nextDigits[idx] !== prevDigits[idx] ? n + 1 : n))
     );
     setErrorMessage('');
+
+    if (addedIdx !== -1) {
+      playKeyboardEngage(addedIdx);
+    } else if (removedIdx !== -1) {
+      playReverseDetent(removedIdx);
+    }
   };
 
   const handleWheelClick = (index: number) => {
+    activeIndexRef.current = index;
     setActiveIndex(index);
   };
 
@@ -463,28 +537,35 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
               }}
               placeholder="AMAN_BOOTSTRAP_TOKEN (مطلوب للتهيئة الأولى فقط)"
               aria-label="رمز التأسيس الأولي"
-              className="font-mono-tabular w-full rounded-xl border border-white/15 bg-[#070a0a] px-3.5 py-2 text-center text-xs text-[#f3f6f5] outline-none transition focus:border-[#e5b440]/80"
+              className="steel-input font-mono-tabular w-full rounded-xl px-3.5 py-2 text-center text-xs"
             />
           </div>
         ) : null}
 
         {/* 6. Short Status / Error Area */}
-        <div className="relative z-10 mt-3 flex h-6 items-center justify-center text-center">
+        <div className="relative z-10 mt-3 flex h-7 items-center justify-center text-center">
           {errorMessage ? (
-            <p role="alert" className="text-xs font-semibold text-red-400 sm:text-sm">
+            <p
+              role="alert"
+              className="steel-recess rounded-lg border-[#d95c5c]/65 px-3 py-1 text-xs font-semibold text-[#f8c4c4]"
+            >
               {errorMessage}
             </p>
           ) : mode === 'setup' && setupStage === 'confirm' ? (
             <button
               type="button"
               onClick={() => {
+                const empty = ['', '', '', '', '', ''];
+                digitsRef.current = empty;
+                activeIndexRef.current = 0;
                 setSetupStage('create');
                 setFirstPin('');
-                setDigits(['', '', '', '', '', '']);
+                setDigits(empty);
                 setActiveIndex(0);
+                playReverseDetent(0);
                 restorePinInputFocus(false);
               }}
-              className="text-xs font-medium text-[#b2bfbd] underline-offset-4 transition hover:text-[#ffd365] hover:underline"
+              className="text-xs font-semibold text-[#f2f5f5] underline-offset-4 transition hover:text-[#76e5ff] hover:underline"
             >
               تعديل الرمز الأول
             </button>

@@ -143,188 +143,196 @@ export const ExcelToolsView: React.FC<ExcelToolsViewProps> = ({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-[#f3f6f5]">أدوات Excel الحقيقية (.xlsx)</h2>
-        <p className="mt-1 text-sm text-[#8b9997]">
+        <h2 className="text-xl font-extrabold text-[#f2f5f5]">أدوات Excel الحقيقية (.xlsx)</h2>
+        <p className="mt-1 text-sm text-[#c2cccf]">
           تصدير واستيراد مصنفات .xlsx مع فحص الأعمدة والتكرار والمعاينة قبل الحفظ الذري
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {/* Export Card */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-[#101616] p-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-400">
-                <FileSpreadsheet className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">تصدير الخزنة إلى Excel (.xlsx)</h3>
+        <div className="steel-plate flex flex-col rounded-2xl p-1.5">
+          <div className="flex items-center gap-2.5 px-4 py-3">
+            <div className="steel-recess flex h-9 w-9 items-center justify-center rounded-xl text-[#36e5a4]">
+              <FileSpreadsheet className="h-5 w-5" />
             </div>
-            <p className="text-xs leading-relaxed text-[#93a19f]">
-              يتم توليد المصنف ({items.length} عنصر) محلياً داخل المتصفح بصيغة (.xlsx) دون رفع أي
-              بيانات إلى الخادم.
-            </p>
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 p-3 text-[11px] leading-relaxed text-amber-200">
-              <strong className="block font-bold text-amber-300">تحذير أمني هام:</strong>
-              ملف Excel (.xlsx) غير مشفر ويحتوي على كلمات المرور والمفاتيح كنص مقروء. للنسخ
-              الاحتياطي الآمن استخدم صيغة (.aman) المشفرة.
-            </div>
-            <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs font-semibold text-[#dce3e1]">
-              <input
-                type="checkbox"
-                checked={exportWarningConfirmed}
-                onChange={(e) => setExportWarningConfirmed(e.target.checked)}
-                className="accent-[#e5b440]"
-              />
-              <span>أفهم أن ملف Excel غير مشفر وسأحفظه في مكان آمن</span>
-            </label>
+            <h3 className="text-base font-extrabold text-[#161e21]">تصدير الخزنة إلى Excel (.xlsx)</h3>
           </div>
 
-          <button
-            type="button"
-            disabled={!exportWarningConfirmed}
-            onClick={() => void handleExport()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e5b440] px-5 py-2.5 text-sm font-bold text-[#0b0e0e] transition hover:bg-[#ffd365] disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            <Download className="h-4 w-4" />
-            تصدير ملف .xlsx
-          </button>
+          <div className="steel-modal-body flex flex-1 flex-col justify-between gap-4 rounded-xl p-5">
+            <div className="space-y-3">
+              <p className="text-xs leading-relaxed text-[#c2cccf]">
+                يتم توليد المصنف ({items.length} عنصر) محلياً داخل المتصفح بصيغة (.xlsx) دون رفع أي
+                بيانات إلى الخادم.
+              </p>
+              <div className="steel-recess-deep rounded-xl border-[#d7aa45]/45 p-3 text-[11px] leading-relaxed text-[#f0c761]">
+                <strong className="mb-0.5 block font-bold text-[#f0c761]">تحذير أمني هام:</strong>
+                ملف Excel (.xlsx) غير مشفر ويحتوي على كلمات المرور والمفاتيح كنص مقروء. للنسخ
+                الاحتياطي الآمن استخدم صيغة (.aman) المشفرة.
+              </div>
+              <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs font-semibold text-[#f2f5f5]">
+                <input
+                  type="checkbox"
+                  checked={exportWarningConfirmed}
+                  onChange={(e) => setExportWarningConfirmed(e.target.checked)}
+                  className="accent-[#58d9ff]"
+                />
+                <span>أفهم أن ملف Excel غير مشفر وسأحفظه في مكان آمن</span>
+              </label>
+            </div>
+
+            <button
+              type="button"
+              disabled={!exportWarningConfirmed}
+              onClick={() => void handleExport()}
+              className="steel-btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold"
+            >
+              <Download className="h-4 w-4" />
+              تصدير ملف .xlsx
+            </button>
+          </div>
         </div>
 
         {/* Import Picker Card */}
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-[#101616] p-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e5b440]/12 text-[#e5b440]">
-                <Upload className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">استيراد من ملف Excel (.xlsx)</h3>
+        <div className="steel-plate flex flex-col rounded-2xl p-1.5">
+          <div className="flex items-center gap-2.5 px-4 py-3">
+            <div className="steel-recess flex h-9 w-9 items-center justify-center rounded-xl text-[#76e5ff]">
+              <Upload className="h-5 w-5" />
             </div>
-            <p className="text-xs leading-relaxed text-[#93a19f]">
-              لن يتم حفظ أي سجل في قاعدة البيانات قبل فحص الملف ومعاينة النتائج وتأكيدك الصريح.
-            </p>
+            <h3 className="text-base font-extrabold text-[#161e21]">استيراد من ملف Excel (.xlsx)</h3>
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            onChange={(e) => void handleSelectFile(e)}
-            className="hidden"
-          />
+          <div className="steel-modal-body flex flex-1 flex-col justify-between gap-4 rounded-xl p-5">
+            <p className="text-xs leading-relaxed text-[#c2cccf]">
+              لن يتم حفظ أي سجل في قاعدة البيانات قبل فحص الملف ومعاينة النتائج وتأكيدك الصريح.
+            </p>
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-[#0a0e0e] px-5 py-2.5 text-sm font-bold text-[#f3f6f5] transition hover:border-[#e5b440]/60 hover:text-[#ffd365]"
-          >
-            <Upload className="h-4 w-4" />
-            اختيار ملف .xlsx للفحص
-          </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              onChange={(e) => void handleSelectFile(e)}
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="steel-btn-secondary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-[#f2f5f5]"
+            >
+              <Upload className="h-4 w-4 text-[#76e5ff]" />
+              اختيار ملف .xlsx للفحص
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Validation & Preview Stage */}
       {preview ? (
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#101616] p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 pb-4">
+        <div className="steel-plate rounded-2xl p-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-extrabold text-[#161e21]">
                 معاينة وفحص الملف: {preview.fileName}
               </h3>
-              <p className="mt-1 text-xs text-[#93a19f]">
+              <p className="mt-0.5 text-xs font-semibold text-[#2d3a3f]">
                 إجمالي الصفوف: {preview.totalRows} · صالح: {preview.validCount} · مكرر:{' '}
                 {preview.duplicateCount} · مرفوض/غير صالح: {preview.invalidCount}
               </p>
             </div>
-            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-[#dce3e1]">
+            <label className="steel-recess flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold text-[#f2f5f5]">
               <input
                 type="checkbox"
                 checked={skipDuplicates}
                 onChange={(e) => setSkipDuplicates(e.target.checked)}
-                className="accent-[#e5b440]"
+                className="accent-[#58d9ff]"
               />
               <span>تجاهل العناصر المكررة تلقائياً</span>
             </label>
           </div>
 
-          {preview.missingColumns.length > 0 ? (
-            <div className="flex items-center gap-2 rounded-xl border border-red-500/35 bg-red-500/10 p-3 text-xs font-semibold text-red-300">
-              <XCircle className="h-4 w-4 shrink-0" />
-              <span>أعمدة مطلوبة مفقودة: {preview.missingColumns.join('، ')}</span>
+          <div className="steel-modal-body space-y-4 rounded-xl p-4 sm:p-5">
+            {preview.missingColumns.length > 0 ? (
+              <div className="steel-recess-deep flex items-center gap-2 rounded-xl border-[#d95c5c]/55 p-3 text-xs font-semibold text-[#f4b8b8]">
+                <XCircle className="h-4 w-4 shrink-0 text-[#d95c5c]" />
+                <span>أعمدة مطلوبة مفقودة: {preview.missingColumns.join('، ')}</span>
+              </div>
+            ) : null}
+
+            <div className="steel-plate rounded-xl p-1">
+              <div className="steel-module-dark max-h-80 overflow-x-auto overflow-y-auto rounded-lg">
+                <table className="w-full min-w-[640px] border-collapse text-right text-xs">
+                  <thead className="steel-table-head sticky top-0 z-10 font-bold">
+                    <tr>
+                      <th className="px-3 py-2.5 font-extrabold">الصف</th>
+                      <th className="px-3 py-2.5 font-extrabold">الحالة</th>
+                      <th className="px-3 py-2.5 font-extrabold">العنوان</th>
+                      <th className="px-3 py-2.5 font-extrabold">التصنيف</th>
+                      <th className="px-3 py-2.5 font-extrabold">بيانات حساسة</th>
+                      <th className="px-3 py-2.5 font-extrabold">ملاحظة الفحص</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/8">
+                    {preview.rows.map((row) => (
+                      <tr key={row.rowNumber} className="steel-table-row">
+                        <td className="font-mono-tabular px-3 py-2.5 text-[#94a4a9]">
+                          {row.rowNumber}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {row.status === 'valid' ? (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#36e5a4]">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              صالح
+                            </span>
+                          ) : row.status === 'duplicate' ? (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#f0c761]">
+                              <AlertTriangle className="h-3.5 w-3.5" />
+                              مكرر
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#d95c5c]">
+                              <XCircle className="h-3.5 w-3.5" />
+                              غير صالح
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 font-semibold text-[#f2f5f5]">{row.title}</td>
+                        <td className="px-3 py-2.5 text-[#c2cccf]">{row.categoryName || '—'}</td>
+                        <td className="px-3 py-2.5 text-[#94a4a9]">
+                          {row.hasPassword || row.secretsCount > 0
+                            ? `محمية (••••••••${row.secretsCount > 0 ? ` + ${row.secretsCount} سر` : ''})`
+                            : '—'}
+                        </td>
+                        <td className="px-3 py-2.5 text-[#c2cccf]">
+                          {row.reason || 'جاهز للتشفير والحفظ'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          ) : null}
 
-          <div className="max-h-80 overflow-x-auto overflow-y-auto rounded-xl border border-white/8">
-            <table className="w-full min-w-[640px] border-collapse text-right text-xs">
-              <thead className="sticky top-0 bg-[#0a0e0e] text-[#93a19f]">
-                <tr>
-                  <th className="px-3 py-2.5 font-semibold">الصف</th>
-                  <th className="px-3 py-2.5 font-semibold">الحالة</th>
-                  <th className="px-3 py-2.5 font-semibold">العنوان</th>
-                  <th className="px-3 py-2.5 font-semibold">التصنيف</th>
-                  <th className="px-3 py-2.5 font-semibold">بيانات حساسة</th>
-                  <th className="px-3 py-2.5 font-semibold">ملاحظة الفحص</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/6">
-                {preview.rows.map((row) => (
-                  <tr key={row.rowNumber} className="hover:bg-white/[0.02]">
-                    <td className="font-mono-tabular px-3 py-2.5 text-[#93a19f]">
-                      {row.rowNumber}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      {row.status === 'valid' ? (
-                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-400">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          صالح
-                        </span>
-                      ) : row.status === 'duplicate' ? (
-                        <span className="inline-flex items-center gap-1 font-semibold text-amber-400">
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          مكرر
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 font-semibold text-red-400">
-                          <XCircle className="h-3.5 w-3.5" />
-                          غير صالح
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 font-semibold text-[#f3f6f5]">{row.title}</td>
-                    <td className="px-3 py-2.5 text-[#b9c4c2]">{row.categoryName || '—'}</td>
-                    <td className="px-3 py-2.5 text-[#8b9997]">
-                      {row.hasPassword || row.secretsCount > 0
-                        ? `محمية (••••••••${row.secretsCount > 0 ? ` + ${row.secretsCount} سر` : ''})`
-                        : '—'}
-                    </td>
-                    <td className="px-3 py-2.5 text-[#93a19f]">
-                      {row.reason || 'جاهز للتشفير والحفظ'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setPreview(null)}
-              disabled={committing}
-              className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-[#b9c4c2] hover:bg-white/5"
-            >
-              إلغاء المعاينة
-            </button>
-            <button
-              type="button"
-              disabled={committing || importableCount === 0}
-              onClick={() => void handleConfirmImport()}
-              className="rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-bold text-[#05140e] transition hover:bg-emerald-400 disabled:opacity-45"
-            >
-              {committing
-                ? 'جاري التشفير والحفظ الذري...'
-                : `تأكيد واستيراد (${importableCount} عنصر)`}
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                disabled={committing}
+                className="steel-btn-secondary rounded-xl px-4 py-2 text-xs font-bold"
+              >
+                إلغاء المعاينة
+              </button>
+              <button
+                type="button"
+                disabled={committing || importableCount === 0}
+                onClick={() => void handleConfirmImport()}
+                className="steel-btn-emerald rounded-xl px-5 py-2.5 text-xs font-bold"
+              >
+                {committing
+                  ? 'جاري التشفير والحفظ الذري...'
+                  : `تأكيد واستيراد (${importableCount} عنصر)`}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

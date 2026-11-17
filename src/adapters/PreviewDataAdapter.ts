@@ -39,6 +39,8 @@ interface PreviewOwnerSecurity {
 const DEFAULT_SETTINGS: AppSettings = {
   autoLockMinutes: 5,
   clipboardClearSeconds: 20,
+  mechanicalSoundsEnabled: true,
+  mechanicalSoundsVolume: 45,
 };
 
 function openPreviewDb(): Promise<IDBDatabase> {
@@ -267,6 +269,14 @@ export class PreviewDataAdapter implements AmanDataAdapter {
             autoLockMinutes: Number(settingsRow.autoLockMinutes) || DEFAULT_SETTINGS.autoLockMinutes,
             clipboardClearSeconds:
               Number(settingsRow.clipboardClearSeconds) || DEFAULT_SETTINGS.clipboardClearSeconds,
+            mechanicalSoundsEnabled:
+              typeof settingsRow.mechanicalSoundsEnabled === 'boolean'
+                ? settingsRow.mechanicalSoundsEnabled
+                : true,
+            mechanicalSoundsVolume:
+              typeof settingsRow.mechanicalSoundsVolume === 'number'
+                ? Math.max(0, Math.min(100, Math.round(settingsRow.mechanicalSoundsVolume)))
+                : 45,
           }
         : DEFAULT_SETTINGS;
       return {
@@ -491,6 +501,15 @@ export class PreviewDataAdapter implements AmanDataAdapter {
       const clean: AppSettings = {
         autoLockMinutes: Math.max(1, Math.min(120, Number(settings.autoLockMinutes) || 5)),
         clipboardClearSeconds: Math.max(5, Math.min(300, Number(settings.clipboardClearSeconds) || 20)),
+        mechanicalSoundsEnabled:
+          typeof settings.mechanicalSoundsEnabled === 'boolean'
+            ? settings.mechanicalSoundsEnabled
+            : true,
+        mechanicalSoundsVolume:
+          typeof settings.mechanicalSoundsVolume === 'number' &&
+          Number.isFinite(settings.mechanicalSoundsVolume)
+            ? Math.max(0, Math.min(100, Math.round(settings.mechanicalSoundsVolume)))
+            : 45,
       };
       await idbPut(db, 'app_settings', { id: 1, ...clean });
       return clean;
