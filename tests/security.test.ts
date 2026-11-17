@@ -10,8 +10,10 @@ import {
   encryptVaultItemInput,
   generateMasterVaultKey,
   generateSaltBase64,
+  unwrapMasterKeyWithBiometricPrf,
   unwrapMasterKeyWithPin,
   validateBackupEnvelopeFormat,
+  wrapMasterKeyWithBiometricPrf,
   wrapMasterKeyWithPin,
 } from '../src/services/crypto';
 import {
@@ -30,6 +32,12 @@ import {
   verifyPinConstantTime,
 } from '../server/security/crypto';
 import { requireCsrf, type AuthenticatedRequest } from '../server/middleware/security';
+import {
+  generateChallengeBase64Url,
+  generatePrfInputBase64Url,
+  isChallengeExpired,
+  isValidBase64UrlToken,
+} from '../server/security/webauthn';
 
 function makeValidProdEnv(overrides: Partial<ServerEnvConfig> = {}): ServerEnvConfig {
   return {
@@ -297,6 +305,46 @@ test('Web Crypto vault encryption and .aman v2.0.0 backup roundtrip preserve for
   const restored = await decryptBackupEnvelope(envelope, 'BackupPass#2026');
   assert.equal(restored.items.length, 1);
   await assert.rejects(() => decryptBackupEnvelope(envelope, 'WrongPassword'));
+});
+
+// Biometric invariant: PRF material must unwrap the existing vault master key, never create a second vault key.
+test('biometric PRF wrapping recovers the same master key and rejects wrong PRF material', async () => {
+  const masterKey = await generateMasterVaultKey();
+  const prfOutput = crypto.getRandomValues(new Uint8Array(32));
+  const wrongPrfOutput = crypto.getRandomValues(new Uint8Array(32));
+  const hkdfSalt = generateSaltBase64(16);
+
+  const wrapped = await wrapMasterKeyWithBiometricPrf(masterKey, prfOutput, hkdfSalt);
+  assert.ok(wrapped.startsWith('ENC:'));
+
+  const recovered = await unwrapMasterKeyWithBiometricPrf(wrapped, prfOutput, hkdfSalt);
+
+  const sample = new TextEncoder().encode('Aman Rayan biometric key verification');
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, recovered, sample);
+  const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, masterKey, ciphertext);
+  assert.equal(new TextDecoder().decode(plaintext), 'Aman Rayan biometric key verification');
+
+  await assert.rejects(() =>
+    unwrapMasterKeyWithBiometricPrf(wrapped, wrongPrfOutput, hkdfSalt)
+  );
+
+  prfOutput.fill(0);
+  wrongPrfOutput.fill(0);
+});
+
+test('WebAuthn challenge helpers create strong base64url tokens and enforce expiry', () => {
+  const challenge = generateChallengeBase64Url();
+  const prfInput = generatePrfInputBase64Url();
+
+  assert.equal(isValidBase64UrlToken(challenge, 32, 128), true);
+  assert.equal(isValidBase64UrlToken(prfInput, 32, 128), true);
+  assert.notEqual(challenge, prfInput);
+  assert.equal(isValidBase64UrlToken('bad token with spaces'), false);
+
+  assert.equal(isChallengeExpired(new Date(Date.now() - 1_000)), true);
+  assert.equal(isChallengeExpired(new Date(Date.now() + 60_000)), false);
+  assert.equal(isChallengeExpired('not-a-date'), true);
 });
 
 test('requireCsrf blocks missing/invalid CSRF tokens on mutations and allows valid matching tokens', () => {
