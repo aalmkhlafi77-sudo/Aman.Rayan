@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Copy,
+  Check,
   Eye,
   EyeOff,
   ExternalLink,
@@ -38,6 +39,13 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
   onOpenUrl,
 }) => {
   const [revealedKeys, setRevealedKeys] = useState<Record<string, boolean>>({});
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Mandatory security rule: Reset all revealed secrets to hidden when switching items or opening/closing
+  useEffect(() => {
+    setRevealedKeys({});
+    setCopiedKey(null);
+  }, [item?.id]);
 
   if (!item) return null;
 
@@ -49,7 +57,15 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
     setRevealedKeys((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const renderSecretGroup = (title: string, entries: SecretEntry[]) => {
+  const handleCopy = (value: string, label: string, sensitive: boolean, key: string) => {
+    setCopiedKey(key);
+    onCopySecret(value, label, sensitive);
+    window.setTimeout(() => {
+      setCopiedKey((prev) => (prev === key ? null : prev));
+    }, 900);
+  };
+
+  const renderSecretGroup = (title: string, entries: SecretEntry[], groupPrefix: string) => {
     if (entries.length === 0) return null;
     return (
       <div className="space-y-2 border-t border-white/10 pt-4">
@@ -58,38 +74,45 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
           {title}
         </h4>
         <div className="space-y-2">
-          {entries.map((entry) => {
-            const revealed = Boolean(revealedKeys[entry.id]);
+          {entries.map((entry, idx) => {
+            const entryKey = `${groupPrefix}-${entry.id || idx}`;
+            const revealed = Boolean(revealedKeys[entryKey]);
             return (
               <div
-                key={entry.id}
-                className="steel-recess-deep flex flex-wrap items-center justify-between gap-2 rounded-xl px-3.5 py-2.5"
+                key={entryKey}
+                className="steel-recess-deep flex flex-wrap items-center justify-between gap-2.5 rounded-xl px-3.5 py-2.5"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-[#94a4a9]">{entry.label || 'قيمة سرية'}</p>
+                  <p className="text-xs font-semibold text-[#8ea0a5]">{entry.label || 'قيمة سرية'}</p>
                   <p
                     dir="ltr"
-                    className="font-mono-tabular mt-0.5 truncate text-left text-sm text-[#f2f5f5]"
+                    className="font-mono-tabular mt-0.5 truncate text-left text-sm font-medium text-[#f2f5f5]"
                   >
                     {revealed ? entry.value : '••••••••••••••••••••'}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => toggleReveal(entry.id)}
-                    aria-label={revealed ? 'إخفاء' : 'إظهار'}
-                    className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                    onClick={() => toggleReveal(entryKey)}
+                    title={revealed ? 'إخفاء القيمة' : 'إظهار القيمة'}
+                    aria-label={revealed ? 'إخفاء القيمة' : 'إظهار القيمة'}
+                    className="vault-action-btn vault-action-btn--view"
                   >
                     {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                   <button
                     type="button"
-                    onClick={() => onCopySecret(entry.value, entry.label || title, true)}
-                    aria-label="نسخ"
-                    className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                    onClick={() => handleCopy(entry.value, entry.label || title, true, entryKey)}
+                    title="نسخ القيمة السرية"
+                    aria-label="نسخ القيمة السرية"
+                    className="vault-action-btn vault-action-btn--copy"
                   >
-                    <Copy className="h-4 w-4" />
+                    {copiedKey === entryKey ? (
+                      <Check className="h-4 w-4 text-[#5eead4]" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -114,22 +137,22 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
               {categoryName || 'بدون تصنيف'} · آخر تحديث {formatArabicDate(item.updatedAt)}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => onToggleFavorite(item)}
-              aria-label="تبديل المفضلة"
-              className={`rounded-lg p-2 transition ${
-                item.isFavorite
-                  ? 'text-[#d7aa45] drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]'
-                  : 'text-[#2d3a3f] hover:bg-black/10 hover:text-[#161e21]'
+              title={item.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+              aria-label={item.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+              className={`vault-action-btn vault-action-btn--favorite ${
+                item.isFavorite ? 'vault-action-btn--favorite-active' : ''
               }`}
             >
-              <Star className={`h-4 w-4 ${item.isFavorite ? 'fill-current' : ''}`} />
+              <Star className={`h-4 w-4 ${item.isFavorite ? 'fill-current text-[#f0c761]' : ''}`} />
             </button>
             <button
               type="button"
               onClick={onClose}
+              title="إغلاق"
               aria-label="إغلاق"
               className="rounded-lg p-2 text-[#2d3a3f] transition hover:bg-black/10 hover:text-[#161e21]"
             >
@@ -139,56 +162,76 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
         </div>
 
         {/* Dark Recessed Body */}
-        <div className="steel-modal-body flex-1 space-y-4 overflow-y-auto rounded-t-xl p-5">
+        <div className="steel-modal-body flex-1 space-y-3.5 overflow-y-auto rounded-t-xl p-5">
+          {/* Username Row */}
           {item.username ? (
-            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
-              <div>
-                <p className="text-xs text-[#94a4a9]">اسم المستخدم</p>
-                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-[#f2f5f5]">
+            <div className="steel-recess-deep flex items-center justify-between gap-2.5 rounded-xl px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-[#8ea0a5]">المستخدم</p>
+                <p dir="ltr" className="mt-0.5 truncate font-mono text-left text-sm font-medium text-[#f2f5f5]">
                   {item.username}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => onCopySecret(item.username!, 'اسم المستخدم', false)}
-                className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                onClick={() => handleCopy(item.username!, 'اسم المستخدم', false, 'detail-username')}
+                title="نسخ اسم المستخدم"
+                aria-label="نسخ اسم المستخدم"
+                className="vault-action-btn vault-action-btn--copy"
               >
-                <Copy className="h-4 w-4" />
+                {copiedKey === 'detail-username' ? (
+                  <Check className="h-4 w-4 text-[#5eead4]" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
           ) : null}
 
+          {/* Email Row */}
           {item.email ? (
-            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
-              <div>
-                <p className="text-xs text-[#94a4a9]">البريد الإلكتروني</p>
-                <p dir="ltr" className="mt-0.5 text-left text-sm font-medium text-[#f2f5f5]">
+            <div className="steel-recess-deep flex items-center justify-between gap-2.5 rounded-xl px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-[#8ea0a5]">البريد الإلكتروني</p>
+                <p dir="ltr" className="mt-0.5 truncate font-mono text-left text-sm font-medium text-[#f2f5f5]">
                   {item.email}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => onCopySecret(item.email!, 'البريد الإلكتروني', false)}
-                className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                onClick={() => handleCopy(item.email!, 'البريد الإلكتروني', false, 'detail-email')}
+                title="نسخ البريد الإلكتروني"
+                aria-label="نسخ البريد الإلكتروني"
+                className="vault-action-btn vault-action-btn--copy"
               >
-                <Copy className="h-4 w-4" />
+                {copiedKey === 'detail-email' ? (
+                  <Check className="h-4 w-4 text-[#5eead4]" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
           ) : null}
 
+          {/* Password Row: Masked by default */}
           {item.password ? (
-            <div className="steel-recess-deep flex items-center justify-between rounded-xl px-4 py-3">
+            <div className="steel-recess-deep flex items-center justify-between gap-2.5 rounded-xl px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-[#94a4a9]">كلمة المرور</p>
-                <p dir="ltr" className="font-mono-tabular mt-0.5 truncate text-left text-sm text-[#f2f5f5]">
+                <p className="text-xs font-semibold text-[#8ea0a5]">كلمة المرور</p>
+                <p
+                  dir="ltr"
+                  className="font-mono-tabular mt-0.5 truncate text-left text-sm font-bold tracking-wider text-[#f2f5f5]"
+                >
                   {revealedKeys['__password'] ? item.password : '••••••••••••••••••••'}
                 </p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => toggleReveal('__password')}
-                  className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                  title={revealedKeys['__password'] ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  aria-label={revealedKeys['__password'] ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  className="vault-action-btn vault-action-btn--view"
                 >
                   {revealedKeys['__password'] ? (
                     <EyeOff className="h-4 w-4" />
@@ -198,47 +241,81 @@ export const VaultItemDetailModal: React.FC<VaultItemDetailModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onCopySecret(item.password!, 'كلمة المرور', true)}
-                  className="rounded-lg p-2 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                  onClick={() => handleCopy(item.password!, 'كلمة المرور', true, 'detail-password')}
+                  title="نسخ كلمة المرور"
+                  aria-label="نسخ كلمة المرور"
+                  className="vault-action-btn vault-action-btn--copy"
                 >
-                  <Copy className="h-4 w-4" />
+                  {copiedKey === 'detail-password' ? (
+                    <Check className="h-4 w-4 text-[#5eead4]" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
           ) : null}
 
+          {/* URLs Section */}
           {item.urls.length > 0 ? (
             <div className="space-y-2 border-t border-white/10 pt-4">
               <h4 className="text-xs font-bold text-[#c2cccf]">الروابط</h4>
               <div className="space-y-2">
-                {item.urls.map((url, idx) => (
-                  <div
-                    key={idx}
-                    className="steel-recess-deep flex items-center justify-between gap-2 rounded-xl px-4 py-2.5"
-                  >
-                    <span dir="ltr" className="truncate text-left text-sm text-[#76e5ff]">
-                      {url}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onOpenUrl(url)}
-                      className="steel-btn-secondary inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+                {item.urls.map((url, idx) => {
+                  const urlKey = `detail-url-${idx}`;
+                  return (
+                    <div
+                      key={idx}
+                      className="steel-recess-deep flex flex-wrap items-center justify-between gap-2.5 rounded-xl px-4 py-2.5"
                     >
-                      <ExternalLink className="h-3.5 w-3.5 text-[#58d9ff]" />
-                      فتح آمن
-                    </button>
-                  </div>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => onOpenUrl(url)}
+                        dir="ltr"
+                        className="vault-link-highlight min-w-0 flex-1 truncate text-left text-sm"
+                        title={`فتح الرابط بأمان: ${url}`}
+                      >
+                        {url}
+                      </button>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onOpenUrl(url)}
+                          className="vault-action-btn vault-action-btn--link"
+                          title="فتح الرابط بأمان في نافذة جديدة"
+                          aria-label="فتح الرابط"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(url, 'الرابط', false, urlKey)}
+                          className="vault-action-btn vault-action-btn--copy"
+                          title="نسخ الرابط"
+                          aria-label="نسخ الرابط"
+                        >
+                          {copiedKey === urlKey ? (
+                            <Check className="h-3.5 w-3.5 text-[#5eead4]" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : null}
 
-          {renderSecretGroup('مفاتيح API', item.apiKeys)}
-          {renderSecretGroup('الرموز (Tokens)', item.tokens)}
-          {renderSecretGroup('المفاتيح السرية', item.secretKeys)}
-          {renderSecretGroup('مفاتيح الترخيص', item.licenseKeys)}
-          {renderSecretGroup('الشهادات', item.certificates)}
+          {/* Sensitive Secret Groups (Masked by default) */}
+          {renderSecretGroup('مفاتيح API', item.apiKeys, 'apiKey')}
+          {renderSecretGroup('الرموز (Tokens)', item.tokens, 'token')}
+          {renderSecretGroup('المفاتيح السرية', item.secretKeys, 'secretKey')}
+          {renderSecretGroup('مفاتيح الترخيص', item.licenseKeys, 'licenseKey')}
+          {renderSecretGroup('الشهادات', item.certificates, 'cert')}
 
+          {/* Notes */}
           {item.notes ? (
             <div className="space-y-1.5 border-t border-white/10 pt-4">
               <h4 className="text-xs font-bold text-[#c2cccf]">الملاحظات</h4>
