@@ -5,7 +5,7 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
   type AuthenticationResponseJSON,
-  type AuthenticatorTransportFuture,
+  type AuthenticatorTransport,
   type CredentialDeviceType,
   type PublicKeyCredentialCreationOptionsJSON,
   type PublicKeyCredentialRequestOptionsJSON,
@@ -45,13 +45,13 @@ export function isValidBase64UrlToken(
   );
 }
 
-export function parseTransportsJson(raw: string | null | undefined): AuthenticatorTransportFuture[] | undefined {
+export function parseTransportsJson(raw: string | null | undefined): AuthenticatorTransport[] | undefined {
   if (!raw) return undefined;
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return undefined;
     const valid = parsed.filter(
-      (item): item is AuthenticatorTransportFuture => typeof item === 'string' && item.length > 0
+      (item): item is AuthenticatorTransport => typeof item === 'string' && item.length > 0
     );
     return valid.length > 0 ? valid : undefined;
   } catch {
@@ -95,7 +95,7 @@ export function sanitizeRegistrationResponse(
       clientDataJSON: resp.clientDataJSON,
       attestationObject: resp.attestationObject,
       transports: Array.isArray(resp.transports)
-        ? resp.transports.filter((t): t is AuthenticatorTransportFuture => typeof t === 'string')
+        ? resp.transports.filter((t): t is AuthenticatorTransport => typeof t === 'string')
         : undefined,
       publicKeyAlgorithm:
         typeof resp.publicKeyAlgorithm === 'number' ? resp.publicKeyAlgorithm : undefined,
@@ -165,7 +165,7 @@ export async function buildBiometricRegistrationOptions(params: {
   rpName: string;
   rpId: string;
   challenge: string;
-  excludeCredentials?: { id: string; transports?: AuthenticatorTransportFuture[] }[];
+  excludeCredentials?: { id: string; transports?: AuthenticatorTransport[] }[];
 }): Promise<PublicKeyCredentialCreationOptionsJSON> {
   return generateRegistrationOptions({
     rpName: params.rpName,
@@ -205,7 +205,7 @@ export async function verifyBiometricRegistration(params: {
 export async function buildBiometricAuthenticationOptions(params: {
   rpId: string;
   challenge: string;
-  allowCredentials: { id: string; transports?: AuthenticatorTransportFuture[] }[];
+  allowCredentials: { id: string; transports?: AuthenticatorTransport[] }[];
 }): Promise<PublicKeyCredentialRequestOptionsJSON> {
   return generateAuthenticationOptions({
     rpID: params.rpId,
@@ -225,7 +225,7 @@ export async function verifyBiometricAssertion(params: {
     id: string;
     publicKeyBase64: string;
     counter: number;
-    transports?: AuthenticatorTransportFuture[];
+    transports?: AuthenticatorTransport[];
   };
 }): Promise<VerifiedAuthenticationResponse> {
   const publicKeyBytes = new Uint8Array(
