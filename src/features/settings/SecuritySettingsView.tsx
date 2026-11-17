@@ -515,14 +515,14 @@ export const SecuritySettingsView: React.FC<SecuritySettingsViewProps> = ({
                   }}
                   className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-extrabold transition ${
                     !mechanicalSoundsEnabled
-                      ? 'steel-switch-lever'
+                      ? 'steel-switch-lever steel-switch-lever--danger'
                       : 'text-[#94a4a9] hover:text-[#f2f5f5]'
                   }`}
                 >
                   <span
                     className={`h-2 w-2 rounded-full ${
                       !mechanicalSoundsEnabled
-                        ? 'bg-[#58d9ff] shadow-[0_0_8px_rgba(88,217,255,0.8)]'
+                        ? 'bg-[#d95c5c] shadow-[0_0_9px_rgba(217,92,92,0.85)]'
                         : 'bg-[#354145]'
                     }`}
                   />
