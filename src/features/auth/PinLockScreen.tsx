@@ -457,15 +457,17 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   return (
     <main
       dir="rtl"
-      className="aman-safe-bg flex min-h-screen w-full items-center justify-center p-2.5 sm:p-3.5"
+      className="aman-safe-bg aman-safe-bg--login flex min-h-screen w-full items-center justify-center p-2.5 sm:p-3.5"
     >
       <div className="aman-studio-light" aria-hidden="true" />
       <div className="aman-ambient-glow" aria-hidden="true" />
+      <div className="aman-scene-glints" aria-hidden="true" />
+      <div className="aman-scene-vignette" aria-hidden="true" />
 
       <section
         aria-label="بوابة أمان ريان الميكانيكية"
         onClick={handleCardTap}
-        className={`aman-pin-card relative z-10 flex flex-col items-center justify-between ${
+        className={`aman-pin-card aman-pin-card--cinematic relative z-10 flex flex-col items-center justify-between ${
           isError ? 'aman-pin-card--error' : ''
         } ${isUnlockedVisual ? 'aman-pin-card--unlocked' : ''}`}
       >
@@ -568,7 +570,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         ) : null}
 
         {/* 6. Short Status / Error Area */}
-        <div className="relative z-10 mt-3 flex h-7 items-center justify-center text-center">
+        <div className="aman-pin-status relative z-10 mt-3 flex h-7 items-center justify-center text-center">
           {errorMessage ? (
             <p
               role="alert"
@@ -602,7 +604,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         </div>
 
         {/* 7. Raised Physical Metallic Capsule Button */}
-        <div className="relative z-10 mt-3">
+        <div className="aman-pin-action relative z-10 mt-3">
           <button
             type="button"
             disabled={!isComplete || statusPhase === 'submitting' || isUnlocking}
