@@ -33,6 +33,8 @@ import {
 } from '../server/security/crypto';
 import { requireCsrf, type AuthenticatedRequest } from '../server/middleware/security';
 import {
+  buildBiometricAuthenticationOptions,
+  buildBiometricRegistrationOptions,
   generateChallengeBase64Url,
   generatePrfInputBase64Url,
   isChallengeExpired,
@@ -331,6 +333,22 @@ test('biometric PRF wrapping recovers the same master key and rejects wrong PRF 
 
   prfOutput.fill(0);
   wrongPrfOutput.fill(0);
+});
+
+test('WebAuthn option builders expose canonical Base64URL challenges for persistence', async () => {
+  const registration = await buildBiometricRegistrationOptions({
+    rpName: 'Aman Rayan',
+    rpId: 'vault.aman-secure.org',
+    excludeCredentials: [],
+  });
+  const authentication = await buildBiometricAuthenticationOptions({
+    rpId: 'vault.aman-secure.org',
+    allowCredentials: [],
+  });
+
+  assert.equal(isValidBase64UrlToken(registration.challenge, 32, 255), true);
+  assert.equal(isValidBase64UrlToken(authentication.challenge, 32, 255), true);
+  assert.notEqual(registration.challenge, authentication.challenge);
 });
 
 test('WebAuthn challenge helpers create strong base64url tokens and enforce expiry', () => {
