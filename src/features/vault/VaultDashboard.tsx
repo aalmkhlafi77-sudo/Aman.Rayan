@@ -456,9 +456,9 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
   );
 
   return (
-    <div dir="rtl" className="aman-safe-bg flex min-h-screen w-full text-[#f2f5f5]">
+    <div dir="rtl" className="aman-safe-bg aman-vault-shell flex min-h-screen w-full text-[#f2f5f5]">
       {/* Desktop Sidebar */}
-      <aside className="steel-sidebar hidden w-64 shrink-0 lg:block">
+      <aside className="steel-sidebar aman-vault-sidebar-enter hidden w-64 shrink-0 lg:block">
         {sidebarContent}
       </aside>
 
@@ -478,7 +478,7 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Polished Medium-Steel Workspace Top Bar */}
-        <header className="steel-topbar flex flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+        <header className="steel-topbar aman-vault-topbar-enter flex flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -530,7 +530,7 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
         </header>
 
         {/* Main Viewport */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="aman-vault-content-enter flex-1 p-4 sm:p-6">
           {isVaultListing ? (
             <div className="mx-auto max-w-6xl space-y-5">
               {/* View & Sort Controls */}

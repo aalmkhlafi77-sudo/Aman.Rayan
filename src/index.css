@@ -1985,3 +1985,421 @@ body,
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* =====================================================
+   AMAN RAYAN — CINEMATIC UI POLISH
+   Visual-only refinement: staged entry, atmospheric depth,
+   responsive compression, and premium Steel micro-motion.
+   ===================================================== */
+
+.aman-safe-bg--login {
+  isolation: isolate;
+  overflow: hidden;
+  perspective: 1200px;
+}
+
+.aman-scene-vignette,
+.aman-scene-glints {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.aman-scene-vignette {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 48%, transparent 38%, rgba(5, 9, 11, 0.12) 66%, rgba(4, 7, 9, 0.5) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 22%, transparent 76%, rgba(0, 0, 0, 0.28));
+}
+
+.aman-scene-glints {
+  z-index: 0;
+  opacity: 0.74;
+  background:
+    radial-gradient(circle at 24% 28%, rgba(224, 248, 255, 0.12) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 72% 18%, rgba(88, 217, 255, 0.14) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 82% 68%, rgba(230, 249, 255, 0.08) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 16% 74%, rgba(88, 217, 255, 0.08) 0 1px, transparent 1.7px);
+  background-size: 240px 220px, 310px 280px, 380px 340px, 290px 260px;
+  animation: amanAtmosphereDrift 18s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes amanAtmosphereDrift {
+  from {
+    transform: translate3d(-0.8%, -0.4%, 0) scale(1);
+    opacity: 0.52;
+  }
+  to {
+    transform: translate3d(0.8%, 0.55%, 0) scale(1.015);
+    opacity: 0.82;
+  }
+}
+
+.aman-pin-card--cinematic {
+  transform-origin: 50% 54%;
+  animation: amanPanelArrival 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes amanPanelArrival {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) rotateX(2.4deg) scale(0.986);
+    filter: saturate(0.9) brightness(0.9);
+  }
+  58% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
+    filter: saturate(1) brightness(1);
+  }
+}
+
+.aman-pin-card--cinematic::before {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18) 0%, transparent 16%, transparent 84%, rgba(0,0,0,.22) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(118,229,255,.12), transparent 45%),
+    linear-gradient(90deg, rgba(255,255,255,.07) 0%, transparent 9%, transparent 91%, rgba(0,0,0,.13) 100%);
+}
+
+.aman-brand-header {
+  animation-delay: 120ms;
+}
+
+.aman-brand-emblem-wrap {
+  transform: translateZ(0);
+  animation: amanEmblemSettle 720ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+@keyframes amanEmblemSettle {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -7px, 0) scale(0.94);
+    filter: brightness(0.76);
+  }
+  64% {
+    opacity: 1;
+    transform: translate3d(0, 1px, 0) scale(1.012);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+.aman-brand-emblem-img {
+  transition:
+    filter 320ms ease,
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aman-brand-emblem-wrap:hover .aman-brand-emblem-img {
+  transform: translateY(-1px) scale(1.012);
+  filter:
+    drop-shadow(0 10px 20px rgba(7, 11, 13, 0.62))
+    drop-shadow(0 0 10px rgba(88, 217, 255, 0.16));
+}
+
+.aman-brand-titles {
+  animation: amanIdentityRise 520ms cubic-bezier(0.16, 1, 0.3, 1) 210ms both;
+}
+
+.aman-brand-descriptor {
+  animation: amanIdentityRise 520ms cubic-bezier(0.16, 1, 0.3, 1) 270ms both;
+}
+
+@keyframes amanIdentityRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.aman-lock-stage {
+  animation: amanStageRise 540ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both;
+}
+
+.aman-pin-heading {
+  animation: amanStageRise 520ms cubic-bezier(0.16, 1, 0.3, 1) 360ms both;
+}
+
+.aman-wheels-stage {
+  animation: amanStageRise 560ms cubic-bezier(0.16, 1, 0.3, 1) 410ms both;
+}
+
+.aman-pin-status {
+  animation: amanStageRise 500ms cubic-bezier(0.16, 1, 0.3, 1) 470ms both;
+}
+
+.aman-pin-action {
+  animation: amanStageRise 500ms cubic-bezier(0.16, 1, 0.3, 1) 510ms both;
+}
+
+.aman-safe-signature {
+  animation: amanSignatureFade 580ms ease 580ms both;
+}
+
+@keyframes amanStageRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 7px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes amanSignatureFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.aman-wheels-row {
+  perspective: 900px;
+}
+
+.aman-wheel-column {
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 220ms ease;
+}
+
+.aman-wheel-column:has(.wheel-housing--active) {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 6px 10px rgba(88, 217, 255, 0.1));
+}
+
+.wheel-housing--active::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(118, 229, 255, 0.18), 0 0 18px rgba(88, 217, 255, 0.2);
+  animation: amanActiveWheelPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes amanActiveWheelPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+.aman-unlock-btn--ready {
+  position: relative;
+  overflow: hidden;
+}
+
+.aman-unlock-btn--ready::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  width: 32%;
+  left: -45%;
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
+  animation: amanReadyButtonSweep 3.8s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+
+@keyframes amanReadyButtonSweep {
+  0%, 62% { left: -45%; opacity: 0; }
+  68% { opacity: 0.7; }
+  82% { left: 120%; opacity: 0.35; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* Unlocked vault: subtle page-entry motion without affecting data logic */
+.aman-vault-shell {
+  animation: amanVaultShellEnter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.aman-vault-sidebar-enter {
+  animation: amanVaultSidebarEnter 500ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
+}
+
+.aman-vault-topbar-enter {
+  animation: amanVaultTopbarEnter 500ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+.aman-vault-content-enter {
+  animation: amanVaultContentEnter 540ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+@keyframes amanVaultShellEnter {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+
+@keyframes amanVaultSidebarEnter {
+  from { opacity: 0; transform: translate3d(12px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes amanVaultTopbarEnter {
+  from { opacity: 0; transform: translate3d(0, -8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes amanVaultContentEnter {
+  from { opacity: 0; transform: translate3d(0, 9px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Keep the visual system premium on shorter laptop screens without shrinking touch targets too far. */
+@media (max-height: 760px) and (min-width: 581px) {
+  .aman-brand-emblem-img {
+    height: 70px;
+  }
+
+  .aman-brand-titles {
+    gap: 8px;
+  }
+
+  .aman-lock-stage {
+    height: 68px;
+  }
+
+  .aman-pin-heading {
+    margin-bottom: 6px;
+  }
+
+  .aman-pin-status {
+    margin-top: 8px !important;
+  }
+
+  .aman-pin-action {
+    margin-top: 8px !important;
+  }
+
+  .aman-safe-signature {
+    margin-top: 8px !important;
+  }
+}
+
+@media (max-height: 690px) and (min-width: 581px) {
+  .aman-pin-card {
+    max-height: calc(100vh - 12px);
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .aman-brand-emblem-img {
+    height: 58px;
+  }
+
+  .aman-brand-title-en {
+    font-size: 16px;
+  }
+
+  .aman-brand-title-ar {
+    font-size: 15px;
+  }
+
+  .aman-lock-stage {
+    height: 54px;
+  }
+
+  .aman-lock-shell {
+    transform: scale(0.48);
+  }
+
+  .aman-pin-heading {
+    margin-bottom: 4px;
+  }
+
+  .aman-safe-subtitle {
+    margin-top: 0 !important;
+  }
+
+  .aman-pin-status {
+    height: 22px;
+    margin-top: 5px !important;
+  }
+
+  .aman-pin-action {
+    margin-top: 5px !important;
+  }
+
+  .aman-unlock-btn {
+    height: 38px;
+  }
+}
+
+@media (max-width: 580px) {
+  .aman-safe-bg--login {
+    align-items: center;
+  }
+
+  .aman-scene-glints {
+    opacity: 0.45;
+    animation-duration: 24s;
+  }
+
+  .aman-pin-card--cinematic {
+    animation-duration: 520ms;
+  }
+
+  .aman-brand-emblem-wrap:hover .aman-brand-emblem-img {
+    transform: none;
+  }
+
+  .aman-wheel-column:has(.wheel-housing--active) {
+    transform: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .aman-brand-title-divider {
+    height: 12px;
+  }
+
+  .aman-brand-descriptor {
+    gap: 5px;
+  }
+
+  .aman-brand-line {
+    width: 18px;
+  }
+
+  .aman-pin-status {
+    margin-top: 7px !important;
+  }
+
+  .aman-pin-action {
+    margin-top: 7px !important;
+  }
+
+  .aman-safe-signature {
+    margin-top: 9px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aman-scene-glints,
+  .aman-pin-card--cinematic,
+  .aman-brand-emblem-wrap,
+  .aman-brand-titles,
+  .aman-brand-descriptor,
+  .aman-lock-stage,
+  .aman-pin-heading,
+  .aman-wheels-stage,
+  .aman-pin-status,
+  .aman-pin-action,
+  .aman-safe-signature,
+  .wheel-housing--active::after,
+  .aman-unlock-btn--ready::after,
+  .aman-vault-shell,
+  .aman-vault-sidebar-enter,
+  .aman-vault-topbar-enter,
+  .aman-vault-content-enter {
+    animation: none !important;
+  }
+}
