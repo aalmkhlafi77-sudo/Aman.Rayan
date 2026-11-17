@@ -211,21 +211,64 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     statusPhase,
   ]);
 
+  const restorePinInputFocus = useCallback((wasDrag: boolean) => {
+    const isCoarsePointer =
+      typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+    if (isCoarsePointer && wasDrag) {
+      return;
+    }
+    mobileInputRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  const rotateWheelDigit = useCallback(
+    (index: number, direction: 1 | -1) => {
+      if (statusPhase === 'submitting' || statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald') {
+        return;
+      }
+      if (statusPhase === 'error') {
+        setStatusPhase('idle');
+        setErrorMessage('');
+      } else if (errorMessage) {
+        setErrorMessage('');
+      }
+
+      setActiveIndex(index);
+      setDigits((prev) => {
+        const next = [...prev];
+        const current = next[index];
+        if (current === '') {
+          // Consistent rail direction from neutral '•': upward -> '0', downward -> '9'
+          next[index] = direction > 0 ? '0' : '9';
+        } else {
+          const currentNum = Number(current);
+          next[index] = String((currentNum + direction + 10) % 10);
+        }
+        return next;
+      });
+      setPulseNonces((nonces) => {
+        const updated = [...nonces];
+        updated[index] = updated[index] + 1;
+        return updated;
+      });
+    },
+    [errorMessage, statusPhase]
+  );
+
   // Mandatory global keyboard-first listener (works immediately without clicking any field)
   useEffect(() => {
     const handleKeyboard = (event: KeyboardEvent) => {
       if (statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald' || statusPhase === 'submitting') {
         return;
       }
+
+      const target = event.target;
+      const isHiddenPinInput = target === mobileInputRef.current;
+
       // Ignore when user is typing in another input (e.g., production bootstrap token input)
       if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
+        (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) &&
+        !isHiddenPinInput
       ) {
-        if (event.target === mobileInputRef.current && event.key === 'Enter' && digits.every(Boolean)) {
-          event.preventDefault();
-          void submitPin();
-        }
         return;
       }
 
@@ -279,10 +322,6 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
   const handleWheelClick = (index: number) => {
     setActiveIndex(index);
-    // On touch/coarse pointers, open native mobile numeric keyboard invisibly
-    if (window.matchMedia('(pointer: coarse)').matches) {
-      mobileInputRef.current?.focus();
-    }
   };
 
   const isComplete = digits.every((d) => /^\d$/.test(d));
@@ -331,6 +370,15 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     return digits[idx] ? 'entered' : 'empty';
   };
 
+  const handleCardTap = (event: React.MouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (target.closest('button, input, textarea, [role="spinbutton"]')) {
+      return;
+    }
+    restorePinInputFocus(false);
+  };
+
   return (
     <main
       dir="rtl"
@@ -340,6 +388,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
       <section
         aria-label="بوابة الأمان الميكانيكية"
+        onClick={handleCardTap}
         className={`aman-pin-card relative z-10 flex flex-col items-center justify-between px-5 py-6 sm:px-8 sm:py-7 ${
           isError ? 'aman-pin-card--error' : ''
         } ${isUnlockedVisual ? 'aman-pin-card--unlocked' : ''}`}
@@ -375,20 +424,13 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           >
             {titleText}
           </h1>
-          <p className="mt-1.5 text-xs text-[#91a09e] sm:text-sm">{subtitleText}</p>
+          <p className="aman-safe-subtitle mt-1.5 text-xs sm:text-sm">{subtitleText}</p>
         </div>
 
-        {/* 4 & 5. Six Protruding 3D Mechanical Drums + Physical LEDs */}
+        {/* 4 & 5. Six Recessed Sockets + Raised Cylindrical Drums + Physical LEDs */}
         <div className="aman-wheels-stage relative z-10">
           <div className="aman-wheels-floor-glow" aria-hidden="true" />
-          <div
-            className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}
-            onClick={() => {
-              if (window.matchMedia('(pointer: coarse)').matches) {
-                mobileInputRef.current?.focus();
-              }
-            }}
-          >
+          <div className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}>
             {digits.map((digit, idx) => (
               <DigitWheel
                 key={idx}
@@ -398,7 +440,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                 ledState={resolveLedState(idx)}
                 pulseNonce={pulseNonces[idx]}
                 status={isError ? 'error' : isUnlockedVisual ? 'unlocked' : 'idle'}
+                disabled={isUnlocking || statusPhase === 'submitting'}
                 onSelectWheel={handleWheelClick}
+                onRotateDigit={rotateWheelDigit}
+                onRestoreFocus={restorePinInputFocus}
               />
             ))}
           </div>
@@ -418,7 +463,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
               }}
               placeholder="AMAN_BOOTSTRAP_TOKEN (مطلوب للتهيئة الأولى فقط)"
               aria-label="رمز التأسيس الأولي"
-              className="font-mono-tabular w-full rounded-xl border border-white/12 bg-[#070a0a] px-3.5 py-2 text-center text-xs text-[#f3f6f5] outline-none transition focus:border-[#e5b440]/75"
+              className="font-mono-tabular w-full rounded-xl border border-white/15 bg-[#070a0a] px-3.5 py-2 text-center text-xs text-[#f3f6f5] outline-none transition focus:border-[#e5b440]/80"
             />
           </div>
         ) : null}
@@ -437,14 +482,15 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                 setFirstPin('');
                 setDigits(['', '', '', '', '', '']);
                 setActiveIndex(0);
+                restorePinInputFocus(false);
               }}
-              className="text-xs font-medium text-[#93a19f] underline-offset-4 transition hover:text-[#e5b440] hover:underline"
+              className="text-xs font-medium text-[#b2bfbd] underline-offset-4 transition hover:text-[#ffd365] hover:underline"
             >
               تعديل الرمز الأول
             </button>
           ) : (
-            <p className="text-[11px] text-[#70807d]">
-              اكتب الأرقام مباشرة من لوحة المفاتيح أو اضغط Enter للفتح
+            <p className="aman-safe-helper text-[11px] sm:text-xs">
+              اكتب الأرقام مباشرة أو اسحب العجلات للأعلى والأسفل، ثم اضغط Enter للفتح
             </p>
           )}
         </div>
@@ -468,7 +514,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         </div>
 
         {/* 8. Designer Signature */}
-        <footer className="relative z-10 mt-5 text-center text-[11px] font-medium text-[#7c8a88]">
+        <footer className="aman-safe-signature relative z-10 mt-5 text-center text-[11px] font-medium">
           {APP_SIGNATURE}
         </footer>
       </section>
