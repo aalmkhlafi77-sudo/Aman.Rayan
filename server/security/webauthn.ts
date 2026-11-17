@@ -164,7 +164,6 @@ export function sanitizeAuthenticationResponse(
 export async function buildBiometricRegistrationOptions(params: {
   rpName: string;
   rpId: string;
-  challenge: string;
   excludeCredentials?: { id: string; transports?: AuthenticatorTransport[] }[];
 }): Promise<PublicKeyCredentialCreationOptionsJSON> {
   return generateRegistrationOptions({
@@ -173,7 +172,6 @@ export async function buildBiometricRegistrationOptions(params: {
     userName: 'aman-rayan-owner',
     userDisplayName: 'مالك أمان ريان',
     userID: WEBAUTHN_OWNER_USER_ID,
-    challenge: params.challenge,
     timeout: 90_000,
     attestationType: 'none',
     preferredAuthenticatorType: 'localDevice',
@@ -204,12 +202,10 @@ export async function verifyBiometricRegistration(params: {
 
 export async function buildBiometricAuthenticationOptions(params: {
   rpId: string;
-  challenge: string;
   allowCredentials: { id: string; transports?: AuthenticatorTransport[] }[];
 }): Promise<PublicKeyCredentialRequestOptionsJSON> {
   return generateAuthenticationOptions({
     rpID: params.rpId,
-    challenge: params.challenge,
     timeout: 90_000,
     userVerification: 'required',
     allowCredentials: params.allowCredentials,
