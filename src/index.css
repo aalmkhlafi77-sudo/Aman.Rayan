@@ -2845,6 +2845,18 @@ body,
     align-items: center;
   }
 
+  .aman-pin-action,
+  .aman-biometric-row {
+    width: min(100%, 340px) !important;
+    margin-inline: auto;
+    align-self: center;
+  }
+
+  .aman-unlock-btn,
+  .aman-biometric-btn {
+    margin-inline: auto;
+  }
+
   .aman-scene-glints {
     opacity: 0.45;
     animation-duration: 24s;
