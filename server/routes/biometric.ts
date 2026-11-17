@@ -189,17 +189,33 @@ async function handleBeginRegistration(
       return;
     }
 
-    const challenge = generateChallengeBase64Url();
-    const prfInput = generatePrfInputBase64Url();
+    let challenge = generateChallengeBase64Url();
+    let prfInput = generatePrfInputBase64Url();
     const now = toSqlDateTime();
     const expiresAt = toSqlDateTime(new Date(Date.now() + WEBAUTHN_CHALLENGE_TTL_MS));
 
     await withTransaction(async (conn) => {
       await conn.execute('DELETE FROM webauthn_challenges WHERE expires_at <= NOW()');
-      await conn.execute(
-        'DELETE FROM webauthn_challenges WHERE session_id = ? AND operation IN (?, ?)',
-        [req.sessionId || null, 'enroll', 'replace']
+
+      // Registration options can be requested twice by mobile browsers/touch UI before
+      // React has rendered the disabled state. Reuse the active challenge instead of
+      // deleting it; deleting the first challenge makes a valid WebAuthn response fail
+      // with "challenge invalid or already used".
+      const [activeRows] = await conn.execute<ChallengeRow[]>(
+        `SELECT * FROM webauthn_challenges
+         WHERE session_id = ? AND operation = ? AND staged_credential_json IS NULL
+           AND expires_at > NOW()
+         ORDER BY created_at DESC
+         LIMIT 1 FOR UPDATE`,
+        [req.sessionId || '', operation]
       );
+      const activeChallenge = activeRows[0];
+      if (activeChallenge?.prf_input) {
+        challenge = activeChallenge.challenge;
+        prfInput = activeChallenge.prf_input;
+        return;
+      }
+
       await conn.execute(
         `INSERT INTO webauthn_challenges
           (id, challenge, operation, session_id, prf_input, staged_credential_json, expires_at, created_at)

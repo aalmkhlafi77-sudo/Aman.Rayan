@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Clock,
   KeyRound,
@@ -80,6 +80,7 @@ export const SecuritySettingsView: React.FC<SecuritySettingsViewProps> = ({
   const [biometricAction, setBiometricAction] = useState<'enroll' | 'replace' | 'remove' | null>(null);
   const [biometricPin, setBiometricPin] = useState('');
   const [biometricBusy, setBiometricBusy] = useState(false);
+  const biometricSubmitLockRef = useRef(false);
   const [biometricFormError, setBiometricFormError] = useState('');
 
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -94,12 +95,13 @@ export const SecuritySettingsView: React.FC<SecuritySettingsViewProps> = ({
 
   const handleSubmitBiometricAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!biometricAction) return;
+    if (!biometricAction || biometricBusy || biometricSubmitLockRef.current) return;
     if (!/^\d{6}$/.test(biometricPin)) {
       setBiometricFormError('أدخل رمز أمان الحالي المكوّن من 6 أرقام');
       return;
     }
 
+    biometricSubmitLockRef.current = true;
     setBiometricBusy(true);
     setBiometricFormError('');
     try {
@@ -120,6 +122,7 @@ export const SecuritySettingsView: React.FC<SecuritySettingsViewProps> = ({
         err instanceof Error ? err.message : 'تعذر تنفيذ العملية البيومترية'
       );
     } finally {
+      biometricSubmitLockRef.current = false;
       setBiometricBusy(false);
     }
   };
