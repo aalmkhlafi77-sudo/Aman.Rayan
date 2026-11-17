@@ -1,0 +1,2900 @@
+You are building a complete production-quality web application named:
+
+# AMAN — أمان
+
+AMAN is a secure private digital vault for storing passwords, website accounts, API keys, tokens, secret keys, software license keys, certificates, sensitive notes, URLs, and other confidential information.
+
+This project already has a defined product identity, security philosophy, interaction model, and visual direction.
+
+Your responsibility is to build and continuously refine the application while preserving a working **live preview inside Google AI Studio** throughout development.
+
+Do not replace AMAN with another concept.
+
+Do not simplify the product into a generic password manager.
+
+Do not add unrelated SaaS features.
+
+Do not add public registration, teams, organizations, subscriptions, advertisements, analytics, AI processing of vault contents, or cloud synchronization.
+
+---
+
+# 1. PRIMARY OBJECTIVE
+
+Build AMAN as a professional Arabic-first secure web application that:
+
+- works in Google AI Studio live preview during development,
+- has a complete React frontend,
+- has a production-ready Node.js backend,
+- supports MySQL/MariaDB persistence,
+- protects confidential information with encryption,
+- provides a six-digit PIN-based owner unlock experience,
+- provides a premium mechanical safe-lock PIN interface,
+- preserves data permanently in SQL in production,
+- remains responsive on desktop and mobile,
+- supports Arabic RTL correctly,
+- can later be deployed to normal Node.js hosting such as Hostinger.
+
+The live preview must remain available during development.
+
+Do not break the preview while implementing backend or deployment code.
+
+---
+
+# 2. PRODUCT IDENTITY
+
+Application name:
+
+**AMAN**
+
+Arabic name:
+
+**أمان**
+
+Product description:
+
+**Secure Digital Vault**
+
+Arabic concept:
+
+**خزنة رقمية آمنة لحفظ كلمات المرور والمفاتيح والبيانات الحساسة**
+
+Designer signature:
+
+**تصميم : عبدالله المخلافي 2026**
+
+Application version:
+
+**2.0.1**
+
+The product must feel like a private electronic safe.
+
+It must not look like:
+
+- a generic SaaS dashboard,
+- a normal login form,
+- a banking website,
+- a gaming interface,
+- a generic password manager,
+- a Bootstrap admin panel.
+
+---
+
+# 3. TECHNOLOGY STACK
+
+Use:
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Modern CSS
+- Web Crypto API
+- Fetch API
+
+Avoid unnecessary UI frameworks.
+
+Do not add a large animation library unless technically necessary.
+
+Prefer native CSS transforms, transitions, keyframes, and Web APIs.
+
+## Production Backend
+
+Use:
+
+- Node.js
+- Express
+- TypeScript
+- REST API
+- MySQL or MariaDB
+
+Use parameterized SQL queries.
+
+Use a database connection pool.
+
+## Development Preview
+
+Google AI Studio preview may not provide a real MySQL server.
+
+Therefore implement a strict dual-adapter architecture:
+
+```text
+Development / AI Studio Preview
+        ↓
+PreviewDataAdapter
+        ↓
+Browser-local temporary preview persistence
+
+Production
+        ↓
+ApiDataAdapter
+        ↓
+Node.js / Express API
+        ↓
+MySQL / MariaDB
+```
+
+IMPORTANT:
+
+The preview adapter exists only so that Google AI Studio can render and test the application interactively.
+
+It must NEVER silently replace SQL in production.
+
+Production mode must fail clearly if the SQL backend is unavailable.
+
+Never display a successful save notification in production unless the SQL server confirms persistence.
+
+---
+
+# 4. ENVIRONMENT DETECTION
+
+Create a clear environment configuration.
+
+Example:
+
+```ts
+export const APP_MODE =
+  import.meta.env.VITE_APP_MODE === "production"
+    ? "production"
+    : "preview";
+```
+
+Use:
+
+```env
+VITE_APP_MODE=preview
+```
+
+inside Google AI Studio preview.
+
+Production uses:
+
+```env
+VITE_APP_MODE=production
+```
+
+The application must select the correct data adapter intentionally.
+
+Example architecture:
+
+```ts
+export interface AmanDataAdapter {
+  getVault(): Promise<VaultSnapshot>;
+  createItem(item: VaultItemInput): Promise<VaultItem>;
+  updateItem(id: string, item: VaultItemInput): Promise<VaultItem>;
+  deleteItem(id: string): Promise<void>;
+  getCategories(): Promise<Category[]>;
+  saveCategory(category: CategoryInput): Promise<Category>;
+}
+```
+
+Then:
+
+```ts
+export const dataAdapter =
+  APP_MODE === "production"
+    ? new ApiDataAdapter()
+    : new PreviewDataAdapter();
+```
+
+Do not mix preview persistence logic directly into production API code.
+
+---
+
+# 5. PROJECT STRUCTURE
+
+Use a clean structure similar to:
+
+```text
+/
+├── src/
+│   ├── components/
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── vault/
+│   │   ├── backup/
+│   │   ├── generator/
+│   │   ├── audit/
+│   │   └── settings/
+│   ├── pages/
+│   ├── hooks/
+│   ├── services/
+│   ├── adapters/
+│   ├── utils/
+│   ├── types/
+│   ├── styles/
+│   └── version.ts
+│
+├── server/
+│   ├── index.ts
+│   ├── routes/
+│   ├── middleware/
+│   ├── db/
+│   ├── services/
+│   ├── security/
+│   └── config/
+│
+├── database/
+│   ├── schema.sql
+│   └── migrations/
+│
+├── scripts/
+├── public/
+├── .env.example
+├── package.json
+├── vite.config.ts
+└── README.md
+```
+
+Exact directory names can vary only when technically justified.
+
+---
+
+# 6. LIVE PREVIEW DEVELOPMENT RULE
+
+During implementation:
+
+1. Keep the application runnable after every meaningful change.
+2. Never leave the preview in a broken intermediate state.
+3. If production backend code cannot execute inside AI Studio, keep it isolated.
+4. Use the preview adapter for interactive testing.
+5. Do not fake production success behavior.
+6. Keep the frontend API contract identical between preview and production adapters.
+
+After each implementation phase:
+
+- compile TypeScript,
+- inspect the live preview,
+- fix visible regressions,
+- then continue.
+
+Do not perform massive rewrites that destroy already working UI.
+
+---
+
+# 7. APPLICATION FLOW
+
+AMAN has three primary states:
+
+```text
+FIRST RUN
+   ↓
+Create 6-digit PIN
+   ↓
+Initialize secure vault
+   ↓
+Locked
+
+NORMAL START
+   ↓
+Locked
+   ↓
+Enter PIN
+   ↓
+Unlock animation
+   ↓
+Vault
+
+ACTIVE VAULT
+   ↓
+Manual lock / inactivity
+   ↓
+Locked
+```
+
+The application must never display vault contents before successful authorization.
+
+---
+
+# 8. SINGLE OWNER MODEL
+
+AMAN is a single-owner private application.
+
+Do not implement:
+
+- multiple users,
+- roles,
+- teams,
+- organizations,
+- user invitations,
+- public signup,
+- OAuth,
+- Google login,
+- social login.
+
+There is only one AMAN owner.
+
+The database must protect this rule.
+
+---
+
+# 9. FIRST-TIME INITIALIZATION
+
+If no owner has been configured:
+
+Display:
+
+**إنشاء رمز أمان الخاص بك**
+
+Subtitle:
+
+**أنشئ رمز أمان مكوّن من 6 أرقام**
+
+The owner enters exactly six digits.
+
+Require confirmation.
+
+Do not store the plaintext PIN.
+
+Generate:
+
+- cryptographic salt,
+- PIN verifier,
+- master vault encryption key.
+
+After initialization:
+
+public owner setup becomes unavailable.
+
+---
+
+# 10. PIN SECURITY
+
+The PIN is exactly six numeric digits.
+
+Never store it directly.
+
+Never log it.
+
+Never expose it in URLs.
+
+Never include it in analytics.
+
+Use Web Crypto.
+
+Key derivation:
+
+```text
+PBKDF2
+SHA-256
+100,000 iterations minimum
+unique random salt
+```
+
+---
+
+# 11. MASTER VAULT KEY
+
+Generate a cryptographically random 256-bit master key.
+
+Use:
+
+**AES-256-GCM**
+
+The master key encrypts confidential vault fields.
+
+The PIN-derived key acts as a Key Encryption Key.
+
+The master key must be wrapped/encrypted using the PIN-derived key.
+
+Never persist the plaintext master key.
+
+---
+
+# 12. CONFIDENTIAL DATA
+
+Encrypt confidential fields including:
+
+- passwords,
+- API keys,
+- tokens,
+- secret keys,
+- license keys,
+- certificates,
+- sensitive notes where appropriate,
+- other confidential secrets.
+
+Use a fresh random IV for every AES-GCM encryption operation.
+
+Logical encrypted representation:
+
+```text
+ENC:IV:CIPHERTEXT
+```
+
+Do not implement custom cryptography.
+
+Use Web Crypto API.
+
+---
+
+# 13. MAIN PIN INTERFACE — CRITICAL DESIGN
+
+The existing ordinary PIN keypad concept is rejected.
+
+The AMAN PIN screen must behave like a premium electronic mechanical safe.
+
+Do NOT create a large numeric keypad.
+
+Do NOT display:
+
+```text
+1 2 3
+4 5 6
+7 8 9
+Clear 0 Back
+```
+
+The six mechanical digit wheels are the visible PIN interface.
+
+---
+
+# 14. PIN SCREEN LAYOUT
+
+Create a compact centered security card.
+
+The full interface must fit inside a standard:
+
+```text
+1366 × 768
+```
+
+display without scrolling.
+
+Target dimensions:
+
+```text
+width: 560–620px
+height: approximately 540–630px
+```
+
+Use:
+
+```css
+width: min(620px, calc(100vw - 28px));
+max-height: calc(100vh - 28px);
+```
+
+Card must be vertically centered.
+
+---
+
+# 15. PIN SCREEN CONTENT
+
+Top to bottom:
+
+1. AMAN mechanical padlock
+2. title
+3. subtitle
+4. six mechanical digit wheels
+5. six small LED indicators
+6. short status/error area
+7. compact primary button
+8. designer signature
+
+Title locked state:
+
+**أدخل رمز أمان الخاص بك**
+
+First-run title:
+
+**إنشاء رمز أمان الخاص بك**
+
+Subtitle:
+
+**أدخل رمز PIN المكوّن من 6 أرقام**
+
+Unlock state title:
+
+**مفتوح**
+
+Unlock state subtitle:
+
+**تم فتح خزنة أمان بنجاح**
+
+Error:
+
+**رمز أمان غير صحيح**
+
+---
+
+# 16. DO NOT PREFILL NUMBERS
+
+The initial PIN wheels must not display a fake selected sequence such as:
+
+```text
+1 2 3 4 5 6
+```
+
+Unfilled wheels should display:
+
+```text
+•
+```
+
+or a subtle neutral mechanical state.
+
+Digits become visible only when entered.
+
+---
+
+# 17. KEYBOARD-FIRST OPERATION
+
+This requirement is mandatory.
+
+Desktop users must be able to start typing immediately when the screen appears.
+
+They must NOT click any input field first.
+
+Use a global keyboard listener.
+
+Implementation pattern:
+
+```tsx
+useEffect(() => {
+  const handleKeyboard = (event: KeyboardEvent) => {
+    if (lockState !== "locked") return;
+
+    if (/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+      inputDigit(event.key);
+      return;
+    }
+
+    if (event.key === "Backspace") {
+      event.preventDefault();
+      removeLastDigit();
+      return;
+    }
+
+    if (
+      event.key === "Enter" &&
+      digits.every(Boolean)
+    ) {
+      event.preventDefault();
+      void submitPin();
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyboard);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyboard);
+  };
+}, [digits, lockState]);
+```
+
+Keyboard behavior:
+
+```text
+number → enter digit
+Backspace → remove previous digit
+Enter → submit when six digits exist
+```
+
+---
+
+# 18. MOBILE INPUT
+
+On mobile only, use an invisible native numeric input to invoke the phone keyboard.
+
+Example:
+
+```tsx
+<input
+  ref={mobileInputRef}
+  className="aman-mobile-pin-input"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={6}
+  aria-label="رمز أمان"
+/>
+```
+
+Do not display a custom numeric keypad.
+
+---
+
+# 19. MECHANICAL DIGIT WHEEL
+
+Each of the six PIN slots must look like a real mechanical number drum.
+
+Each wheel shows:
+
+```text
+previous digit
+current digit
+next digit
+```
+
+Example:
+
+```text
+4
+5
+6
+```
+
+when the selected digit is 5.
+
+But these cannot be static text rows.
+
+Use a vertically translated rail.
+
+---
+
+# 20. TRUE DIGIT RAIL
+
+Use a structure similar to:
+
+```tsx
+<div className="aman-wheel">
+  <div className="aman-wheel-viewport">
+    <div
+      className="aman-wheel-rail"
+      style={{
+        transform: `translate3d(0, ${offset}px, 0)`
+      }}
+    >
+      {digitsForRail.map((digit) => (
+        <div className="aman-wheel-digit">
+          {digit}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+```
+
+Use:
+
+```css
+will-change: transform, filter;
+```
+
+The number must physically move into the center.
+
+Do not simply replace text content.
+
+---
+
+# 21. WHEEL MOTION
+
+Animation must feel spring-loaded.
+
+Use:
+
+```css
+transition:
+  transform 420ms cubic-bezier(.16, 1.35, .32, 1),
+  filter 160ms ease;
+```
+
+During movement:
+
+```css
+filter: blur(1.4px);
+```
+
+When settled:
+
+```css
+filter: blur(0);
+```
+
+Movement sequence:
+
+```text
+start
+↓
+accelerate
+↓
+pass center slightly
+↓
+small rebound
+↓
+settle
+```
+
+---
+
+# 22. WHEEL DEPTH
+
+The wheels must not look flat.
+
+Use dark mechanical gradients.
+
+Example:
+
+```css
+background:
+  linear-gradient(
+    180deg,
+    #020303 0%,
+    #101516 22%,
+    #1b2223 49%,
+    #101516 74%,
+    #020303 100%
+  );
+```
+
+Use depth:
+
+```css
+box-shadow:
+  inset 0 14px 18px rgba(0,0,0,.78),
+  inset 0 -14px 18px rgba(0,0,0,.78),
+  inset 1px 0 rgba(255,255,255,.07),
+  inset -1px 0 rgba(0,0,0,.8),
+  0 9px 18px rgba(0,0,0,.4);
+```
+
+Use rounded corners around:
+
+```text
+13–16px
+```
+
+---
+
+# 23. CURRENT DIGIT
+
+The center digit:
+
+- bright,
+- sharp,
+- slightly larger,
+- high contrast.
+
+The previous and next digits:
+
+- darker,
+- smaller,
+- slightly blurred/faded.
+
+Example:
+
+```css
+.current-digit {
+  font-size: 25px;
+  font-weight: 800;
+  color: #f5f7f6;
+}
+
+.side-digit {
+  font-size: 16px;
+  opacity: .42;
+  transform: scale(.88);
+}
+```
+
+---
+
+# 24. ACTIVE WHEEL
+
+The currently active wheel must receive a premium animated gold illumination.
+
+Not a simple yellow border.
+
+Use:
+
+- thin gold rim,
+- bloom,
+- breathing light,
+- subtle reflection beneath the wheel.
+
+Example:
+
+```css
+.aman-wheel--active {
+  animation:
+    amanActiveWheel 1.7s ease-in-out infinite;
+}
+
+@keyframes amanActiveWheel {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(229,180,64,.45),
+      0 0 8px rgba(229,180,64,.10),
+      0 10px 20px rgba(0,0,0,.42);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255,211,101,.95),
+      0 0 18px rgba(229,180,64,.40),
+      0 0 34px rgba(229,180,64,.12),
+      0 10px 20px rgba(0,0,0,.42);
+  }
+}
+```
+
+Do not create aggressive gaming neon.
+
+---
+
+# 25. LED INDICATORS
+
+Below every wheel place one small physical-style LED.
+
+States:
+
+```text
+empty       → graphite
+entered     → amber
+success     → emerald
+error       → red pulse
+```
+
+Each entered digit must produce an actual light animation.
+
+Do not merely change CSS color.
+
+---
+
+# 26. LED BLOOM
+
+Use a bright core plus halo.
+
+Example:
+
+```css
+.aman-wheel-led {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.aman-wheel-led::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: currentColor;
+  filter: blur(8px);
+  opacity: 0;
+}
+
+.aman-wheel-led--pulse::before {
+  animation: amanLedBloom 480ms ease-out;
+}
+
+@keyframes amanLedBloom {
+  0% {
+    opacity: 0;
+    transform: scale(.4);
+  }
+
+  35% {
+    opacity: .9;
+    transform: scale(1.5);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+```
+
+Restart the animation for every digit entry.
+
+---
+
+# 27. LIGHT SWEEP THROUGH WHEEL
+
+Every digit settlement should trigger a narrow reflection moving across the wheel.
+
+Example:
+
+```css
+.aman-wheel-flash {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aman-wheel-flash::after {
+  content: "";
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  top: -30px;
+  height: 25px;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(255,255,255,.20),
+      transparent
+    );
+
+  filter: blur(3px);
+}
+
+.aman-wheel--spinning
+.aman-wheel-flash::after {
+  animation:
+    amanWheelSweep 420ms ease-out;
+}
+
+@keyframes amanWheelSweep {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(130px);
+    opacity: 0;
+  }
+}
+```
+
+---
+
+# 28. MECHANICAL PADLOCK
+
+The top padlock must be dimensional.
+
+Components:
+
+- chrome/silver shackle,
+- black metallic body,
+- circular gold dial,
+- subtle safe-like markings,
+- glass highlight,
+- ambient glow.
+
+Do not use a flat icon as the primary lock visual.
+
+SVG may be used internally, but render it with depth.
+
+---
+
+# 29. LOCKED IDLE ANIMATION
+
+While locked:
+
+- gold dial softly breathes,
+- ambient green background glow moves very slowly,
+- active wheel gold light pulses subtly.
+
+Keep movement calm.
+
+---
+
+# 30. SUCCESS ANIMATION
+
+When the backend/local auth logic confirms the PIN:
+
+Do not navigate immediately.
+
+Run a mechanical unlock sequence.
+
+Timeline:
+
+## 0–150ms
+
+All six LEDs flash bright gold together.
+
+## 150–350ms
+
+Gold transitions to emerald green.
+
+## 250–500ms
+
+Emit a green radial energy ring from the lock dial.
+
+## 350–650ms
+
+Move the shackle upward:
+
+```text
+12–16px
+```
+
+and rotate:
+
+```text
+12–18 degrees
+```
+
+using spring easing.
+
+## 500–750ms
+
+Sweep a green reflection across the card.
+
+## 600–850ms
+
+Change title to:
+
+**مفتوح**
+
+Subtitle:
+
+**تم فتح خزنة أمان بنجاح**
+
+## 850–1100ms
+
+Enter the vault.
+
+---
+
+# 31. SUCCESS RINGS
+
+Use at least two expanding rings.
+
+Example:
+
+```css
+.aman-success-ring {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border:
+    1px solid rgba(75,255,179,.8);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.aman-lock--unlocked
+.aman-success-ring {
+  animation:
+    amanSuccessRing 700ms ease-out;
+}
+
+@keyframes amanSuccessRing {
+  0% {
+    opacity: .8;
+    transform: scale(.5);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+```
+
+Delay the second ring approximately 100ms.
+
+---
+
+# 32. CARD SUCCESS SWEEP
+
+Example:
+
+```css
+.aman-pin-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      105deg,
+      transparent 25%,
+      rgba(85,255,180,.10) 48%,
+      transparent 70%
+    );
+
+  transform: translateX(-120%);
+}
+
+.aman-pin-card--unlocked::after {
+  animation:
+    amanCardSweep 720ms ease-out;
+}
+
+@keyframes amanCardSweep {
+  to {
+    transform: translateX(120%);
+  }
+}
+```
+
+---
+
+# 33. ERROR ANIMATION
+
+If PIN is wrong:
+
+Sequence:
+
+1. all LEDs pulse muted red,
+2. wheels shake horizontally,
+3. lock dial flashes red,
+4. card edge flashes red,
+5. display:
+   **رمز أمان غير صحيح**
+6. clear digits,
+7. reset active wheel to first position.
+
+Use approximately:
+
+```text
+600–800ms
+```
+
+Do not display a full red screen.
+
+---
+
+# 34. ERROR SHAKE
+
+Example:
+
+```css
+@keyframes amanPinShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-7px);
+  }
+
+  40% {
+    transform: translateX(6px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+}
+```
+
+---
+
+# 35. PRIMARY BUTTON
+
+Only one visible primary button:
+
+**فتح أمان**
+
+Approximate dimensions:
+
+```css
+width: 220px;
+height: 48px;
+```
+
+Disabled until all six digits exist.
+
+Do not create a huge full-card-width button.
+
+When enabled:
+
+apply restrained gold illumination.
+
+---
+
+# 36. RESPONSIVE PIN SCREEN
+
+Desktop:
+
+six wheels in one row.
+
+Mobile:
+
+six wheels must remain visible if practical.
+
+Reduce:
+
+- width,
+- gap,
+- font size.
+
+Do not stack all six vertically.
+
+Do not create horizontal page overflow.
+
+---
+
+# 37. RESPONSIVE APPLICATION
+
+The complete AMAN application must work on:
+
+- desktop,
+- laptop,
+- tablet,
+- mobile.
+
+Desktop is the primary full experience.
+
+Mobile must have:
+
+- no overlapping text,
+- no oversized cards,
+- no horizontal overflow,
+- readable dialogs,
+- usable navigation.
+
+---
+
+# 38. ARABIC RTL
+
+Arabic is first class.
+
+Use:
+
+```html
+dir="rtl"
+```
+
+where appropriate.
+
+Correct RTL behavior must exist for:
+
+- navigation,
+- dialogs,
+- forms,
+- cards,
+- search,
+- tables,
+- lists,
+- buttons,
+- notifications,
+- PIN interface.
+
+---
+
+# 39. VISUAL IDENTITY
+
+Main visual language:
+
+- near-black graphite,
+- deep dark green undertone,
+- black glass,
+- brushed metal,
+- chrome,
+- muted gold,
+- emerald success,
+- controlled red error.
+
+Use subtle glass.
+
+Do not overuse transparency.
+
+Avoid:
+
+- bright blue generic buttons,
+- large gradients,
+- excessive neon,
+- cartoon styling.
+
+---
+
+# 40. BACKGROUND
+
+PIN page background:
+
+```css
+background:
+  radial-gradient(
+    circle at 50% 30%,
+    rgba(21,105,76,.15),
+    transparent 38%
+  ),
+  linear-gradient(
+    180deg,
+    #0d1514,
+    #060909
+  );
+```
+
+Optional ultra-subtle vertical texture at very low opacity.
+
+---
+
+# 41. MAIN VAULT DASHBOARD
+
+After unlocking, display AMAN's vault dashboard.
+
+Provide:
+
+- vault items,
+- search,
+- categories,
+- favorites,
+- view mode controls,
+- add item,
+- password generator,
+- backup,
+- restore,
+- Excel tools,
+- security/settings,
+- audit,
+- manual lock,
+- logout.
+
+---
+
+# 42. VAULT ITEM MODEL
+
+Support:
+
+```ts
+interface VaultItem {
+  id: string;
+
+  title: string;
+  username?: string;
+  email?: string;
+
+  password?: string;
+
+  urls: string[];
+
+  notes?: string;
+
+  categoryId?: string;
+
+  isFavorite: boolean;
+
+  apiKeys: SecretEntry[];
+  tokens: SecretEntry[];
+  secretKeys: SecretEntry[];
+  licenseKeys: SecretEntry[];
+  certificates: SecretEntry[];
+
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+Example:
+
+```ts
+interface SecretEntry {
+  id: string;
+  label: string;
+  value: string;
+}
+```
+
+---
+
+# 43. CRUD
+
+Implement complete:
+
+- Create
+- Read
+- Update
+- Delete
+- Duplicate
+
+Every action must actually work.
+
+No placeholder buttons.
+
+---
+
+# 44. CREATE ITEM
+
+Form supports relevant fields.
+
+Encrypt confidential values before persistent storage.
+
+After save:
+
+Production:
+
+```text
+frontend
+→ API
+→ SQL transaction
+→ confirmed success
+→ update UI
+```
+
+Preview:
+
+```text
+frontend
+→ PreviewDataAdapter
+→ preview persistence
+→ update UI
+```
+
+---
+
+# 45. UPDATE ITEM
+
+Update the correct database record.
+
+Never show success before persistence completes.
+
+---
+
+# 46. DELETE ITEM
+
+Require confirmation.
+
+After successful deletion:
+
+remove item from UI.
+
+---
+
+# 47. DUPLICATE
+
+Create a new ID.
+
+Duplicate title should indicate it is a copy.
+
+Example Arabic:
+
+**نسخة**
+
+---
+
+# 48. FAVORITES
+
+Support favorite toggle.
+
+Persist state.
+
+Allow filtering favorites.
+
+---
+
+# 49. CATEGORIES
+
+Provide categories.
+
+Allow filtering.
+
+Persist category relationships.
+
+Malformed category data must not crash the interface.
+
+---
+
+# 50. SEARCH
+
+Provide instant live search.
+
+Search appropriate visible fields:
+
+- title,
+- username,
+- email,
+- URL,
+- notes where allowed.
+
+Case-insensitive.
+
+Normalize Arabic letters.
+
+Example normalization:
+
+```ts
+export function normalizeArabic(
+  value: string
+): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/[\u064B-\u065F]/g, "")
+    .toLowerCase()
+    .trim();
+}
+```
+
+Do not create insecure plaintext SQL indexes for confidential encrypted secrets.
+
+---
+
+# 51. SAFE DATA NORMALIZATION
+
+Implement:
+
+```ts
+export function safeString(
+  value: unknown
+): string {
+  if (typeof value === "string")
+    return value;
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return String(value);
+  }
+
+  return "";
+}
+```
+
+And:
+
+```ts
+export function safeArray<T>(
+  value: unknown
+): T[] {
+  return Array.isArray(value)
+    ? value as T[]
+    : [];
+}
+```
+
+Malformed records must not crash AMAN.
+
+---
+
+# 52. VIEW MODES
+
+Support:
+
+## Cards
+
+Premium visual cards.
+
+## Compact
+
+Reduced space.
+
+## List
+
+Structured list.
+
+Switching view must not alter data.
+
+---
+
+# 53. URL HANDLING
+
+Vault items may contain multiple URLs.
+
+Normalize:
+
+```text
+example.com
+```
+
+to:
+
+```text
+https://example.com
+```
+
+Allowed schemes:
+
+```text
+https
+http
+```
+
+---
+
+# 54. DANGEROUS URL BLOCKING
+
+Block:
+
+```text
+javascript:
+vbscript:
+data:
+file:
+blob:
+about:
+```
+
+Example:
+
+```ts
+export function normalizeUrl(
+  raw: unknown
+): string | null {
+  const value = safeString(raw).trim();
+
+  if (!value)
+    return null;
+
+  const lowered = value.toLowerCase();
+
+  if (
+    /^(javascript|vbscript|data|file|blob|about):/
+      .test(lowered)
+  ) {
+    return null;
+  }
+
+  const candidate =
+    /^https?:\/\//i.test(value)
+      ? value
+      : `https://${value}`;
+
+  try {
+    const url = new URL(candidate);
+
+    if (
+      url.protocol !== "https:" &&
+      url.protocol !== "http:"
+    ) {
+      return null;
+    }
+
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+```
+
+Web version:
+
+```ts
+window.open(
+  safeUrl,
+  "_blank",
+  "noopener,noreferrer"
+);
+```
+
+---
+
+# 55. PASSWORD GENERATOR
+
+Create a secure generator using Web Crypto.
+
+Example:
+
+```ts
+export function generateSecurePassword(
+  length = 20
+): string {
+  const alphabet =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ" +
+    "abcdefghijkmnopqrstuvwxyz" +
+    "23456789" +
+    "!@#$%^&*_-+=";
+
+  const random =
+    new Uint32Array(length);
+
+  crypto.getRandomValues(random);
+
+  return Array.from(random)
+    .map(
+      n =>
+        alphabet[
+          n % alphabet.length
+        ]
+    )
+    .join("");
+}
+```
+
+---
+
+# 56. CLIPBOARD
+
+Provide copy actions for:
+
+- passwords,
+- API keys,
+- tokens,
+- secret keys,
+- license keys.
+
+Where browser permissions allow:
+
+attempt clipboard clearing after a security interval.
+
+Never promise clearing if browser policy prevents it.
+
+---
+
+# 57. BACKUP
+
+AMAN uses encrypted backup files:
+
+```text
+.aman
+```
+
+Backup requires a backup password/PIN.
+
+Use:
+
+```text
+PBKDF2
+SHA-256
+100,000 iterations
+AES-256-GCM
+```
+
+Logical envelope:
+
+```ts
+{
+  format: "AMAN_ENCRYPTED_VAULT",
+  version: "2.0.0",
+  app: "AMAN Windows Desktop Vault",
+  createdAt: "...",
+  salt: "...",
+  payload: "...",
+  designer:
+    "تصميم : عبدالله المخلافي 2026"
+}
+```
+
+The backup format version is independent from application version.
+
+Do not change it automatically merely because APP_VERSION is 2.0.1.
+
+---
+
+# 58. RESTORE
+
+Flow:
+
+```text
+choose .aman
+↓
+validate format
+↓
+request backup password
+↓
+derive key
+↓
+decrypt
+↓
+validate payload
+↓
+prepare restore
+↓
+transaction
+↓
+commit
+```
+
+If failure:
+
+```text
+ROLLBACK
+```
+
+Never partially replace the vault.
+
+---
+
+# 59. EXCEL
+
+Provide Excel-compatible export/import functionality consistent with AMAN.
+
+Import must:
+
+- validate,
+- preview when appropriate,
+- avoid accidental duplicate corruption,
+- never silently destroy existing data.
+
+---
+
+# 60. WIPE
+
+Provide complete vault wipe.
+
+Require strong confirmation.
+
+Production wipe must execute transactionally.
+
+After complete wipe:
+
+return to first setup state.
+
+---
+
+# 61. AUDIT
+
+Record important events:
+
+- successful login,
+- failed login,
+- lock,
+- logout,
+- create,
+- update,
+- delete,
+- backup,
+- restore,
+- wipe.
+
+Never log:
+
+- PIN,
+- passwords,
+- secrets,
+- API keys,
+- encryption keys,
+- decrypted vault content.
+
+---
+
+# 62. AUTO LOCK
+
+After inactivity:
+
+- clear active master key from application state,
+- invalidate unlock state,
+- return to PIN screen.
+
+User interaction resets the timer.
+
+---
+
+# 63. MANUAL LOCK
+
+Manual lock immediately:
+
+- clears sensitive session state,
+- clears decrypted key reference,
+- returns to PIN.
+
+---
+
+# 64. LOGOUT
+
+Production web version also has logout.
+
+Logout:
+
+- destroys server session,
+- clears frontend sensitive state,
+- returns to login.
+
+---
+
+# 65. SERVER AUTHENTICATION
+
+Production authentication must not depend only on frontend state.
+
+Protected APIs must verify session.
+
+Use secure HttpOnly cookies.
+
+Recommended cookie properties:
+
+```text
+HttpOnly
+Secure
+SameSite
+```
+
+Use proper production settings.
+
+---
+
+# 66. RATE LIMITING
+
+Apply reasonable protection to:
+
+- unlock,
+- login,
+- restore,
+- destructive operations.
+
+Avoid blocking legitimate normal use.
+
+---
+
+# 67. CSRF
+
+If using cookie sessions, protect state-changing requests against CSRF.
+
+---
+
+# 68. CORS
+
+Production CORS must be restrictive.
+
+Use configured frontend origin.
+
+Do not use wildcard CORS for authenticated APIs.
+
+---
+
+# 69. SECURITY HEADERS
+
+Configure appropriate headers such as:
+
+- Content-Security-Policy
+- X-Content-Type-Options
+- Referrer-Policy
+- frame restrictions
+
+---
+
+# 70. PRODUCTION DATABASE
+
+Use MySQL/MariaDB.
+
+Environment:
+
+```env
+NODE_ENV=production
+PORT=3000
+
+PUBLIC_ORIGIN=https://example.com
+
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=aman
+DB_USER=aman_app
+DB_PASSWORD=CHANGE_ME
+
+SESSION_SECRET=CHANGE_ME
+
+VITE_APP_MODE=production
+```
+
+Never commit real credentials.
+
+---
+
+# 71. DATABASE POOL
+
+Example:
+
+```ts
+import mysql from "mysql2/promise";
+
+export const pool =
+  mysql.createPool({
+    host: process.env.DB_HOST,
+    port: Number(
+      process.env.DB_PORT || 3306
+    ),
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+
+    connectionLimit: 10,
+
+    waitForConnections: true,
+    queueLimit: 0,
+  });
+```
+
+---
+
+# 72. PARAMETERIZED SQL
+
+Never write:
+
+```ts
+`SELECT * FROM vault WHERE id = '${id}'`
+```
+
+Use:
+
+```ts
+await pool.execute(
+  "SELECT * FROM vault_items WHERE id = ?",
+  [id]
+);
+```
+
+---
+
+# 73. DATABASE SCHEMA
+
+Create production-safe SQL tables.
+
+Minimum logical tables:
+
+```text
+owner_security
+vault_items
+categories
+audit_events
+app_settings
+sessions
+```
+
+Additional normalized tables may be used for:
+
+- URLs
+- API keys
+- tokens
+- licenses
+- certificates
+
+if technically appropriate.
+
+Do not over-engineer the schema.
+
+---
+
+# 74. OWNER SECURITY TABLE
+
+Logical example:
+
+```sql
+CREATE TABLE owner_security (
+  id TINYINT UNSIGNED NOT NULL,
+  pin_salt VARCHAR(255) NOT NULL,
+  pin_verifier TEXT NOT NULL,
+  wrapped_master_key LONGTEXT NOT NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+
+  PRIMARY KEY (id),
+
+  CONSTRAINT one_owner
+    CHECK (id = 1)
+);
+```
+
+Maintain exactly one owner.
+
+---
+
+# 75. VAULT TABLE
+
+Logical starting example:
+
+```sql
+CREATE TABLE vault_items (
+  id CHAR(36) NOT NULL,
+
+  title VARCHAR(255) NOT NULL,
+  username TEXT NULL,
+  email TEXT NULL,
+
+  encrypted_password LONGTEXT NULL,
+  encrypted_notes LONGTEXT NULL,
+
+  category_id CHAR(36) NULL,
+
+  is_favorite BOOLEAN NOT NULL
+    DEFAULT FALSE,
+
+  encrypted_payload LONGTEXT NULL,
+
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+
+  PRIMARY KEY (id),
+
+  INDEX idx_vault_category (
+    category_id
+  ),
+
+  INDEX idx_vault_favorite (
+    is_favorite
+  )
+);
+```
+
+The exact encrypted structure can be adapted while preserving security.
+
+---
+
+# 76. DATABASE TRANSACTIONS
+
+Use:
+
+```ts
+const connection =
+  await pool.getConnection();
+
+try {
+  await connection.beginTransaction();
+
+  // operations
+
+  await connection.commit();
+} catch (error) {
+  await connection.rollback();
+  throw error;
+} finally {
+  connection.release();
+}
+```
+
+Use transactions for:
+
+- restore,
+- wipe,
+- multi-record import,
+- complex mutations.
+
+---
+
+# 77. HEALTH ENDPOINT
+
+Create:
+
+```text
+GET /api/health
+```
+
+Example response:
+
+```json
+{
+  "ok": true,
+  "databaseReady": true
+}
+```
+
+Never expose credentials.
+
+---
+
+# 78. API STRUCTURE
+
+Logical endpoints:
+
+```text
+POST   /api/auth/setup
+POST   /api/auth/unlock
+POST   /api/auth/lock
+POST   /api/auth/logout
+
+GET    /api/vault
+POST   /api/vault
+PUT    /api/vault/:id
+DELETE /api/vault/:id
+
+GET    /api/categories
+POST   /api/categories
+
+GET    /api/audit
+
+POST   /api/backup
+POST   /api/restore
+
+GET    /api/health
+```
+
+Do not create unnecessary endpoints.
+
+---
+
+# 79. EXPRESS SERVER
+
+Production server pattern:
+
+```ts
+import express from "express";
+
+const app = express();
+
+app.use(
+  express.json({
+    limit: "2mb",
+  })
+);
+
+app.get(
+  "/api/health",
+  healthHandler
+);
+
+app.use(
+  "/api/auth",
+  authRouter
+);
+
+app.use(
+  "/api/vault",
+  requireSession,
+  vaultRouter
+);
+
+app.listen(
+  Number(
+    process.env.PORT || 3000
+  ),
+  () => {
+    console.log(
+      "AMAN server started"
+    );
+  }
+);
+```
+
+Never log secrets.
+
+---
+
+# 80. SAVE SEMANTICS
+
+Production frontend must not optimistically claim permanent persistence.
+
+Correct:
+
+```text
+click save
+↓
+API request
+↓
+SQL successfully commits
+↓
+API returns success
+↓
+UI shows "تم الحفظ"
+```
+
+Wrong:
+
+```text
+click save
+↓
+update React state
+↓
+show success
+↓
+database write fails
+```
+
+Never implement the wrong flow.
+
+---
+
+# 81. DATABASE FAILURE
+
+If SQL is unavailable:
+
+Display controlled error:
+
+**تعذر الحفظ على الخادم**
+
+Do not pretend persistence succeeded.
+
+Do not automatically fall back to preview/local storage in production.
+
+---
+
+# 82. ERROR BOUNDARY
+
+Use React Error Boundary.
+
+A component failure must not produce a blank application.
+
+---
+
+# 83. NOTIFICATIONS
+
+Provide professional notifications for:
+
+- saved,
+- updated,
+- deleted,
+- backup created,
+- restore completed,
+- incorrect PIN,
+- blocked URL,
+- copied,
+- locked,
+- logged out,
+- database failure.
+
+Avoid excessive toast spam.
+
+---
+
+# 84. DIALOGS
+
+Create polished RTL dialogs for:
+
+- delete,
+- backup,
+- restore,
+- wipe,
+- security confirmation.
+
+---
+
+# 85. APPLICATION VERSION
+
+Create:
+
+```ts
+export const APP_VERSION =
+  "2.0.1";
+
+export const APP_DESIGNER =
+  "عبدالله المخلافي 2026";
+```
+
+Display the designer identity subtly in the appropriate application footer/signature area.
+
+Use exact wording:
+
+**تصميم : عبدالله المخلافي 2026**
+
+---
+
+# 86. PRODUCTION BUILD
+
+Provide scripts equivalent to:
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+`npm start` in production must start the Node/Express server.
+
+Do not start Vite dev server in production.
+
+---
+
+# 87. ENV TEMPLATE
+
+Create:
+
+```text
+.env.example
+```
+
+Never include real secrets.
+
+Ensure:
+
+```text
+.env
+```
+
+is ignored by Git.
+
+---
+
+# 88. HOSTING READINESS
+
+Prepare deployment for a normal Node.js host.
+
+Expected deployment:
+
+```text
+Git repository
+↓
+npm install
+↓
+npm run build
+↓
+environment variables
+↓
+MySQL credentials
+↓
+safe migrations
+↓
+npm start
+```
+
+Do not make deployment delete existing database data.
+
+---
+
+# 89. GOOGLE AI STUDIO PREVIEW RULES
+
+While building in AI Studio:
+
+- preview mode must stay operational,
+- do not require MySQL to render UI,
+- use PreviewDataAdapter,
+- preserve the exact same frontend data contract,
+- do not introduce fake production claims.
+
+The preview adapter may use:
+
+- IndexedDB,
+- local browser persistence,
+- controlled in-memory initialization.
+
+Prefer IndexedDB so refreshing the preview does not immediately lose test items.
+
+But clearly label this code internally as:
+
+```text
+PREVIEW ONLY
+```
+
+Production must always use API + SQL.
+
+---
+
+# 90. PREVIEW DATA ADAPTER
+
+Example:
+
+```ts
+export class PreviewDataAdapter
+  implements AmanDataAdapter {
+
+  async getVault() {
+    return loadPreviewVault();
+  }
+
+  async createItem(
+    input: VaultItemInput
+  ) {
+    const vault =
+      await loadPreviewVault();
+
+    const item = {
+      ...input,
+      id: crypto.randomUUID(),
+      createdAt:
+        new Date().toISOString(),
+      updatedAt:
+        new Date().toISOString(),
+    };
+
+    vault.items.push(item);
+
+    await savePreviewVault(vault);
+
+    return item;
+  }
+
+  // implement update/delete/etc.
+}
+```
+
+Do not use this adapter in production.
+
+---
+
+# 91. API DATA ADAPTER
+
+Example:
+
+```ts
+export class ApiDataAdapter
+  implements AmanDataAdapter {
+
+  async getVault() {
+    const response =
+      await fetch(
+        "/api/vault",
+        {
+          credentials: "include",
+        }
+      );
+
+    if (!response.ok)
+      throw new Error(
+        "Failed to load vault"
+      );
+
+    return response.json();
+  }
+}
+```
+
+All production methods use the server.
+
+---
+
+# 92. INTERACTION QUALITY
+
+Every interactive element must have:
+
+- hover state,
+- focus state,
+- pressed state,
+- disabled state,
+- loading state when appropriate.
+
+Animations should be refined rather than excessive.
+
+---
+
+# 93. ACCESSIBILITY
+
+Support:
+
+- keyboard operation,
+- semantic labels,
+- visible focus,
+- sufficient contrast,
+- reduced motion.
+
+Add:
+
+```css
+@media
+(prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.01ms !important;
+  }
+}
+```
+
+---
+
+# 94. DO NOT BREAK APPROVED FEATURES
+
+When refining the PIN interface:
+
+do not alter:
+
+- vault data model,
+- encryption,
+- backup format,
+- SQL architecture,
+- CRUD behavior,
+- search,
+- categories,
+- favorites,
+- generator,
+- audit,
+- other pages.
+
+Keep edits isolated.
+
+---
+
+# 95. QUALITY GATES
+
+Before considering each phase complete:
+
+Run:
+
+```bash
+npm run lint
+npm run build
+```
+
+Fix errors before continuing.
+
+Also test manually in live preview.
+
+---
+
+# 96. REQUIRED PIN TESTS
+
+Verify:
+
+```text
+screen opens
+↓
+type 1 directly
+↓
+first wheel rotates
+
+type 2
+↓
+second wheel rotates
+
+no mouse click was required
+
+Backspace
+↓
+previous digit removed
+
+six digits entered
+↓
+button enabled
+
+wrong PIN
+↓
+red mechanical error sequence
+
+correct PIN
+↓
+gold pulse
+↓
+green transition
+↓
+shackle physically opens
+↓
+success message
+↓
+vault appears
+```
+
+---
+
+# 97. REQUIRED VAULT TESTS
+
+Test:
+
+- create,
+- read,
+- edit,
+- delete,
+- duplicate,
+- favorites,
+- categories,
+- search,
+- Arabic normalization,
+- sorting,
+- view modes,
+- URL opening,
+- unsafe URL blocking,
+- password generator,
+- backup,
+- restore,
+- auto-lock,
+- manual lock,
+- logout,
+- malformed data.
+
+---
+
+# 98. REQUIRED PRODUCTION TESTS
+
+When production backend is available:
+
+Verify:
+
+```text
+/api/health
+```
+
+Verify SQL persistence:
+
+```text
+save item
+↓
+refresh browser
+↓
+item still exists
+
+restart server
+↓
+login
+↓
+item still exists
+
+open another browser
+↓
+authenticate
+↓
+same persistent vault exists
+```
+
+---
+
+# 99. VISUAL ACCEPTANCE CRITERIA
+
+Reject the implementation if:
+
+- PIN screen requires clicking an input before keyboard works,
+- a numeric keypad appears,
+- PIN wheels are static,
+- digits merely change text without rotation,
+- LED only changes color without a pulse,
+- lock is flat,
+- success merely changes color,
+- screen requires scrolling on a normal desktop,
+- interface looks generic,
+- card is oversized,
+- buttons are generic blue,
+- mobile layout breaks.
+
+---
+
+# 100. FINAL EXPERIENCE
+
+The final PIN interaction must feel like:
+
+```text
+Keyboard press
+↓
+mechanical drum rotates
+↓
+digit overshoots slightly
+↓
+drum settles
+↓
+gold LED blooms
+↓
+next wheel activates
+↓
+six digits complete
+↓
+PIN verified
+↓
+all wheels pulse
+↓
+gold becomes emerald
+↓
+lock dial emits energy rings
+↓
+chrome shackle physically rises
+↓
+green light sweeps across glass
+↓
+"مفتوح"
+↓
+AMAN vault appears
+```
+
+---
+
+# 101. EXECUTION ORDER
+
+Implement in this order:
+
+## Phase 1
+
+Create stable application shell and live preview.
+
+## Phase 2
+
+Implement AMAN visual identity.
+
+## Phase 3
+
+Implement compact mechanical PIN interface.
+
+## Phase 4
+
+Implement keyboard-first wheel interaction.
+
+## Phase 5
+
+Implement mechanical animations and lighting.
+
+## Phase 6
+
+Implement first-run setup and lock state.
+
+## Phase 7
+
+Implement vault dashboard.
+
+## Phase 8
+
+Implement CRUD/categories/favorites/search/views.
+
+## Phase 9
+
+Implement encryption utilities.
+
+## Phase 10
+
+Implement backup/restore/generator/Excel/audit.
+
+## Phase 11
+
+Create production API.
+
+## Phase 12
+
+Create SQL schema and persistence.
+
+## Phase 13
+
+Connect ApiDataAdapter.
+
+## Phase 14
+
+Security hardening.
+
+## Phase 15
+
+Responsive/mobile refinement.
+
+## Phase 16
+
+Full verification.
+
+Do not abandon live preview during these phases.
+
+---
+
+# 102. IMPORTANT IMPLEMENTATION RULE
+
+When you modify an existing working component:
+
+make the minimum necessary change.
+
+Do not rewrite unrelated files.
+
+Do not remove already working features.
+
+Do not replace established architecture without technical necessity.
+
+---
+
+# 103. REPORTING DURING DEVELOPMENT
+
+After each significant implementation phase, provide a concise report containing:
+
+```text
+Implemented
+Files changed
+Preview status
+Tests/build status
+Remaining work
+```
+
+Do not claim success unless the actual preview/build confirms it.
+
+---
+
+# 104. FINAL PRODUCT
+
+The final product is:
+
+**AMAN — أمان**
+
+**Secure Digital Vault**
+
+A professional hosted private vault with:
+
+- premium mechanical PIN unlocking,
+- encrypted sensitive content,
+- permanent SQL persistence,
+- responsive Arabic RTL interface,
+- encrypted backups,
+- full vault management,
+- production-ready Node.js backend,
+- MySQL/MariaDB database,
+- live Google AI Studio preview during development.
+
+Designer:
+
+**تصميم : عبدالله المخلافي 2026**
+
+Version:
+
+**2.0.1**
+
+Do not redesign AMAN into another product.
+
+Do not reduce the functionality.
+
+Do not add unrelated functionality.
+
+Build AMAN exactly as specified above while preserving a working live preview throughout development.

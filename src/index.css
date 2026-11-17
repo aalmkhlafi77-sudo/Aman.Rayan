@@ -1,0 +1,578 @@
+@import "tailwindcss";
+
+:root {
+  --aman-bg-top: #0d1514;
+  --aman-bg-bottom: #060909;
+  --aman-surface: #0f1515;
+  --aman-surface-elevated: #141c1c;
+  --aman-border: rgba(255, 255, 255, 0.08);
+  --aman-gold: #e5b440;
+  --aman-gold-bright: #ffd365;
+  --aman-emerald: #4bffb3;
+  --aman-emerald-dim: #10b981;
+  --aman-crimson: #ef4444;
+  --aman-text: #f3f6f5;
+  --aman-text-muted: #93a19f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #060909;
+  color: var(--aman-text);
+  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.font-mono-tabular {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Main Safe Atmosphere */
+.aman-safe-bg {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(21, 105, 76, 0.17), transparent 40%),
+    linear-gradient(180deg, #0d1514 0%, #060909 100%);
+}
+
+.aman-safe-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: 0.45;
+}
+
+.aman-ambient-glow {
+  position: fixed;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 680px;
+  height: 440px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(24, 128, 92, 0.16) 0%, transparent 68%);
+  pointer-events: none;
+  animation: amanAmbientDrift 12s ease-in-out infinite alternate;
+}
+
+@keyframes amanAmbientDrift {
+  0% {
+    transform: translateX(-52%) translateY(0) scale(1);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(-48%) translateY(14px) scale(1.06);
+    opacity: 1;
+  }
+}
+
+/* Compact Centered PIN Card */
+.aman-pin-card {
+  position: relative;
+  overflow: hidden;
+  width: min(620px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(20, 27, 27, 0.94) 0%, rgba(11, 15, 16, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: border-color 260ms ease, box-shadow 260ms ease;
+}
+
+.aman-pin-card--error {
+  border-color: rgba(239, 68, 68, 0.58);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.28),
+    0 0 32px rgba(239, 68, 68, 0.16),
+    0 28px 70px rgba(0, 0, 0, 0.75);
+}
+
+.aman-pin-card--unlocked {
+  border-color: rgba(75, 255, 179, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(75, 255, 179, 0.22),
+    0 0 42px rgba(24, 160, 108, 0.24),
+    0 28px 70px rgba(0, 0, 0, 0.75);
+}
+
+.aman-pin-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(85, 255, 180, 0.13) 48%,
+    transparent 70%
+  );
+  transform: translateX(-125%);
+}
+
+.aman-pin-card--unlocked::after {
+  animation: amanCardSweep 720ms ease-out forwards;
+}
+
+@keyframes amanCardSweep {
+  to {
+    transform: translateX(125%);
+  }
+}
+
+/* Padlock & Success Rings */
+.aman-lock-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aman-lock-dial-idle {
+  animation: amanDialBreathe 3.2s ease-in-out infinite;
+}
+
+@keyframes amanDialBreathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(229, 180, 64, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 211, 101, 0.52));
+  }
+}
+
+.aman-lock-shackle {
+  transform-origin: 72px 46px;
+  transition: transform 420ms cubic-bezier(0.2, 1.38, 0.34, 1);
+}
+
+.aman-lock--unlocked .aman-lock-shackle {
+  transform: translateY(-14px) rotate(15deg);
+}
+
+.aman-success-ring {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  margin-top: -35px;
+  margin-left: -35px;
+  border: 1.5px solid rgba(75, 255, 179, 0.85);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aman-lock--unlocked .aman-success-ring {
+  animation: amanSuccessRing 700ms ease-out forwards;
+}
+
+.aman-lock--unlocked .aman-success-ring--delayed {
+  animation-delay: 110ms;
+}
+
+@keyframes amanSuccessRing {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.3);
+  }
+}
+
+/* Mechanical Digit Wheels */
+.aman-wheels-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  direction: ltr;
+}
+
+.aman-wheels-row--shake {
+  animation: amanPinShake 560ms ease-in-out;
+}
+
+@keyframes amanPinShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  18% {
+    transform: translateX(-8px);
+  }
+  36% {
+    transform: translateX(7px);
+  }
+  54% {
+    transform: translateX(-5px);
+  }
+  72% {
+    transform: translateX(3px);
+  }
+}
+
+.aman-wheel-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.aman-wheel {
+  position: relative;
+  width: 72px;
+  height: 114px;
+  border-radius: 15px;
+  background: linear-gradient(
+    180deg,
+    #020303 0%,
+    #101516 22%,
+    #1b2223 49%,
+    #101516 74%,
+    #020303 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 14px 18px rgba(0, 0, 0, 0.78),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.78),
+    inset 1px 0 rgba(255, 255, 255, 0.07),
+    inset -1px 0 rgba(0, 0, 0, 0.8),
+    0 9px 18px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 220ms ease, border-color 220ms ease, transform 180ms ease;
+}
+
+.aman-wheel--active {
+  border-color: rgba(255, 211, 101, 0.8);
+  animation: amanActiveWheel 1.7s ease-in-out infinite;
+}
+
+.aman-wheel--error {
+  border-color: rgba(239, 68, 68, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.45),
+    0 0 16px rgba(239, 68, 68, 0.24),
+    inset 0 14px 18px rgba(0, 0, 0, 0.78),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+}
+
+.aman-wheel--unlocked {
+  border-color: rgba(75, 255, 179, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(75, 255, 179, 0.42),
+    0 0 18px rgba(75, 255, 179, 0.2),
+    inset 0 14px 18px rgba(0, 0, 0, 0.78),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+}
+
+@keyframes amanActiveWheel {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(229, 180, 64, 0.45),
+      0 0 8px rgba(229, 180, 64, 0.12),
+      0 10px 20px rgba(0, 0, 0, 0.45),
+      inset 0 14px 18px rgba(0, 0, 0, 0.78),
+      inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 211, 101, 0.95),
+      0 0 18px rgba(229, 180, 64, 0.4),
+      0 0 34px rgba(229, 180, 64, 0.14),
+      0 10px 20px rgba(0, 0, 0, 0.45),
+      inset 0 14px 18px rgba(0, 0, 0, 0.78),
+      inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+  }
+}
+
+.aman-wheel-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38px;
+  height: 38px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  pointer-events: none;
+  z-index: 2;
+}
+
+.aman-wheel-viewport {
+  position: relative;
+  width: 100%;
+  height: 114px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.aman-wheel-rail {
+  will-change: transform, filter;
+  transition:
+    transform 420ms cubic-bezier(0.16, 1.35, 0.32, 1),
+    filter 160ms ease;
+}
+
+.aman-wheel--spinning .aman-wheel-rail {
+  filter: blur(1.4px);
+}
+
+.aman-wheel-digit {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: opacity 180ms ease, transform 180ms ease, color 180ms ease;
+}
+
+.aman-wheel-digit--center {
+  font-size: 25px;
+  font-weight: 800;
+  color: #f5f7f6;
+}
+
+.aman-wheel-digit--placeholder {
+  font-size: 20px;
+  font-weight: 700;
+  color: #6b7677;
+}
+
+.aman-wheel-digit--side {
+  font-size: 16px;
+  font-weight: 600;
+  color: #9ba7a6;
+  opacity: 0.42;
+  transform: scale(0.88);
+}
+
+.aman-wheel-flash {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.aman-wheel-flash::after {
+  content: '';
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  top: -30px;
+  height: 26px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  filter: blur(3px);
+  opacity: 0;
+}
+
+.aman-wheel--spinning .aman-wheel-flash::after {
+  animation: amanWheelSweep 420ms ease-out;
+}
+
+@keyframes amanWheelSweep {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(135px);
+    opacity: 0;
+  }
+}
+
+/* Physical LED Indicators */
+.aman-wheel-led {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.aman-wheel-led::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: currentColor;
+  filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aman-wheel-led--empty {
+  color: #2f3839;
+  background-color: #2f3839;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.aman-wheel-led--entered {
+  color: #e5b440;
+  background-color: #ffd365;
+  box-shadow: 0 0 8px rgba(229, 180, 64, 0.65);
+}
+
+.aman-wheel-led--gold-flash {
+  color: #ffd365;
+  background-color: #ffe394;
+  box-shadow: 0 0 14px rgba(255, 211, 101, 0.95);
+}
+
+.aman-wheel-led--emerald {
+  color: #4bffb3;
+  background-color: #4bffb3;
+  box-shadow: 0 0 12px rgba(75, 255, 179, 0.85);
+}
+
+.aman-wheel-led--error {
+  color: #ef4444;
+  background-color: #f87171;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+}
+
+.aman-wheel-led--pulse::before {
+  animation: amanLedBloom 480ms ease-out;
+}
+
+@keyframes amanLedBloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  35% {
+    opacity: 0.95;
+    transform: scale(1.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+/* Invisible Mobile Input */
+.aman-mobile-pin-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  top: 0;
+  left: 0;
+}
+
+/* Primary Safe Action Button */
+.aman-unlock-btn {
+  width: 220px;
+  height: 48px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aman-unlock-btn--ready {
+  background: linear-gradient(180deg, #f1c65b 0%, #d49e2a 100%);
+  color: #0b0e0e;
+  box-shadow:
+    0 0 22px rgba(229, 180, 64, 0.28),
+    0 8px 20px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.aman-unlock-btn--ready:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 28px rgba(255, 211, 101, 0.42),
+    0 10px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.aman-unlock-btn--ready:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.aman-unlock-btn--disabled {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: not-allowed;
+}
+
+.aman-unlock-btn--unlocked {
+  background: linear-gradient(180deg, #56f3b2 0%, #10b981 100%);
+  color: #05140e;
+  box-shadow: 0 0 24px rgba(75, 255, 179, 0.35);
+}
+
+/* Responsive Mechanical Wheels on Mobile */
+@media (max-width: 580px) {
+  .aman-wheels-row {
+    gap: 6px;
+  }
+  .aman-wheel {
+    width: 44px;
+    height: 90px;
+    border-radius: 12px;
+  }
+  .aman-wheel-band {
+    top: 30px;
+    height: 30px;
+  }
+  .aman-wheel-viewport {
+    height: 90px;
+  }
+  .aman-wheel-digit {
+    height: 30px;
+  }
+  .aman-wheel-digit--center {
+    font-size: 20px;
+  }
+  .aman-wheel-digit--side {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
