@@ -10,6 +10,9 @@ import {
   Rows3,
   List,
   Copy,
+  Check,
+  Eye,
+  EyeOff,
   ExternalLink,
   Pencil,
   Trash2,
@@ -129,8 +132,14 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
   const [deleteTarget, setDeleteTarget] = useState<VaultItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
+  const [revealedCards, setRevealedCards] = useState<Record<string, boolean>>({});
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const previewAdapter = getPreviewAdapter();
+
+  const toggleCardReveal = (id: string) => {
+    setRevealedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const categoryMap = useMemo(
     () => new Map(categories.map((c) => [c.id, c.name])),
@@ -171,9 +180,20 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
     });
   }, [activeSection, items, searchQuery, selectedCategoryId, sortMode]);
 
-  const handleCopySecret = async (value: string, label: string, sensitive = false) => {
+  const handleCopySecret = async (
+    value: string,
+    label: string,
+    sensitive = false,
+    trackKey?: string
+  ) => {
     try {
       await navigator.clipboard.writeText(value);
+      if (trackKey) {
+        setCopiedKey(trackKey);
+        window.setTimeout(() => {
+          setCopiedKey((prev) => (prev === trackKey ? null : prev));
+        }, 900);
+      }
       onNotify(
         'success',
         `تم نسخ ${label}`,
@@ -675,17 +695,22 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                                 className="px-4 py-3"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
                                   {item.password ? (
                                     <button
                                       type="button"
                                       onClick={() =>
-                                        void handleCopySecret(item.password!, 'كلمة المرور', true)
+                                        void handleCopySecret(item.password!, 'كلمة المرور', true, `list-pass-${item.id}`)
                                       }
                                       title="نسخ كلمة المرور"
-                                      className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                                      aria-label="نسخ كلمة المرور"
+                                      className="vault-action-btn vault-action-btn--copy !h-7 !w-7 !min-h-7 !min-w-7"
                                     >
-                                      <Copy className="h-3.5 w-3.5" />
+                                      {copiedKey === `list-pass-${item.id}` ? (
+                                        <Check className="h-3.5 w-3.5 text-[#5eead4]" />
+                                      ) : (
+                                        <Copy className="h-3.5 w-3.5" />
+                                      )}
                                     </button>
                                   ) : null}
                                   <button
@@ -695,7 +720,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                                       setEditorOpen(true);
                                     }}
                                     title="تعديل"
-                                    className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                                    aria-label="تعديل"
+                                    className="vault-action-btn vault-action-btn--edit !h-7 !w-7 !min-h-7 !min-w-7"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
@@ -703,7 +729,8 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                                     type="button"
                                     onClick={() => setDeleteTarget(item)}
                                     title="حذف"
-                                    className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-[#d95c5c]/15 hover:text-[#f29b9b]"
+                                    aria-label="حذف"
+                                    className="vault-action-btn vault-action-btn--danger !h-7 !w-7 !min-h-7 !min-w-7"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
@@ -747,15 +774,12 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                             viewMode === 'compact' ? 'px-2.5 py-2' : 'px-3.5 py-2.5'
                           }`}
                         >
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <h3 className="truncate text-sm font-extrabold text-[#161e21]">
                               {item.title}
                             </h3>
-                            <p className="mt-0.5 truncate text-xs font-semibold text-[#2d3a3f]">
+                            <p className="mt-0.5 truncate text-xs font-semibold text-[#3b494f]">
                               {catName || 'بدون تصنيف'}
-                              {item.username || item.email
-                                ? ` · ${item.username || item.email}`
-                                : ''}
                             </p>
                           </div>
                           <button
@@ -764,99 +788,193 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
                               e.stopPropagation();
                               void handleToggleFavorite(item);
                             }}
-                            aria-label="المفضلة"
-                            className={`rounded-lg p-1.5 transition ${
-                              item.isFavorite
-                                ? 'text-[#d7aa45] drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]'
-                                : 'text-[#354145] hover:bg-black/10 hover:text-[#161e21]'
+                            title={item.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+                            aria-label={item.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+                            className={`vault-action-btn vault-action-btn--favorite ${
+                              item.isFavorite ? 'vault-action-btn--favorite-active' : ''
                             }`}
                           >
                             <Star
-                              className={`h-4 w-4 ${item.isFavorite ? 'fill-current' : ''}`}
+                              className={`h-4 w-4 ${item.isFavorite ? 'fill-current text-[#f0c761]' : ''}`}
                             />
                           </button>
                         </div>
 
                         {/* Dark Recessed Inner Instrument Bay */}
                         <div
-                          className={`steel-card-bay rounded-xl ${
-                            viewMode === 'compact' ? 'px-2.5 py-2' : 'px-3.5 py-3'
+                          className={`steel-card-bay flex flex-col gap-2 rounded-xl ${
+                            viewMode === 'compact' ? 'p-2' : 'p-3'
                           }`}
                         >
-                          {viewMode === 'cards' ? (
-                            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-[#c2cccf]">
-                              <span>{item.password ? 'كلمة مرور مشفرة' : 'بدون كلمة مرور'}</span>
-                              {secretsTotal > 0 ? (
-                                <>
-                                  <span>·</span>
-                                  <span className="font-mono-tabular">{secretsTotal} مفاتيح/أسرار</span>
-                                </>
-                              ) : null}
-                              {item.urls.length > 0 ? (
-                                <>
-                                  <span>·</span>
-                                  <span className="font-mono-tabular">{item.urls.length} رابط</span>
-                                </>
-                              ) : null}
-                            </div>
-                          ) : null}
-
-                          <div
-                            className={`flex items-center justify-between ${
-                              viewMode === 'cards' ? 'border-t border-white/10 pt-2.5' : ''
-                            }`}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center gap-1">
-                              {item.password ? (
+                          {/* 1. URL Row if available */}
+                          {item.urls[0] ? (
+                            <div className="steel-recess-deep flex items-center justify-between gap-2 rounded-xl px-3 py-1.5 text-xs">
+                              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                                <span className="shrink-0 text-[11px] font-semibold text-[#8ea0a5]">الموقع:</span>
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    void handleCopySecret(item.password!, 'كلمة المرور', true)
-                                  }
-                                  title="نسخ كلمة المرور"
-                                  className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#76e5ff]"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenUrl(item.urls[0]);
+                                  }}
+                                  dir="ltr"
+                                  className="vault-link-highlight min-w-0 truncate text-left text-xs"
+                                  title={`فتح الرابط بأمان: ${item.urls[0]}`}
                                 >
-                                  <Copy className="h-3.5 w-3.5" />
+                                  {item.urls[0]}
                                 </button>
-                              ) : null}
-                              {item.urls[0] ? (
+                              </div>
+                              <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   type="button"
                                   onClick={() => handleOpenUrl(item.urls[0])}
-                                  title="فتح الرابط بأمان"
-                                  className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#58f3bc]"
+                                  className="vault-action-btn vault-action-btn--link"
+                                  title="فتح الرابط بأمان في نافذة جديدة"
+                                  aria-label="فتح الرابط"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleCopySecret(item.urls[0], 'الرابط', false, `card-url-${item.id}`)}
+                                  className="vault-action-btn vault-action-btn--copy"
+                                  title="نسخ الرابط"
+                                  aria-label="نسخ الرابط"
+                                >
+                                  {copiedKey === `card-url-${item.id}` ? (
+                                    <Check className="h-3.5 w-3.5 text-[#5eead4]" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {/* 2. Username / Email Row if available */}
+                          {item.username || item.email ? (
+                            <div className="steel-recess-deep flex items-center justify-between gap-2 rounded-xl px-3 py-1.5 text-xs">
+                              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                                <span className="shrink-0 text-[11px] font-semibold text-[#8ea0a5]">المستخدم:</span>
+                                <span dir="ltr" className="min-w-0 truncate font-mono text-left text-xs font-medium text-[#f2f5f5]">
+                                  {item.username || item.email}
+                                </span>
+                              </div>
+                              <div className="flex shrink-0 items-center" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleCopySecret(item.username || item.email!, 'اسم المستخدم', false, `card-user-${item.id}`)
+                                  }
+                                  className="vault-action-btn vault-action-btn--copy"
+                                  title="نسخ اسم المستخدم"
+                                  aria-label="نسخ اسم المستخدم"
+                                >
+                                  {copiedKey === `card-user-${item.id}` ? (
+                                    <Check className="h-3.5 w-3.5 text-[#5eead4]" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {/* 3. Password Row if available (Masked by default) */}
+                          {item.password ? (
+                            <div className="steel-recess-deep flex items-center justify-between gap-2 rounded-xl px-3 py-1.5 text-xs">
+                              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                                <span className="shrink-0 text-[11px] font-semibold text-[#8ea0a5]">كلمة المرور:</span>
+                                <span dir="ltr" className="min-w-0 truncate font-mono-tabular text-left text-xs font-bold tracking-wider text-[#f2f5f5]">
+                                  {revealedCards[item.id] ? item.password : '••••••••••••'}
+                                </span>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleCardReveal(item.id)}
+                                  className="vault-action-btn vault-action-btn--view"
+                                  title={revealedCards[item.id] ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                                  aria-label={revealedCards[item.id] ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                                >
+                                  {revealedCards[item.id] ? (
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleCopySecret(item.password!, 'كلمة المرور', true, `card-pass-${item.id}`)
+                                  }
+                                  className="vault-action-btn vault-action-btn--copy"
+                                  title="نسخ كلمة المرور"
+                                  aria-label="نسخ كلمة المرور"
+                                >
+                                  {copiedKey === `card-pass-${item.id}` ? (
+                                    <Check className="h-3.5 w-3.5 text-[#5eead4]" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {/* Fallback note if no fields */}
+                          {!item.username && !item.email && !item.password && item.urls.length === 0 ? (
+                            <div className="py-1 text-center text-xs text-[#8ea0a5]">
+                              {item.notes ? (
+                                <p className="truncate">{item.notes}</p>
+                              ) : (
+                                <p>عنصر مشفر آمن</p>
+                              )}
+                            </div>
+                          ) : null}
+
+                          {/* 4. Bottom Row: Date & Action Controls */}
+                          <div
+                            className="mt-1 flex items-center justify-between border-t border-white/8 pt-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center gap-2 text-[11px] text-[#8ea0a5]">
+                              <span className="font-mono-tabular">{formatArabicDate(item.updatedAt)}</span>
+                              {secretsTotal > 0 ? (
+                                <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-mono text-[#76e5ff]">
+                                  {secretsTotal} أسرار
+                                </span>
                               ) : null}
-                              <button
-                                type="button"
-                                onClick={() => void handleDuplicate(item)}
-                                title="تكرار (نسخة)"
-                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
-                              >
-                                <Files className="h-3.5 w-3.5" />
-                              </button>
                             </div>
 
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => {
                                   setEditingItem(item);
                                   setEditorOpen(true);
                                 }}
-                                title="تعديل"
-                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-white/10 hover:text-[#f2f5f5]"
+                                className="vault-action-btn vault-action-btn--edit"
+                                title="تعديل العنصر"
+                                aria-label="تعديل العنصر"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 type="button"
+                                onClick={() => void handleDuplicate(item)}
+                                className="vault-action-btn"
+                                title="تكرار (نسخة)"
+                                aria-label="تكرار العنصر"
+                              >
+                                <Files className="h-3.5 w-3.5 text-[#c2cccf]" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => setDeleteTarget(item)}
-                                title="حذف"
-                                className="rounded-lg p-1.5 text-[#c2cccf] transition hover:bg-[#d95c5c]/15 hover:text-[#f29b9b]"
+                                className="vault-action-btn vault-action-btn--danger"
+                                title="حذف العنصر"
+                                aria-label="حذف العنصر"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
