@@ -70,10 +70,18 @@ export class ApiDataAdapter implements AmanDataAdapter {
   async setupOwner(
     pin: string,
     pinSalt: string,
-    wrappedMasterKey: string
+    wrappedMasterKey: string,
+    bootstrapToken?: string
   ): Promise<{ csrfToken?: string }> {
+    const cleanToken = (bootstrapToken || '').trim();
+    if (!cleanToken) {
+      throw new Error('رمز التأسيس الأولي (Bootstrap Token) مطلوب في وضع الإنتاج');
+    }
     return this.request<{ csrfToken?: string }>('/api/auth/setup', {
       method: 'POST',
+      headers: {
+        'X-AMAN-Bootstrap-Token': cleanToken,
+      },
       body: JSON.stringify({ pin, pinSalt, wrappedMasterKey }),
     });
   }

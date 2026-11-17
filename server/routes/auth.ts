@@ -14,6 +14,7 @@ import {
   generateRandomToken,
   hashPinVerifier,
   isValidEncryptedField,
+  validateBootstrapToken,
   verifyPinConstantTime,
 } from '../security/crypto';
 
@@ -32,6 +33,7 @@ interface SessionRow extends RowDataPacket {
 export const authRouter = Router();
 
 const unlockRateLimiter = createRateLimiter(12, 5 * 60 * 1000);
+const setupRateLimiter = createRateLimiter(5, 15 * 60 * 1000);
 
 function setSessionCookie(res: Response, sessionId: string): void {
   res.cookie(SESSION_COOKIE_NAME, sessionId, {
@@ -70,25 +72,48 @@ authRouter.get('/status', async (req, res) => {
   }
 });
 
-authRouter.post('/setup', async (req, res) => {
-  const { pin, pinSalt, wrappedMasterKey } = req.body as Record<string, unknown>;
-
-  if (
-    typeof pin !== 'string' ||
-    !/^\d{6}$/.test(pin) ||
-    typeof pinSalt !== 'string' ||
-    !pinSalt ||
-    typeof wrappedMasterKey !== 'string' ||
-    !isValidEncryptedField(wrappedMasterKey)
-  ) {
-    res.status(400).json({ error: 'بيانات تهيئة رمز الأمان غير صالحة' });
-    return;
-  }
-
+async function handleOwnerBootstrapSetup(
+  req: import('express').Request,
+  res: Response
+): Promise<void> {
   try {
+    const [existingBefore] = await pool.execute<OwnerRow[]>(
+      'SELECT id FROM owner_security WHERE id = 1 LIMIT 1'
+    );
+    if (existingBefore.length > 0) {
+      res.status(409).json({ error: 'تم تهيئة الخزنة مسبقاً' });
+      return;
+    }
+
+    const tokenCheck = validateBootstrapToken(
+      req.headers['x-aman-bootstrap-token'],
+      serverEnv.amanBootstrapToken
+    );
+    if (!tokenCheck.valid) {
+      res.status(403).json({ error: tokenCheck.error });
+      return;
+    }
+
+    const { pin, pinSalt, wrappedMasterKey } = req.body as Record<string, unknown>;
+
+    if (
+      typeof pin !== 'string' ||
+      !/^\d{6}$/.test(pin) ||
+      typeof pinSalt !== 'string' ||
+      !pinSalt.trim() ||
+      pinSalt.length > 255 ||
+      typeof wrappedMasterKey !== 'string' ||
+      !wrappedMasterKey ||
+      wrappedMasterKey.length > 4096 ||
+      !isValidEncryptedField(wrappedMasterKey)
+    ) {
+      res.status(400).json({ error: 'بيانات تهيئة رمز الأمان غير صالحة' });
+      return;
+    }
+
     await withTransaction(async (conn) => {
       const [existing] = await conn.execute<OwnerRow[]>(
-        'SELECT id FROM owner_security WHERE id = 1 LIMIT 1'
+        'SELECT id FROM owner_security WHERE id = 1 LIMIT 1 FOR UPDATE'
       );
       if (existing.length > 0) {
         const err = new Error('تم تهيئة الخزنة مسبقاً');
@@ -121,12 +146,15 @@ authRouter.post('/setup', async (req, res) => {
 
     res.status(201).json({ ok: true });
   } catch (err) {
-    const status = (err as Error & { statusCode?: number }).statusCode || 500;
+    const status = (err as Error & { statusCode?: number }).statusCode || 503;
     res.status(status).json({
       error: status === 409 ? 'تم تهيئة الخزنة مسبقاً' : 'تعذر الحفظ على الخادم',
     });
   }
-});
+}
+
+authRouter.post('/setup', setupRateLimiter, handleOwnerBootstrapSetup);
+authRouter.post('/bootstrap', setupRateLimiter, handleOwnerBootstrapSetup);
 
 authRouter.post('/unlock', unlockRateLimiter, async (req, res) => {
   const { pin } = req.body as Record<string, unknown>;
@@ -158,12 +186,16 @@ authRouter.post('/unlock', unlockRateLimiter, async (req, res) => {
       return;
     }
 
+    const priorSessionId = req.cookies?.[SESSION_COOKIE_NAME];
     const sessionId = generateRandomToken(32);
     const csrfToken = generateRandomToken(24);
     const expiresAt = toSqlDateTime(new Date(Date.now() + 12 * 60 * 60 * 1000));
 
     await withTransaction(async (conn) => {
       await conn.execute('DELETE FROM sessions WHERE expires_at <= NOW()');
+      if (typeof priorSessionId === 'string' && priorSessionId) {
+        await conn.execute('DELETE FROM sessions WHERE id = ?', [priorSessionId]);
+      }
       await conn.execute(
         `INSERT INTO sessions (id, csrf_token, expires_at, created_at)
          VALUES (?, ?, ?, ?)`,
@@ -238,8 +270,11 @@ authRouter.post(
       typeof newPin !== 'string' ||
       !/^\d{6}$/.test(newPin) ||
       typeof newPinSalt !== 'string' ||
-      !newPinSalt ||
+      !newPinSalt.trim() ||
+      newPinSalt.length > 255 ||
       typeof newWrappedMasterKey !== 'string' ||
+      !newWrappedMasterKey ||
+      newWrappedMasterKey.length > 4096 ||
       !isValidEncryptedField(newWrappedMasterKey)
     ) {
       res.status(400).json({ error: 'بيانات تحديث رمز الأمان غير صالحة' });

@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DigitWheel, type LedState } from '../../components/DigitWheel';
 import { MechanicalPadlock } from '../../components/MechanicalPadlock';
-import { APP_SIGNATURE } from '../../version';
+import { APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
 
 interface PinLockScreenProps {
   mode: PinScreenMode;
-  onSetupComplete: (pin: string) => Promise<void>;
+  onSetupComplete: (pin: string, bootstrapToken?: string) => Promise<void>;
   onUnlockAttempt: (pin: string) => Promise<{ ok: boolean; error?: string }>;
   onUnlockAnimationFinished: () => void;
 }
@@ -27,6 +27,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     'idle' | 'submitting' | 'error' | 'unlock-gold' | 'unlock-emerald'
   >('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [bootstrapToken, setBootstrapToken] = useState<string>('');
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
   const timersRef = useRef<number[]>([]);
 
@@ -50,6 +51,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
     setFirstPin('');
     setStatusPhase('idle');
     setErrorMessage('');
+    setBootstrapToken('');
   }, [mode]);
 
   const resetWheelsWithError = useCallback((message: string) => {
@@ -155,9 +157,14 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         return;
       }
 
+      if (!IS_PREVIEW_MODE && !bootstrapToken.trim()) {
+        resetWheelsWithError('أدخل رمز التأسيس الأولي (AMAN_BOOTSTRAP_TOKEN)');
+        return;
+      }
+
       setStatusPhase('submitting');
       try {
-        await onSetupComplete(pin);
+        await onSetupComplete(pin, !IS_PREVIEW_MODE ? bootstrapToken.trim() : undefined);
       } catch (err) {
         setStatusPhase('idle');
         resetWheelsWithError(
@@ -192,6 +199,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
     timersRef.current.push(tEmerald, tEnter);
   }, [
+    bootstrapToken,
     digits,
     firstPin,
     mode,
@@ -209,9 +217,12 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
       if (statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald' || statusPhase === 'submitting') {
         return;
       }
-      // Ignore if focus is inside mobile invisible input (handled via onInput/onChange)
-      if (document.activeElement === mobileInputRef.current) {
-        if (event.key === 'Enter' && digits.every(Boolean)) {
+      // Ignore when user is typing in another input (e.g., production bootstrap token input)
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
+        if (event.target === mobileInputRef.current && event.key === 'Enter' && digits.every(Boolean)) {
           event.preventDefault();
           void submitPin();
         }
@@ -386,8 +397,27 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           ))}
         </div>
 
+        {/* Production-only one-time bootstrap token input during initial owner setup */}
+        {mode === 'setup' && !IS_PREVIEW_MODE ? (
+          <div className="mt-4 w-full max-w-[440px]">
+            <input
+              type="password"
+              dir="ltr"
+              autoComplete="off"
+              value={bootstrapToken}
+              onChange={(e) => {
+                setBootstrapToken(e.target.value);
+                if (errorMessage) setErrorMessage('');
+              }}
+              placeholder="AMAN_BOOTSTRAP_TOKEN (مطلوب للتهيئة الأولى فقط)"
+              aria-label="رمز التأسيس الأولي"
+              className="font-mono-tabular w-full rounded-xl border border-white/12 bg-[#070a0a] px-3.5 py-2 text-center text-xs text-[#f3f6f5] outline-none transition focus:border-[#e5b440]/75"
+            />
+          </div>
+        ) : null}
+
         {/* 6. Short Status / Error Area */}
-        <div className="mt-4 flex h-6 items-center justify-center text-center">
+        <div className="mt-3 flex h-6 items-center justify-center text-center">
           {errorMessage ? (
             <p role="alert" className="text-xs font-semibold text-red-400 sm:text-sm">
               {errorMessage}

@@ -36,7 +36,12 @@ export interface BatchImportResponse {
 
 export interface AmanDataAdapter {
   getAuthStatus(): Promise<AuthStatusResponse>;
-  setupOwner(pin: string, pinSalt: string, wrappedMasterKey: string): Promise<{ csrfToken?: string }>;
+  setupOwner(
+    pin: string,
+    pinSalt: string,
+    wrappedMasterKey: string,
+    bootstrapToken?: string
+  ): Promise<{ csrfToken?: string }>;
   unlock(pin: string): Promise<UnlockResponse>;
   lock(): Promise<void>;
   logout(): Promise<void>;

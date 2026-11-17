@@ -9,7 +9,14 @@ import {
   SESSION_COOKIE_NAME,
   type AuthenticatedRequest,
 } from '../middleware/security';
-import { isValidEncryptedField, verifyPinConstantTime } from '../security/crypto';
+import {
+  MAX_BATCH_CATEGORIES,
+  MAX_BATCH_ITEMS,
+  MAX_CATEGORY_NAME_LENGTH,
+  validateAuditInput,
+  validateEncryptedItemPayload,
+  verifyPinConstantTime,
+} from '../security/crypto';
 
 interface VaultRow extends RowDataPacket {
   id: string;
@@ -75,26 +82,8 @@ function mapVaultRow(row: VaultRow) {
   };
 }
 
-function validateEncryptedItemPayload(body: Record<string, unknown>): {
-  valid: boolean;
-  error?: string;
-} {
-  if (typeof body.title !== 'string' || !body.title.trim()) {
-    return { valid: false, error: 'عنوان العنصر مطلوب' };
-  }
-  if (!isValidEncryptedField(body.encryptedPassword)) {
-    return { valid: false, error: 'يجب تشفير كلمة المرور قبل الإرسال (ENC:...)' };
-  }
-  if (!isValidEncryptedField(body.encryptedNotes)) {
-    return { valid: false, error: 'يجب تشفير الملاحظات قبل الإرسال (ENC:...)' };
-  }
-  if (
-    typeof body.encryptedSecretsPayload !== 'string' ||
-    !isValidEncryptedField(body.encryptedSecretsPayload)
-  ) {
-    return { valid: false, error: 'يجب تشفير الحقول السرية قبل الإرسال (ENC:...)' };
-  }
-  return { valid: true };
+function isValidEntityId(id: unknown): id is string {
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 64;
 }
 
 export const apiRouter = Router();
@@ -147,9 +136,20 @@ apiRouter.post('/vault', async (req, res) => {
   const id = crypto.randomUUID();
   const now = toSqlDateTime();
   const urlsJson = JSON.stringify(Array.isArray(body.urls) ? body.urls : []);
+  const requestedCategoryId =
+    typeof body.categoryId === 'string' && body.categoryId.trim() ? body.categoryId.trim() : null;
 
   try {
     await withTransaction(async (conn) => {
+      let resolvedCategoryId: string | null = null;
+      if (requestedCategoryId) {
+        const [cats] = await conn.execute<CategoryRow[]>(
+          'SELECT id FROM categories WHERE id = ? LIMIT 1',
+          [requestedCategoryId]
+        );
+        if (cats[0]) resolvedCategoryId = cats[0].id;
+      }
+
       await conn.execute(
         `INSERT INTO vault_items
           (id, title, username, email, encrypted_password, encrypted_notes, urls_json, category_id, is_favorite, encrypted_payload, created_at, updated_at)
@@ -157,12 +157,16 @@ apiRouter.post('/vault', async (req, res) => {
         [
           id,
           String(body.title).trim(),
-          typeof body.username === 'string' ? body.username : null,
-          typeof body.email === 'string' ? body.email : null,
-          typeof body.encryptedPassword === 'string' ? body.encryptedPassword : null,
-          typeof body.encryptedNotes === 'string' ? body.encryptedNotes : null,
+          typeof body.username === 'string' ? body.username.trim() || null : null,
+          typeof body.email === 'string' ? body.email.trim() || null : null,
+          typeof body.encryptedPassword === 'string' && body.encryptedPassword
+            ? body.encryptedPassword
+            : null,
+          typeof body.encryptedNotes === 'string' && body.encryptedNotes
+            ? body.encryptedNotes
+            : null,
           urlsJson,
-          typeof body.categoryId === 'string' && body.categoryId ? body.categoryId : null,
+          resolvedCategoryId,
           Boolean(body.isFavorite),
           String(body.encryptedSecretsPayload || ''),
           now,
@@ -188,6 +192,11 @@ apiRouter.post('/vault', async (req, res) => {
 
 apiRouter.put('/vault/:id', async (req, res) => {
   const { id } = req.params;
+  if (!isValidEntityId(id)) {
+    res.status(400).json({ error: 'معرّف العنصر غير صالح' });
+    return;
+  }
+
   const body = req.body as Record<string, unknown>;
   const check = validateEncryptedItemPayload(body);
   if (!check.valid) {
@@ -197,6 +206,8 @@ apiRouter.put('/vault/:id', async (req, res) => {
 
   const now = toSqlDateTime();
   const urlsJson = JSON.stringify(Array.isArray(body.urls) ? body.urls : []);
+  const requestedCategoryId =
+    typeof body.categoryId === 'string' && body.categoryId.trim() ? body.categoryId.trim() : null;
 
   try {
     const updatedRow = await withTransaction(async (conn) => {
@@ -208,6 +219,15 @@ apiRouter.put('/vault/:id', async (req, res) => {
         return null;
       }
 
+      let resolvedCategoryId: string | null = null;
+      if (requestedCategoryId) {
+        const [cats] = await conn.execute<CategoryRow[]>(
+          'SELECT id FROM categories WHERE id = ? LIMIT 1',
+          [requestedCategoryId]
+        );
+        if (cats[0]) resolvedCategoryId = cats[0].id;
+      }
+
       await conn.execute(
         `UPDATE vault_items
          SET title = ?, username = ?, email = ?, encrypted_password = ?, encrypted_notes = ?,
@@ -215,12 +235,16 @@ apiRouter.put('/vault/:id', async (req, res) => {
          WHERE id = ?`,
         [
           String(body.title).trim(),
-          typeof body.username === 'string' ? body.username : null,
-          typeof body.email === 'string' ? body.email : null,
-          typeof body.encryptedPassword === 'string' ? body.encryptedPassword : null,
-          typeof body.encryptedNotes === 'string' ? body.encryptedNotes : null,
+          typeof body.username === 'string' ? body.username.trim() || null : null,
+          typeof body.email === 'string' ? body.email.trim() || null : null,
+          typeof body.encryptedPassword === 'string' && body.encryptedPassword
+            ? body.encryptedPassword
+            : null,
+          typeof body.encryptedNotes === 'string' && body.encryptedNotes
+            ? body.encryptedNotes
+            : null,
           urlsJson,
-          typeof body.categoryId === 'string' && body.categoryId ? body.categoryId : null,
+          resolvedCategoryId,
           Boolean(body.isFavorite),
           String(body.encryptedSecretsPayload || ''),
           now,
@@ -253,6 +277,10 @@ apiRouter.put('/vault/:id', async (req, res) => {
 
 apiRouter.delete('/vault/:id', async (req, res) => {
   const { id } = req.params;
+  if (!isValidEntityId(id)) {
+    res.status(400).json({ error: 'معرّف العنصر غير صالح' });
+    return;
+  }
   const now = toSqlDateTime();
   try {
     await withTransaction(async (conn) => {
@@ -264,7 +292,7 @@ apiRouter.delete('/vault/:id', async (req, res) => {
       await conn.execute(
         `INSERT INTO audit_events (id, action, summary, created_at)
          VALUES (?, 'delete', ?, ?)`,
-        [crypto.randomUUID(), `حذف عنصر: ${rows[0]?.title || id}`, now]
+        [crypto.randomUUID(), `حذف عنصر: ${(rows[0]?.title || id).slice(0, 120)}`, now]
       );
     });
     res.json({ ok: true });
@@ -289,6 +317,23 @@ async function handleBatchImport(
     return;
   }
 
+  if (items.length > MAX_BATCH_ITEMS || categories.length > MAX_BATCH_CATEGORIES) {
+    res.status(400).json({ error: 'عدد العناصر أو التصنيفات يتجاوز الحد المسموح للاستيراد' });
+    return;
+  }
+
+  for (const cat of categories) {
+    if (
+      !cat ||
+      typeof cat !== 'object' ||
+      (cat.name !== undefined &&
+        (typeof cat.name !== 'string' || cat.name.trim().length > MAX_CATEGORY_NAME_LENGTH))
+    ) {
+      res.status(400).json({ error: 'بيانات التصنيفات غير صالحة' });
+      return;
+    }
+  }
+
   for (const item of items) {
     const check = validateEncryptedItemPayload(item);
     if (!check.valid) {
@@ -306,21 +351,38 @@ async function handleBatchImport(
         await conn.execute('DELETE FROM categories');
       }
 
+      const validCategoryIds = new Set<string>();
+      if (!replaceExisting) {
+        const [existingCats] = await conn.execute<CategoryRow[]>('SELECT id FROM categories');
+        for (const row of existingCats) {
+          validCategoryIds.add(row.id);
+        }
+      }
+
       for (const cat of categories) {
-        const catId = typeof cat.id === 'string' && cat.id ? cat.id : crypto.randomUUID();
+        const catId =
+          isValidEntityId(cat.id) ? cat.id.trim() : crypto.randomUUID();
         const catName = typeof cat.name === 'string' ? cat.name.trim() : 'عام';
         if (!catName) continue;
         await conn.execute(
           `INSERT INTO categories (id, name, created_at)
            VALUES (?, ?, ?)
            ON DUPLICATE KEY UPDATE name = VALUES(name)`,
-          [catId, catName, now]
+          [catId, catName.slice(0, MAX_CATEGORY_NAME_LENGTH), now]
         );
+        validCategoryIds.add(catId);
       }
 
       for (const body of items) {
         const id = crypto.randomUUID();
         const urlsJson = JSON.stringify(Array.isArray(body.urls) ? body.urls : []);
+        const rawCategoryId =
+          typeof body.categoryId === 'string' && body.categoryId.trim()
+            ? body.categoryId.trim()
+            : null;
+        const resolvedCategoryId =
+          rawCategoryId && validCategoryIds.has(rawCategoryId) ? rawCategoryId : null;
+
         await conn.execute(
           `INSERT INTO vault_items
             (id, title, username, email, encrypted_password, encrypted_notes, urls_json, category_id, is_favorite, encrypted_payload, created_at, updated_at)
@@ -328,12 +390,16 @@ async function handleBatchImport(
           [
             id,
             String(body.title).trim(),
-            typeof body.username === 'string' ? body.username : null,
-            typeof body.email === 'string' ? body.email : null,
-            typeof body.encryptedPassword === 'string' ? body.encryptedPassword : null,
-            typeof body.encryptedNotes === 'string' ? body.encryptedNotes : null,
+            typeof body.username === 'string' ? body.username.trim() || null : null,
+            typeof body.email === 'string' ? body.email.trim() || null : null,
+            typeof body.encryptedPassword === 'string' && body.encryptedPassword
+              ? body.encryptedPassword
+              : null,
+            typeof body.encryptedNotes === 'string' && body.encryptedNotes
+              ? body.encryptedNotes
+              : null,
             urlsJson,
-            typeof body.categoryId === 'string' && body.categoryId ? body.categoryId : null,
+            resolvedCategoryId,
             Boolean(body.isFavorite),
             String(body.encryptedSecretsPayload || ''),
             now,
@@ -405,22 +471,27 @@ apiRouter.get('/categories', async (_req, res) => {
 
 apiRouter.post('/categories', async (req, res) => {
   const { id, name } = req.body as { id?: string; name?: string };
-  if (typeof name !== 'string' || !name.trim()) {
-    res.status(400).json({ error: 'اسم التصنيف مطلوب' });
+  if (
+    typeof name !== 'string' ||
+    !name.trim() ||
+    name.trim().length > MAX_CATEGORY_NAME_LENGTH
+  ) {
+    res.status(400).json({ error: 'اسم التصنيف مطلوب ويجب أن يكون ضمن الطول المسموح' });
     return;
   }
-  const catId = typeof id === 'string' && id ? id : crypto.randomUUID();
+  const catId = isValidEntityId(id) ? id.trim() : crypto.randomUUID();
+  const cleanName = name.trim();
   const now = toSqlDateTime();
   try {
     await pool.execute(
       `INSERT INTO categories (id, name, created_at)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE name = VALUES(name)`,
-      [catId, name.trim(), now]
+      [catId, cleanName, now]
     );
     res.status(201).json({
       id: catId,
-      name: name.trim(),
+      name: cleanName,
       createdAt: new Date().toISOString(),
     });
   } catch {
@@ -430,6 +501,10 @@ apiRouter.post('/categories', async (req, res) => {
 
 apiRouter.delete('/categories/:id', async (req, res) => {
   const { id } = req.params;
+  if (!isValidEntityId(id)) {
+    res.status(400).json({ error: 'معرّف التصنيف غير صالح' });
+    return;
+  }
   try {
     await withTransaction(async (conn) => {
       await conn.execute('UPDATE vault_items SET category_id = NULL WHERE category_id = ?', [id]);
@@ -460,15 +535,16 @@ apiRouter.get('/audit', async (_req, res) => {
 });
 
 apiRouter.post('/audit', async (req, res) => {
-  const { action, summary } = req.body as { action?: string; summary?: string };
-  if (typeof action !== 'string' || typeof summary !== 'string') {
+  const { action, summary } = req.body as { action?: unknown; summary?: unknown };
+  const checked = validateAuditInput(action, summary);
+  if (!checked.valid || !checked.action || !checked.summary) {
     res.status(400).json({ error: 'بيانات سجل التدقيق غير صالحة' });
     return;
   }
   try {
     await pool.execute(
       'INSERT INTO audit_events (id, action, summary, created_at) VALUES (?, ?, ?, ?)',
-      [crypto.randomUUID(), action.slice(0, 64), summary.slice(0, 500), toSqlDateTime()]
+      [crypto.randomUUID(), checked.action, checked.summary, toSqlDateTime()]
     );
     res.status(201).json({ ok: true });
   } catch {

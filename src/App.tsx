@@ -109,12 +109,12 @@ function AmanApplication() {
     };
   }, []);
 
-  const handleSetupComplete = async (pin: string) => {
+  const handleSetupComplete = async (pin: string, bootstrapToken?: string) => {
     const pinSalt = generateSaltBase64(16);
     const freshMasterKey = await generateMasterVaultKey();
     const wrappedMasterKey = await wrapMasterKeyWithPin(freshMasterKey, pin, pinSalt);
 
-    await dataAdapter.setupOwner(pin, pinSalt, wrappedMasterKey);
+    await dataAdapter.setupOwner(pin, pinSalt, wrappedMasterKey, bootstrapToken);
     setLockState('locked');
     notify('success', 'تم إنشاء رمز أمان وتهيئة الخزنة بنجاح', 'أدخل الرمز الآن لفتح الخزنة');
   };

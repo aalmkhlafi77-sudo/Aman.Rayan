@@ -34,7 +34,10 @@ CREATE TABLE IF NOT EXISTS vault_items (
   updated_at DATETIME NOT NULL,
   PRIMARY KEY (id),
   INDEX idx_vault_category (category_id),
-  INDEX idx_vault_favorite (is_favorite)
+  INDEX idx_vault_favorite (is_favorite),
+  CONSTRAINT fk_vault_category
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS audit_events (

@@ -14,7 +14,7 @@ export interface AuthenticatedRequest extends Request {
 export function securityHeaders(_req: Request, res: Response, next: NextFunction): void {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
   );
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -26,12 +26,20 @@ export function restrictiveCors(req: Request, res: Response, next: NextFunction)
   const origin = req.headers.origin;
   const allowed = serverEnv.publicOrigin;
 
-  if (origin && allowed && origin === allowed) {
-    res.setHeader('Access-Control-Allow-Origin', allowed);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
+  if (origin) {
+    if (allowed && origin === allowed) {
+      res.setHeader('Access-Control-Allow-Origin', allowed);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, X-CSRF-Token, X-AMAN-Bootstrap-Token'
+      );
+    } else if (serverEnv.isProduction && req.path.startsWith('/api')) {
+      res.status(403).json({ error: 'مصدر الطلب غير مسموح به' });
+      return;
+    }
   }
 
   if (req.method === 'OPTIONS') {
@@ -47,11 +55,27 @@ interface RateBucket {
 }
 
 const rateBuckets = new Map<string, RateBucket>();
+const MAX_RATE_BUCKETS = 1000;
+
+function pruneRateBuckets(now: number): void {
+  if (rateBuckets.size <= MAX_RATE_BUCKETS) return;
+  for (const [k, entry] of rateBuckets.entries()) {
+    if (now > entry.resetAt) {
+      rateBuckets.delete(k);
+    }
+  }
+  while (rateBuckets.size > MAX_RATE_BUCKETS) {
+    const oldestKey = rateBuckets.keys().next().value;
+    if (!oldestKey) break;
+    rateBuckets.delete(oldestKey);
+  }
+}
 
 export function createRateLimiter(maxAttempts: number, windowMs: number) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const key = `${req.ip || 'local'}:${req.baseUrl}${req.path}`;
     const now = Date.now();
+    pruneRateBuckets(now);
     const bucket = rateBuckets.get(key);
 
     if (!bucket || now > bucket.resetAt) {

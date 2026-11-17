@@ -24,11 +24,19 @@ export function normalizeArabic(value: string): string {
 }
 
 export function normalizeUrl(raw: unknown): string | null {
-  const value = safeString(raw).trim();
+  const value = safeString(raw).replace(/[\u0000-\u001F\u007F]/g, '').trim();
   if (!value) return null;
 
   const lowered = value.toLowerCase();
   if (/^(javascript|vbscript|data|file|blob|about):/i.test(lowered)) {
+    return null;
+  }
+
+  // Reject any explicit scheme other than http:// or https:// (e.g., ftp://, mailto:, ssh:, custom:)
+  const hasExplicitScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value);
+  const looksLikeHostPort = /^[^/:?#]+:\d+(\/|$|\?|#)/.test(value);
+
+  if (hasExplicitScheme && !looksLikeHostPort && !/^https?:\/\//i.test(value)) {
     return null;
   }
 

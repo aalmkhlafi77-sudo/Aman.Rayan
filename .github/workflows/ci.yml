@@ -1,0 +1,41 @@
+name: AMAN CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: Lint, Production Build, and Security Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies cleanly
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Run automated security and crypto tests
+        run: npm test
+
+      - name: Build production frontend and server bundle
+        env:
+          VITE_APP_MODE: production
+        run: |
+          npm run build
+          test -f dist/index.html
+          test -f dist-server/index.mjs

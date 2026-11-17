@@ -4,32 +4,87 @@
 
 **تصميم : عبدالله المخلافي 2026**
 
-## البنية المعمارية المزدوجة
+---
+
+## البنية المعمارية المزدوجة (Mode Fail-Safe)
+
+يفرض التطبيق التحقق الصارم من وضع التشغيل (`VITE_APP_MODE`):
 
 - **وضع المعاينة (`VITE_APP_MODE=preview`)**: يستخدم `PreviewDataAdapter` مع قاعدة بيانات IndexedDB محلية داخل المتصفح لاختبار كافة المزايا التفاعلية داخل Google AI Studio دون الحاجة لخادم MySQL.
 - **وضع الإنتاج (`VITE_APP_MODE=production`)**: يستخدم `ApiDataAdapter` المتصل بخادم Node.js / Express وقاعدة بيانات MySQL أو MariaDB عبر استعلامات SQL مُعامَلة (`Parameterized`) ومعاملات ذرية (`Transactions`).
+- **الحماية من الرجوع الصامت (Fail-Safe)**: في أي بناء إنتاجي (`npm run build`)، إذا كانت قيمة `VITE_APP_MODE` مفقودة أو غير صالحة أو غير مضبوطة إلى `production` أو `preview` صراحةً، يتوقف التطبيق برسالة تشخيصية واضحة ولا يرجع أبداً بشكل صامت إلى IndexedDB. يُسمح بالافتراضي `preview` فقط أثناء تشغيل خادم التطوير المحلي (`vite dev`).
+
+---
 
 ## الأمان والتشفير
 
-- **التحقق من الرمز في الإنتاج**: يتم التحقق من رمز PIN المكوّن من 6 أرقام عبر `POST /api/auth/unlock` فوق HTTPS ومقارنته بمُتحقق PBKDF2-SHA256 المخزن في `owner_security` مع إصدار جلسة `HttpOnly` محمية بـ CSRF.
-- **تشفير من جهة العميل**: تُشفّر جميع الحقول الحساسة محلياً عبر Web Crypto (`AES-256-GCM`) بصيغة `ENC:IV:CIPHERTEXT` قبل أي طلب `POST` أو `PUT` إلى الخادم.
-- **النسخ الاحتياطي (`.aman`)**: يدعم التصدير والاستيراد المشفر بصيغة `AMAN_ENCRYPTED_VAULT` (الإصدار `2.0.0`).
-- **أدوات Excel (`.xlsx`)**: تصدير واستيراد مصنفات `.xlsx` حقيقية مع شاشة معاينة وفحص قبل التنفيذ الذري.
+- **التحقق من الرمز في الإنتاج**: يتم التحقق من رمز PIN المكوّن من 6 أرقام عبر `POST /api/auth/unlock` فوق HTTPS ومقارنته بمُتحقق PBKDF2-SHA256 المخزن في `owner_security` (مقارنة ثابتة الزمن) مع تدوير الجلسة وإصدار cookie `HttpOnly` (`SameSite=Lax`, `Secure` في الإنتاج) محمية بـ CSRF.
+- **تشفير من جهة العميل (Zero-Knowledge SQL Storage)**: تُشفّر جميع الحقول الحساسة محلياً عبر Web Crypto (`AES-256-GCM`) بصيغة `ENC:IV:CIPHERTEXT` قبل أي طلب `POST` أو `PUT` إلى الخادم. يرفض الخادم أي حمولة تحتوي قيماً غير مشفرة للحقول السرية.
+- **حماية التأسيس الأولي (`AMAN_BOOTSTRAP_TOKEN`)**: لا يقبل الخادم التهيئة الأولى للمالك (`/api/auth/setup`) إلا بتمرير رمز `X-AMAN-Bootstrap-Token` المطابق لمتغير البيئة `AMAN_BOOTSTRAP_TOKEN` (بطول لا يقل عن 24 حرفاً)، وبمجرد إنشاء سجل المالك يتم تعطيل مسار التهيئة نهائياً (`409`).
+- **النسخ الاحتياطي (`.aman`)**: يدعم التصدير والاستيراد المشفر بصيغة `AMAN_ENCRYPTED_VAULT` (الإصدار `2.0.0`، معرّف التوافق `AMAN Windows Desktop Vault`).
+- **أدوات Excel (`.xlsx`)**: تصدير واستيراد مصنفات `.xlsx` حقيقية مع شاشة معاينة وفحص قبل التنفيذ الذري، وتحذير صريح قبل تصدير ملفات Excel لأنها غير مشفرة.
+
+---
+
+## إدارة الحزم (npm vs Bun)
+
+- يعتمد النشر الإنتاجي وخط الأنابيب (CI) على **`package-lock.json`** مع `npm ci` كمرجع رسمي قابل للتكرار.
+- قد يحتوي المستودع أيضاً على `bun.lock` لبيئة التطوير السريعة؛ عند إضافة أو تحديث أي حزمة يجب تحديث `package-lock.json` عبر `npm install`.
+
+---
 
 ## النشر على استضافة Node.js (مثل Hostinger)
 
-1. انسخ ملف البيئة وأعد ضبط المتغيرات الحقيقية في `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   اضبط `VITE_APP_MODE=production` وبيانات MySQL (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) و `PUBLIC_ORIGIN` و `SESSION_SECRET`.
-2. أنشئ قاعدة البيانات ونفّذ ملف الجداول الآمن (أو اترك الخادم ينشئها تلقائياً عند التشغيل دون حذف أي بيانات موجودة):
-   ```bash
-   mysql -u USER -p aman < database/schema.sql
-   ```
-3. ثبّت الحزم وابنِ التطبيق ثم شغّل الخادم:
-   ```bash
-   npm install
-   npm run build
-   npm start
-   ```
+### 1. تهيئة متغيرات البيئة (`.env`)
+
+انسخ `.env.example` إلى `.env` واضبط القيم الحقيقية (لا تترك أي قيمة افتراضية مثل `CHANGE_ME` أو `example.com`):
+
+```bash
+cp .env.example .env
+```
+
+المتغيرات المطلوبة في الإنتاج (`NODE_ENV=production`):
+- `VITE_APP_MODE=production`
+- `NODE_ENV=production`
+- `PORT=3000`
+- `PUBLIC_ORIGIN=https://your-domain.com` (يجب أن يطابق النطاق الفعلي فوق HTTPS)
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (كلمة مرور قوية غير فارغة)
+- `SESSION_SECRET` (سر عشوائي بطول 32 حرفاً على الأقل)
+- `AMAN_BOOTSTRAP_TOKEN` (رمز عشوائي مؤقت بطول 24+ حرفاً للتأسيس الأولي فقط — مثال لتوليده: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+
+### 2. إعداد قاعدة البيانات (MySQL 8+ / MariaDB 10.5+)
+
+نفّذ ملف الجداول الآمن (أو اترك الخادم ينشئ الجداول تلقائياً عند التشغيل دون حذف أي بيانات قائمة):
+
+```bash
+mysql -u USER -p aman < database/schema.sql
+```
+
+### 3. التثبيت والبناء والتشغيل
+
+```bash
+npm ci
+npm run lint
+VITE_APP_MODE=production npm run build
+npm test
+npm start
+```
+
+### 4. إتمام التأسيس الأولي وإزالة رمز التأسيس
+
+1. افتح التطبيق في المتصفح فوق HTTPS.
+2. أنشئ رمز أمان المالك (6 أرقام) وأدخل قيمة `AMAN_BOOTSTRAP_TOKEN` في الحقل المخصص للتأسيس الأولي.
+3. **خطوة أمنية إلزامية بعد التأسيس**: احذف قيمة `AMAN_BOOTSTRAP_TOKEN` من ملف `.env` (أو اتركها فارغة) وأعد تشغيل الخادم:
+   - سيستمر الخادم بالعمل بشكل طبيعي بعد التأسيس.
+   - يبقى سجل المالك مقفلاً بشكل دائم ولن يُقبل أي تأسيس جديد (`409`).
+
+### 5. فحص الجاهزية (`/api/health`)
+
+```bash
+curl -fsS https://your-domain.com/api/health
+# المتوقع: {"ok":true,"databaseReady":true}
+```
+
+### ملاحظة تشغيلية حول محدد المحاولات (Rate Limiting)
+
+تُخزَّن عدادات الحد من المحاولات (`createRateLimiter`) في ذاكرة العملية المحلية (`In-Memory` مع تنظيف تلقائي وحد أقصى للذاكرة). يناسب ذلك النشر على مثيل Node.js واحد (مثل Hostinger Node.js App). في حال التوسع لاحقاً إلى عدة مثيلات خلف موازن أحمال، يُنصح بترحيل عدادات الحماية إلى مخزن مشترك مثل Redis.

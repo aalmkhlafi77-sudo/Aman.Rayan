@@ -38,12 +38,22 @@ export const ExcelToolsView: React.FC<ExcelToolsViewProps> = ({
   const [preview, setPreview] = useState<ExcelImportPreview | null>(null);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [committing, setCommitting] = useState(false);
+  const [exportWarningConfirmed, setExportWarningConfirmed] = useState(false);
 
   const handleExport = async () => {
+    if (!exportWarningConfirmed) {
+      onNotify(
+        'warning',
+        'يرجى تأكيد التحذير الأمني أولاً',
+        'ملف Excel (.xlsx) المصدّر غير مشفر ويحتوي على كلمات المرور والمفاتيح كنص مقروء.'
+      );
+      return;
+    }
     try {
       exportVaultToXlsx(items, categories);
+      setExportWarningConfirmed(false);
       await onExported();
-      onNotify('success', 'تم تصدير ملف Excel (.xlsx) بنجاح');
+      onNotify('success', 'تم تصدير ملف Excel (.xlsx) محلياً بنجاح');
     } catch (err) {
       onNotify(
         'error',
@@ -150,15 +160,30 @@ export const ExcelToolsView: React.FC<ExcelToolsViewProps> = ({
               <h3 className="text-base font-bold text-white">تصدير الخزنة إلى Excel (.xlsx)</h3>
             </div>
             <p className="text-xs leading-relaxed text-[#93a19f]">
-              يتم تصدير جميع العناصر ({items.length}) والتصنيفات بصيغة مصنف Excel قياسي (.xlsx)
-              متوافق مع إعادة الاستيراد.
+              يتم توليد المصنف ({items.length} عنصر) محلياً داخل المتصفح بصيغة (.xlsx) دون رفع أي
+              بيانات إلى الخادم.
             </p>
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 p-3 text-[11px] leading-relaxed text-amber-200">
+              <strong className="block font-bold text-amber-300">تحذير أمني هام:</strong>
+              ملف Excel (.xlsx) غير مشفر ويحتوي على كلمات المرور والمفاتيح كنص مقروء. للنسخ
+              الاحتياطي الآمن استخدم صيغة (.aman) المشفرة.
+            </div>
+            <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs font-semibold text-[#dce3e1]">
+              <input
+                type="checkbox"
+                checked={exportWarningConfirmed}
+                onChange={(e) => setExportWarningConfirmed(e.target.checked)}
+                className="accent-[#e5b440]"
+              />
+              <span>أفهم أن ملف Excel غير مشفر وسأحفظه في مكان آمن</span>
+            </label>
           </div>
 
           <button
             type="button"
+            disabled={!exportWarningConfirmed}
             onClick={() => void handleExport()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e5b440] px-5 py-2.5 text-sm font-bold text-[#0b0e0e] transition hover:bg-[#ffd365]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e5b440] px-5 py-2.5 text-sm font-bold text-[#0b0e0e] transition hover:bg-[#ffd365] disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Download className="h-4 w-4" />
             تصدير ملف .xlsx
