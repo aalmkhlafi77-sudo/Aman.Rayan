@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AmanRayanEmblem } from '../../components/AmanRayanEmblem';
 import { DigitWheel, type LedState } from '../../components/DigitWheel';
 import { MechanicalPadlock } from '../../components/MechanicalPadlock';
 import {
@@ -9,7 +10,7 @@ import {
   playWheelDetent,
   playWheelSettle,
 } from '../../services/mechanicalAudio';
-import { APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
+import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
 
@@ -420,7 +421,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
       : 'أدخل رمز أمان الخاص بك';
 
   const subtitleText = isUnlockedVisual
-    ? 'تم فتح خزنة أمان بنجاح'
+    ? 'تم فتح خزنة أمان ريان بنجاح'
     : mode === 'setup'
       ? setupStage === 'create'
         ? 'أنشئ رمز أمان مكوّن من 6 أرقام'
@@ -456,18 +457,20 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   return (
     <main
       dir="rtl"
-      className="aman-safe-bg flex min-h-screen w-full items-center justify-center p-3.5"
+      className="aman-safe-bg flex min-h-screen w-full items-center justify-center p-2.5 sm:p-3.5"
     >
-      <div className="aman-ambient-glow" />
+      <div className="aman-studio-light" aria-hidden="true" />
+      <div className="aman-ambient-glow" aria-hidden="true" />
 
       <section
-        aria-label="بوابة الأمان الميكانيكية"
+        aria-label="بوابة أمان ريان الميكانيكية"
         onClick={handleCardTap}
-        className={`aman-pin-card relative z-10 flex flex-col items-center justify-between px-5 py-6 sm:px-8 sm:py-7 ${
+        className={`aman-pin-card relative z-10 flex flex-col items-center justify-between ${
           isError ? 'aman-pin-card--error' : ''
         } ${isUnlockedVisual ? 'aman-pin-card--unlocked' : ''}`}
       >
-        {/* Localized Faint Emerald Reflection Behind Lock & Card Bottom Edge */}
+        {/* Top Cyan Logo Reflection + Localized Atmospheric Lock Backdrop + Bottom Edge Glint */}
+        <div className="aman-card-top-reflection" aria-hidden="true" />
         <div className="aman-card-lock-backdrop" aria-hidden="true" />
         <div className="aman-card-bottom-reflection" aria-hidden="true" />
 
@@ -484,24 +487,46 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           aria-label="رمز أمان"
         />
 
-        {/* 1. 3D Mechanical Padlock */}
-        <div className="relative z-10 mb-2.5">
+        {/* Official Aman Rayan Brand Identity Header */}
+        <header className="aman-brand-header relative z-10 flex flex-col items-center text-center">
+          <div className="aman-brand-emblem-wrap">
+            <div className="aman-brand-halo" aria-hidden="true" />
+            <AmanRayanEmblem className="aman-brand-emblem-img" />
+          </div>
+
+          <div className="aman-brand-titles">
+            <span dir="ltr" className="aman-brand-title-en">
+              {APP_NAME}
+            </span>
+            <span className="aman-brand-title-divider" aria-hidden="true" />
+            <span className="aman-brand-title-ar">{APP_NAME_AR}</span>
+          </div>
+
+          <div className="aman-brand-descriptor">
+            <span className="aman-brand-line" aria-hidden="true" />
+            <span>الخزنة الرقمية الآمنة</span>
+            <span className="aman-brand-line aman-brand-line--flip" aria-hidden="true" />
+          </div>
+        </header>
+
+        {/* Mechanical Padlock Symbolism */}
+        <div className="aman-lock-stage relative z-10">
           <MechanicalPadlock status={padlockStatus} />
         </div>
 
-        {/* 2 & 3. Title & Subtitle */}
-        <div className="relative z-10 mb-5 text-center">
+        {/* Functional PIN Title & Subtitle */}
+        <div className="aman-pin-heading relative z-10 text-center">
           <h1
-            className={`aman-safe-title text-xl font-extrabold tracking-tight transition-colors duration-300 sm:text-2xl ${
+            className={`aman-safe-title text-lg font-extrabold tracking-tight transition-colors duration-300 sm:text-xl ${
               isUnlockedVisual ? 'aman-safe-title--unlocked' : ''
             }`}
           >
             {titleText}
           </h1>
-          <p className="aman-safe-subtitle mt-1.5 text-xs sm:text-sm">{subtitleText}</p>
+          <p className="aman-safe-subtitle mt-0.5 text-xs sm:text-[13px]">{subtitleText}</p>
         </div>
 
-        {/* 4 & 5. Six Recessed Sockets + Raised Cylindrical Drums + Physical LEDs */}
+        {/* Six Recessed Sockets + Raised Cylindrical Drums + Physical LEDs */}
         <div className="aman-wheels-stage relative z-10">
           <div className="aman-wheels-floor-glow" aria-hidden="true" />
           <div className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}>

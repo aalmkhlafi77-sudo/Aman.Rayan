@@ -33,10 +33,11 @@ import type {
   VaultItemInput,
   ViewMode,
 } from '../../types/aman';
-import { APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
+import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
 import { formatArabicDate, normalizeArabic, openSafeExternalUrl } from '../../utils/normalize';
 import type { BatchImportRequest } from '../../adapters/AmanDataAdapter';
 import { getPreviewAdapter } from '../../adapters';
+import { AmanRayanEmblem } from '../../components/AmanRayanEmblem';
 import { VaultItemModal } from './VaultItemModal';
 import { VaultItemDetailModal } from './VaultItemDetailModal';
 import { PasswordGeneratorView } from '../generator/PasswordGeneratorView';
@@ -324,16 +325,19 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
     <div className="flex h-full flex-col justify-between p-4">
       <div className="space-y-6">
         {/* Brand */}
-        <div className="flex items-center justify-between px-1.5">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
-            <div className="steel-plate flex h-9 w-9 items-center justify-center rounded-xl text-[#161e21]">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-base font-extrabold tracking-tight text-[#f2f5f5]">
-                {APP_NAME_AR}
+            <AmanRayanEmblem className="h-10 w-10 drop-shadow-[0_2px_8px_rgba(88,217,255,0.28)]" />
+            <div className="min-w-0">
+              <h1
+                dir="ltr"
+                className="font-latin-brand truncate text-right text-sm font-extrabold tracking-tight text-[#f2f5f5]"
+              >
+                {APP_NAME}
               </h1>
-              <p className="font-mono-tabular text-[11px] text-[#94a4a9]">AMAN · {APP_VERSION}</p>
+              <p className="truncate text-xs font-bold text-[#76e5ff]">
+                {APP_NAME_AR}
+              </p>
             </div>
           </div>
           <button
@@ -485,8 +489,15 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
               <Menu className="h-5 w-5" />
             </button>
 
+            <div className="flex items-center gap-2 lg:hidden">
+              <AmanRayanEmblem className="h-8 w-8 drop-shadow-[0_1px_6px_rgba(88,217,255,0.26)]" />
+              <span className="hidden text-xs font-extrabold text-[#f2f5f5] sm:inline">
+                {APP_NAME_AR}
+              </span>
+            </div>
+
             {isVaultListing ? (
-              <div className="relative w-56 sm:w-80">
+              <div className="relative w-44 sm:w-72 md:w-80">
                 <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a4a9]" />
                 <input
                   type="search"
@@ -572,11 +583,9 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
               {filteredItems.length === 0 ? (
                 <div className="steel-plate rounded-2xl p-1.5">
                   <div className="steel-recess flex flex-col items-center justify-center rounded-xl px-6 py-16 text-center">
-                    <div className="steel-plate mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-[#161e21]">
-                      <Shield className="h-6 w-6" />
-                    </div>
+                    <AmanRayanEmblem className="mb-4 h-16 w-16 drop-shadow-[0_4px_14px_rgba(88,217,255,0.28)]" />
                     <h3 className="text-base font-bold text-[#f2f5f5]">
-                      {items.length === 0 ? 'خزنة أمان فارغة حالياً' : 'لا توجد نتائج مطابقة'}
+                      {items.length === 0 ? `خزنة ${APP_NAME_AR} فارغة حالياً` : 'لا توجد نتائج مطابقة'}
                     </h3>
                     <p className="mt-1.5 max-w-md text-xs leading-relaxed text-[#c2cccf]">
                       {items.length === 0

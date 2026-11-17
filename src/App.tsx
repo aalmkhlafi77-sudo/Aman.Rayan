@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { dataAdapter } from './adapters';
 import type { BatchImportRequest } from './adapters/AmanDataAdapter';
+import { AmanRayanEmblem } from './components/AmanRayanEmblem';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastContainer } from './components/ToastContainer';
 import { PinLockScreen } from './features/auth/PinLockScreen';
@@ -362,11 +363,21 @@ function AmanApplication() {
       {lockState === 'loading' ? (
         <div
           dir="rtl"
-          className="aman-safe-bg flex min-h-screen items-center justify-center"
+          className="aman-safe-bg flex min-h-screen items-center justify-center p-4"
         >
-          <div className="steel-module-dark rounded-2xl px-8 py-6 text-center">
-            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#58d9ff]/25 border-t-[#58d9ff]" />
-            <p className="text-xs font-semibold text-[#dce2e3]">جاري تهيئة أمان...</p>
+          <div className="aman-ambient-glow" />
+          <div className="steel-module-dark relative z-10 flex flex-col items-center rounded-2xl px-8 py-6 text-center">
+            <div className="relative mb-3 flex items-center justify-center">
+              <div className="aman-brand-halo" aria-hidden="true" />
+              <AmanRayanEmblem className="relative z-10 h-14 w-auto" />
+            </div>
+            <p className="font-latin-brand text-sm font-extrabold tracking-wide text-[#f2f5f5]">
+              Aman Rayan
+            </p>
+            <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#c2cccf]">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#58d9ff]/25 border-t-[#58d9ff]" />
+              <span>جاري تهيئة أمان ريان...</span>
+            </div>
           </div>
         </div>
       ) : lockState === 'unlocked' && masterKey ? (

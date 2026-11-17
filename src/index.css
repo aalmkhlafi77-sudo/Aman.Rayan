@@ -86,35 +86,72 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
+.font-latin-brand {
+  font-family: 'Plus Jakarta Sans', 'Cairo', system-ui, sans-serif;
+}
+
 /* =====================================================
-   MAIN BRUSHED STEEL STUDIO BACKGROUND
+   MAIN BRUSHED STEEL STUDIO BACKGROUND (3-LAYER SYSTEM)
    ===================================================== */
 .aman-safe-bg {
   position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
-    radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.08), transparent 44%),
-    radial-gradient(circle at 52% 28%, rgba(88, 217, 255, 0.07), transparent 46%),
+    radial-gradient(ellipse at center, transparent 52%, rgba(7, 11, 13, 0.56) 100%),
+    radial-gradient(circle at 18% 12%, rgba(235, 244, 247, 0.1), transparent 46%),
     repeating-linear-gradient(
       115deg,
-      rgba(255, 255, 255, 0.016) 0px,
-      rgba(255, 255, 255, 0.016) 1px,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
       rgba(0, 0, 0, 0.022) 2px,
       rgba(0, 0, 0, 0.022) 3px
     ),
-    linear-gradient(145deg, #3b474b 0%, #6b777b 34%, #414c50 66%, #20292c 100%);
+    linear-gradient(145deg, #273236 0%, #4b575b 32%, #313c40 66%, #182023 100%);
 }
 
+/* Layer 2: Slow Directional Brushed-Steel Studio Light Sweep (16s cycle) */
+.aman-studio-light {
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(225, 245, 250, 0.055) 48%,
+    rgba(88, 217, 255, 0.035) 53%,
+    transparent 66%
+  );
+  transform: translate3d(-18%, -10%, 0);
+  animation: amanStudioSweep 16s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes amanStudioSweep {
+  0% {
+    transform: translate3d(-18%, -10%, 0);
+  }
+  100% {
+    transform: translate3d(16%, 10%, 0);
+  }
+}
+
+/* Layer 3: Localized Aman Rayan Cyan/Teal Atmospheric Light */
 .aman-ambient-glow {
   position: fixed;
-  top: -110px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 680px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(88, 217, 255, 0.11) 0%, transparent 68%);
+  inset: 0;
   pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 24%,
+      rgba(44, 220, 230, 0.13),
+      transparent 44%
+    ),
+    radial-gradient(
+      ellipse at 50% 72%,
+      rgba(40, 140, 155, 0.08),
+      transparent 50%
+    );
 }
 
 /* =====================================================
@@ -487,25 +524,39 @@ body,
 .aman-pin-card {
   position: relative;
   overflow: hidden;
-  width: min(612px, calc(100vw - 28px));
-  max-height: calc(100vh - 28px);
-  border-radius: 30px;
+  width: min(604px, calc(100vw - 24px));
+  padding: 20px 30px 18px;
+  border-radius: 28px;
   background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 30%),
+    radial-gradient(ellipse at 50% 54%, rgba(16, 23, 26, 0.36) 0%, transparent 68%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.15), transparent 32%),
     repeating-linear-gradient(
       115deg,
-      rgba(255, 255, 255, 0.018) 0px,
-      rgba(255, 255, 255, 0.018) 1px,
+      rgba(255, 255, 255, 0.016) 0px,
+      rgba(255, 255, 255, 0.016) 1px,
       rgba(0, 0, 0, 0.018) 2px,
       rgba(0, 0, 0, 0.018) 3px
     ),
-    linear-gradient(145deg, #6b777b 0%, #9fa9ad 24%, #6a767a 56%, #414d51 86%, #2f393c 100%);
-  border: 1px solid rgba(220, 235, 238, 0.46);
+    linear-gradient(145deg, #6b777b 0%, #98a3a7 22%, #626e72 56%, #3d484c 86%, #2b3538 100%);
+  border: 1px solid rgba(220, 235, 238, 0.48);
   box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.62),
-    inset 0 -2px 5px rgba(9, 13, 14, 0.55),
-    0 26px 64px rgba(9, 13, 14, 0.55);
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.68),
+    inset 0 -2px 6px rgba(9, 13, 14, 0.58),
+    0 0 36px rgba(44, 220, 230, 0.08),
+    0 28px 68px rgba(7, 11, 13, 0.62);
+  animation: amanPanelEnter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: border-color 280ms ease, box-shadow 280ms ease;
+}
+
+@keyframes amanPanelEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.988);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 .aman-pin-card::before {
@@ -515,24 +566,52 @@ body,
   border-radius: inherit;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, transparent 18%, transparent 88%, rgba(0, 0, 0, 0.18) 100%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, transparent 10%, transparent 90%, rgba(0, 0, 0, 0.12) 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 16%, transparent 88%, rgba(0, 0, 0, 0.2) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, transparent 10%, transparent 90%, rgba(0, 0, 0, 0.14) 100%);
 }
 
-/* Localized Atmospheric Reflection Behind Lock & Top/Bottom Bevel Glints */
+/* Faint Cyan Reflection from Aman Rayan Logo Along Top Bevel */
+.aman-card-top-reflection {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0.78;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(88, 217, 255, 0.78) 50%,
+    transparent 100%
+  );
+  filter: blur(0.5px);
+  transition: background 280ms ease, opacity 280ms ease;
+}
+
+.aman-pin-card--unlocked .aman-card-top-reflection {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(54, 229, 164, 0.9) 50%,
+    transparent 100%
+  );
+}
+
+/* Localized Atmospheric Reflection Behind Lock & Card Bottom Edge */
 .aman-card-lock-backdrop {
   position: absolute;
-  top: 6px;
+  top: 28px;
   left: 50%;
   transform: translateX(-50%);
-  width: 310px;
-  height: 162px;
+  width: 340px;
+  height: 210px;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(
-    ellipse at 50% 48%,
-    rgba(88, 217, 255, 0.24) 0%,
-    rgba(88, 217, 255, 0.08) 46%,
+    ellipse at 50% 42%,
+    rgba(44, 220, 230, 0.2) 0%,
+    rgba(88, 217, 255, 0.07) 48%,
     transparent 74%
   );
   transition: opacity 320ms ease, transform 320ms ease, background 320ms ease;
@@ -540,7 +619,7 @@ body,
 
 .aman-pin-card--unlocked .aman-card-lock-backdrop {
   background: radial-gradient(
-    ellipse at 50% 48%,
+    ellipse at 50% 42%,
     rgba(54, 229, 164, 0.28) 0%,
     rgba(54, 229, 164, 0.1) 48%,
     transparent 76%
@@ -550,7 +629,7 @@ body,
 
 .aman-pin-card--error .aman-card-lock-backdrop {
   background: radial-gradient(
-    ellipse at 50% 48%,
+    ellipse at 50% 42%,
     rgba(217, 92, 92, 0.22) 0%,
     transparent 70%
   );
@@ -627,6 +706,188 @@ body,
 }
 
 /* =====================================================
+   AMAN RAYAN BRAND IDENTITY HEADER (LOGIN ENTRANCE)
+   ===================================================== */
+.aman-brand-header {
+  margin-bottom: 6px;
+  animation: amanBrandEnter 580ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+}
+
+@keyframes amanBrandEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.aman-brand-emblem-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+/* One-time restrained metallic light sweep masked strictly to the emblem */
+.aman-brand-emblem-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    112deg,
+    transparent 34%,
+    rgba(225, 248, 255, 0.36) 50%,
+    transparent 66%
+  );
+  background-size: 240% 100%;
+  background-position: 140% 0;
+  -webkit-mask-image: url('/assets/aman-rayan-emblem.png');
+  mask-image: url('/assets/aman-rayan-emblem.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  opacity: 0;
+  animation: amanLogoOnceSweep 780ms cubic-bezier(0.22, 1, 0.36, 1) 320ms 1 forwards;
+}
+
+@keyframes amanLogoOnceSweep {
+  0% {
+    opacity: 0.95;
+    background-position: 140% 0;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    background-position: -60% 0;
+  }
+}
+
+.aman-brand-halo {
+  position: absolute;
+  inset: -20px -28px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(44, 220, 230, 0.24) 0%,
+    rgba(44, 220, 230, 0.08) 46%,
+    transparent 72%
+  );
+  animation: amanHaloBreathe 6.5s ease-in-out infinite alternate;
+  transition: background 320ms ease;
+}
+
+@keyframes amanHaloBreathe {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+.aman-pin-card--unlocked .aman-brand-halo {
+  background: radial-gradient(
+    circle,
+    rgba(54, 229, 164, 0.34) 0%,
+    rgba(54, 229, 164, 0.1) 52%,
+    transparent 74%
+  );
+}
+
+.aman-brand-emblem-img {
+  position: relative;
+  z-index: 2;
+  height: 102px;
+  width: auto;
+  filter: drop-shadow(0 8px 16px rgba(7, 11, 13, 0.56));
+}
+
+.aman-brand-titles {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.aman-brand-title-en {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  background: linear-gradient(180deg, #ffffff 0%, #dce4e6 52%, #97a5aa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(7, 11, 13, 0.65));
+}
+
+.aman-brand-title-divider {
+  width: 1.5px;
+  height: 15px;
+  background: linear-gradient(180deg, transparent, rgba(88, 217, 255, 0.75), transparent);
+}
+
+.aman-brand-title-ar {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #f2f5f5;
+  text-shadow:
+    0 2px 5px rgba(7, 11, 13, 0.75),
+    0 0 12px rgba(88, 217, 255, 0.2);
+}
+
+.aman-brand-descriptor {
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #dce3e5;
+  text-shadow: 0 1px 2px rgba(9, 13, 14, 0.7);
+}
+
+.aman-brand-line {
+  width: 26px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(88, 217, 255, 0.85));
+}
+
+.aman-brand-line--flip {
+  background: linear-gradient(90deg, rgba(88, 217, 255, 0.85), transparent);
+}
+
+.aman-lock-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 98px;
+  margin-bottom: 4px;
+}
+
+.aman-pin-heading {
+  margin-bottom: 12px;
+}
+
+/* =====================================================
    3D BRUSHED STEEL MECHANICAL PADLOCK
    ===================================================== */
 .aman-lock-shell {
@@ -634,8 +895,10 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 112px;
-  height: 122px;
+  width: 102px;
+  height: 106px;
+  transform: scale(0.84);
+  transform-origin: center center;
 }
 
 .aman-lock-aura {
@@ -1520,11 +1783,99 @@ body,
 }
 
 /* =====================================================
-   MOBILE RESPONSIVE SCALING (PERFORMANCE & DEPTH)
+   HEIGHT & WIDTH RESPONSIVE SCALING (DESKTOP, LAPTOP, MOBILE)
    ===================================================== */
+@media (max-height: 820px) and (min-width: 581px) {
+  .aman-pin-card {
+    padding: 16px 28px 14px;
+  }
+  .aman-brand-emblem-img {
+    height: 88px;
+  }
+  .aman-brand-title-en {
+    font-size: 19px;
+  }
+  .aman-brand-title-ar {
+    font-size: 17px;
+  }
+  .aman-lock-stage {
+    height: 86px;
+    margin-bottom: 2px;
+  }
+  .aman-lock-shell {
+    transform: scale(0.75);
+  }
+  .aman-pin-heading {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 581px) {
+  .aman-pin-card {
+    padding: 13px 26px 12px;
+    border-radius: 26px;
+  }
+  .aman-brand-header {
+    margin-bottom: 4px;
+  }
+  .aman-brand-emblem-img {
+    height: 74px;
+  }
+  .aman-brand-title-en {
+    font-size: 18px;
+  }
+  .aman-brand-title-ar {
+    font-size: 16px;
+  }
+  .aman-lock-stage {
+    height: 74px;
+    margin-bottom: 2px;
+  }
+  .aman-lock-shell {
+    transform: scale(0.65);
+  }
+  .aman-pin-heading {
+    margin-bottom: 8px;
+  }
+  .aman-unlock-btn {
+    height: 42px;
+  }
+  .aman-safe-signature {
+    margin-top: 10px !important;
+  }
+}
+
+@media (max-height: 705px) and (min-width: 581px) {
+  .aman-pin-card {
+    padding: 10px 24px 10px;
+  }
+  .aman-brand-emblem-img {
+    height: 66px;
+  }
+  .aman-brand-descriptor {
+    display: none;
+  }
+  .aman-lock-stage {
+    height: 64px;
+    margin-bottom: 0;
+  }
+  .aman-lock-shell {
+    transform: scale(0.56);
+  }
+  .aman-pin-heading {
+    margin-bottom: 6px;
+  }
+  .aman-wheel-column {
+    gap: 8px;
+  }
+}
+
 @media (max-width: 640px) {
   .aman-safe-bg {
-    background: linear-gradient(155deg, #3b474b 0%, #576367 40%, #283236 100%);
+    background: linear-gradient(155deg, #273236 0%, #445054 40%, #1a2326 100%);
+  }
+  .aman-studio-light {
+    display: none;
   }
   .steel-plate,
   .steel-card-module,
@@ -1537,15 +1888,40 @@ body,
 
 @media (max-width: 580px) {
   .aman-pin-card {
-    border-radius: 28px;
-    padding-left: 14px;
-    padding-right: 14px;
+    width: min(560px, calc(100vw - 18px));
+    border-radius: 26px;
+    padding: 16px 12px 14px;
+  }
+  .aman-brand-header {
+    margin-bottom: 4px;
+  }
+  .aman-brand-emblem-img {
+    height: 68px;
+  }
+  .aman-brand-title-en {
+    font-size: 17px;
+  }
+  .aman-brand-title-ar {
+    font-size: 16px;
+  }
+  .aman-brand-descriptor {
+    font-size: 10.5px;
+  }
+  .aman-lock-stage {
+    height: 70px;
+    margin-bottom: 2px;
+  }
+  .aman-lock-shell {
+    transform: scale(0.62);
+  }
+  .aman-pin-heading {
+    margin-bottom: 10px;
   }
   .aman-wheels-row {
-    gap: 6px;
+    gap: 5px;
   }
   .wheel-housing {
-    width: 50px;
+    width: 51px;
     height: 96px;
     border-radius: 16px;
   }
@@ -1565,14 +1941,32 @@ body,
   .wheel-digit--side {
     font-size: 13px;
   }
+  .aman-unlock-btn {
+    width: 204px;
+    height: 44px;
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 400px) {
+  .aman-pin-card {
+    width: calc(100vw - 14px);
+    padding: 14px 10px 12px;
+  }
+  .aman-brand-emblem-img {
+    height: 60px;
+  }
+  .aman-lock-stage {
+    height: 62px;
+  }
+  .aman-lock-shell {
+    transform: scale(0.55);
+  }
   .aman-wheels-row {
-    gap: 5px;
+    gap: 4px;
   }
   .wheel-housing {
-    width: 45px;
+    width: 47px;
     height: 96px;
     border-radius: 14px;
   }

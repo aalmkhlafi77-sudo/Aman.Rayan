@@ -497,7 +497,7 @@ export const SecuritySettingsView: React.FC<SecuritySettingsViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <div className="steel-modal-shell w-full max-w-md overflow-hidden rounded-2xl p-1.5 shadow-2xl">
             <div className="px-4 py-3">
-              <h3 className="text-base font-extrabold text-[#161e21]">تأكيد مسح خزنة أمان بالكامل</h3>
+              <h3 className="text-base font-extrabold text-[#161e21]">تأكيد مسح خزنة أمان ريان بالكامل</h3>
             </div>
             <form
               onSubmit={(e) => void handleConfirmWipe(e)}

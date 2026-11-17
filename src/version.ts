@@ -1,5 +1,5 @@
-export const APP_NAME = 'AMAN';
-export const APP_NAME_AR = 'أمان';
+export const APP_NAME = 'Aman Rayan';
+export const APP_NAME_AR = 'أمان ريان';
 export const APP_DESCRIPTION_AR = 'خزنة رقمية آمنة لحفظ كلمات المرور والمفاتيح والبيانات الحساسة';
 export const APP_VERSION = '2.0.1';
 export const APP_DESIGNER = 'عبدالله المخلافي 2026';
