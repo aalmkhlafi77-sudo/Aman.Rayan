@@ -307,6 +307,7 @@ test('Web Crypto vault encryption and .aman v2.0.0 backup roundtrip preserve for
   await assert.rejects(() => decryptBackupEnvelope(envelope, 'WrongPassword'));
 });
 
+// Biometric invariant: PRF material must unwrap the existing vault master key, never create a second vault key.
 test('biometric PRF wrapping recovers the same master key and rejects wrong PRF material', async () => {
   const masterKey = await generateMasterVaultKey();
   const prfOutput = crypto.getRandomValues(new Uint8Array(32));
