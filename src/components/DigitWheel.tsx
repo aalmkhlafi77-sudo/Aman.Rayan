@@ -41,7 +41,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
     if (prevValueRef.current !== value) {
       prevValueRef.current = value;
       setIsSpinning(true);
-      const timer = window.setTimeout(() => setIsSpinning(false), 290);
+      const timer = window.setTimeout(() => setIsSpinning(false), 300);
       return () => window.clearTimeout(timer);
     }
   }, [value]);
@@ -80,6 +80,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
         aria-label={`الخانة ${index + 1}${value ? ` القيمة ${value}` : ' فارغة'}`}
         className={wheelClasses}
       >
+        <div className="aman-wheel-drum-sheen" />
         <div className="aman-wheel-band" />
         <div className="aman-wheel-viewport">
           <div
@@ -90,12 +91,15 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
           >
             {RAIL_DIGITS.map((digit, railPos) => {
               const isCenter = railPos === railIndex;
+              const isAbove = railPos < railIndex;
               const isPlaceholder = isCenter && digit === '•';
               const digitClass = isCenter
                 ? isPlaceholder
                   ? 'aman-wheel-digit aman-wheel-digit--placeholder'
                   : 'aman-wheel-digit aman-wheel-digit--center'
-                : 'aman-wheel-digit aman-wheel-digit--side';
+                : isAbove
+                  ? 'aman-wheel-digit aman-wheel-digit--side aman-wheel-digit--above'
+                  : 'aman-wheel-digit aman-wheel-digit--side aman-wheel-digit--below';
 
               return (
                 <div key={`${index}-${railPos}`} className={digitClass}>
@@ -105,16 +109,19 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
             })}
           </div>
         </div>
+        <div className="aman-wheel-vignette" />
         <div className="aman-wheel-flash" />
       </button>
 
-      {/* Re-keyed LED bloom wrapper restarts light bloom cleanly on every entry */}
-      <div
-        key={`${index}-${pulseNonce}-${ledState}`}
-        className={`aman-wheel-led ${ledColorClass} ${
-          pulseNonce > 0 && ledState !== 'empty' ? 'aman-wheel-led--pulse' : ''
-        }`}
-      />
+      {/* Recessed Physical LED Socket & Emitter */}
+      <div className="aman-led-socket">
+        <div
+          key={`${index}-${pulseNonce}-${ledState}`}
+          className={`aman-wheel-led ${ledColorClass} ${
+            pulseNonce > 0 && ledState !== 'empty' ? 'aman-wheel-led--pulse' : ''
+          }`}
+        />
+      </div>
     </div>
   );
 };

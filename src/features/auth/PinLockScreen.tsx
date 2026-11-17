@@ -344,6 +344,10 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           isError ? 'aman-pin-card--error' : ''
         } ${isUnlockedVisual ? 'aman-pin-card--unlocked' : ''}`}
       >
+        {/* Localized Faint Emerald Reflection Behind Lock & Card Bottom Edge */}
+        <div className="aman-card-lock-backdrop" aria-hidden="true" />
+        <div className="aman-card-bottom-reflection" aria-hidden="true" />
+
         {/* Invisible mobile numeric input (invokes phone keyboard on touch tap) */}
         <input
           ref={mobileInputRef}
@@ -357,49 +361,52 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           aria-label="رمز أمان"
         />
 
-        {/* 1. AMAN Mechanical Padlock */}
-        <div className="mb-3">
+        {/* 1. 3D Mechanical Padlock */}
+        <div className="relative z-10 mb-2.5">
           <MechanicalPadlock status={padlockStatus} />
         </div>
 
         {/* 2 & 3. Title & Subtitle */}
-        <div className="mb-5 text-center">
+        <div className="relative z-10 mb-5 text-center">
           <h1
-            className={`text-xl font-extrabold tracking-tight transition-colors duration-300 sm:text-2xl ${
-              isUnlockedVisual ? 'text-[#4bffb3]' : 'text-[#f5f7f6]'
+            className={`aman-safe-title text-xl font-extrabold tracking-tight transition-colors duration-300 sm:text-2xl ${
+              isUnlockedVisual ? 'aman-safe-title--unlocked' : ''
             }`}
           >
             {titleText}
           </h1>
-          <p className="mt-1.5 text-xs text-[#95a4a2] sm:text-sm">{subtitleText}</p>
+          <p className="mt-1.5 text-xs text-[#91a09e] sm:text-sm">{subtitleText}</p>
         </div>
 
-        {/* 4 & 5. Six Mechanical Digit Wheels + Six Physical LEDs */}
-        <div
-          className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}
-          onClick={() => {
-            if (window.matchMedia('(pointer: coarse)').matches) {
-              mobileInputRef.current?.focus();
-            }
-          }}
-        >
-          {digits.map((digit, idx) => (
-            <DigitWheel
-              key={idx}
-              index={idx}
-              value={digit}
-              isActive={!isUnlocking && idx === activeIndex}
-              ledState={resolveLedState(idx)}
-              pulseNonce={pulseNonces[idx]}
-              status={isError ? 'error' : isUnlockedVisual ? 'unlocked' : 'idle'}
-              onSelectWheel={handleWheelClick}
-            />
-          ))}
+        {/* 4 & 5. Six Protruding 3D Mechanical Drums + Physical LEDs */}
+        <div className="aman-wheels-stage relative z-10">
+          <div className="aman-wheels-floor-glow" aria-hidden="true" />
+          <div
+            className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}
+            onClick={() => {
+              if (window.matchMedia('(pointer: coarse)').matches) {
+                mobileInputRef.current?.focus();
+              }
+            }}
+          >
+            {digits.map((digit, idx) => (
+              <DigitWheel
+                key={idx}
+                index={idx}
+                value={digit}
+                isActive={!isUnlocking && idx === activeIndex}
+                ledState={resolveLedState(idx)}
+                pulseNonce={pulseNonces[idx]}
+                status={isError ? 'error' : isUnlockedVisual ? 'unlocked' : 'idle'}
+                onSelectWheel={handleWheelClick}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Production-only one-time bootstrap token input during initial owner setup */}
         {mode === 'setup' && !IS_PREVIEW_MODE ? (
-          <div className="mt-4 w-full max-w-[440px]">
+          <div className="relative z-10 mt-4 w-full max-w-[440px]">
             <input
               type="password"
               dir="ltr"
@@ -417,7 +424,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         ) : null}
 
         {/* 6. Short Status / Error Area */}
-        <div className="mt-3 flex h-6 items-center justify-center text-center">
+        <div className="relative z-10 mt-3 flex h-6 items-center justify-center text-center">
           {errorMessage ? (
             <p role="alert" className="text-xs font-semibold text-red-400 sm:text-sm">
               {errorMessage}
@@ -436,14 +443,14 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
               تعديل الرمز الأول
             </button>
           ) : (
-            <p className="text-[11px] text-[#6d7c7a]">
+            <p className="text-[11px] text-[#70807d]">
               اكتب الأرقام مباشرة من لوحة المفاتيح أو اضغط Enter للفتح
             </p>
           )}
         </div>
 
-        {/* 7. Compact Primary Button */}
-        <div className="mt-3">
+        {/* 7. Raised Physical Metallic Capsule Button */}
+        <div className="relative z-10 mt-3">
           <button
             type="button"
             disabled={!isComplete || statusPhase === 'submitting' || isUnlocking}
@@ -461,7 +468,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         </div>
 
         {/* 8. Designer Signature */}
-        <footer className="mt-5 text-center text-[11px] font-medium text-[#7b8987]">
+        <footer className="relative z-10 mt-5 text-center text-[11px] font-medium text-[#7c8a88]">
           {APP_SIGNATURE}
         </footer>
       </section>

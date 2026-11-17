@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --aman-bg-top: #0d1514;
-  --aman-bg-bottom: #060909;
+  --aman-bg-top: #0c1413;
+  --aman-bg-bottom: #050808;
   --aman-surface: #0f1515;
   --aman-surface-elevated: #141c1c;
-  --aman-border: rgba(255, 255, 255, 0.08);
-  --aman-gold: #e5b440;
+  --aman-border: rgba(120, 160, 150, 0.17);
+  --aman-gold: #d4ab48;
   --aman-gold-bright: #ffd365;
   --aman-emerald: #4bffb3;
   --aman-emerald-dim: #10b981;
@@ -25,7 +25,7 @@ body,
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #060909;
+  background-color: #050808;
   color: var(--aman-text);
   font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -37,13 +37,14 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
-/* Main Safe Atmosphere */
+/* Main Dark Studio Safe Atmosphere */
 .aman-safe-bg {
   position: relative;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 50% 28%, rgba(21, 105, 76, 0.17), transparent 40%),
-    linear-gradient(180deg, #0d1514 0%, #060909 100%);
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.03), transparent 45%),
+    radial-gradient(circle at 50% 34%, rgba(16, 98, 70, 0.14), transparent 44%),
+    linear-gradient(180deg, #0c1413 0%, #050808 100%);
 }
 
 .aman-safe-bg::before {
@@ -53,85 +54,151 @@ body,
   pointer-events: none;
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.012) 0px,
-    rgba(255, 255, 255, 0.012) 1px,
+    rgba(255, 255, 255, 0.011) 0px,
+    rgba(255, 255, 255, 0.011) 1px,
     transparent 1px,
     transparent 4px
   );
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .aman-ambient-glow {
   position: fixed;
-  top: -120px;
+  top: -110px;
   left: 50%;
   transform: translateX(-50%);
-  width: 680px;
-  height: 440px;
+  width: 660px;
+  height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(24, 128, 92, 0.16) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(22, 118, 84, 0.13) 0%, transparent 68%);
   pointer-events: none;
-  animation: amanAmbientDrift 12s ease-in-out infinite alternate;
 }
 
-@keyframes amanAmbientDrift {
-  0% {
-    transform: translateX(-52%) translateY(0) scale(1);
-    opacity: 0.75;
-  }
-  100% {
-    transform: translateX(-48%) translateY(14px) scale(1.06);
-    opacity: 1;
-  }
-}
-
-/* Compact Centered PIN Card */
+/* Compact Centered 3D Security Console Panel */
 .aman-pin-card {
   position: relative;
   overflow: hidden;
-  width: min(620px, calc(100vw - 28px));
+  width: min(612px, calc(100vw - 28px));
   max-height: calc(100vh - 28px);
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(20, 27, 27, 0.94) 0%, rgba(11, 15, 16, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(21, 31, 31, 0.97), rgba(8, 13, 13, 0.99));
+  border: 1px solid rgba(120, 160, 150, 0.17);
   box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: border-color 260ms ease, box-shadow 260ms ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.75),
+    0 28px 70px rgba(0, 0, 0, 0.55);
+  transition: border-color 280ms ease, box-shadow 280ms ease;
+}
+
+/* Subtle top-left metallic studio sheen on panel edge */
+.aman-pin-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    138deg,
+    rgba(255, 255, 255, 0.045) 0%,
+    rgba(255, 255, 255, 0.008) 26%,
+    transparent 52%
+  );
+}
+
+/* Localized faint emerald reflection strictly behind lock area */
+.aman-card-lock-backdrop {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 156px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 48%,
+    rgba(28, 132, 92, 0.22) 0%,
+    rgba(16, 84, 58, 0.08) 46%,
+    transparent 74%
+  );
+  transition: opacity 320ms ease, transform 320ms ease, background 320ms ease;
+}
+
+.aman-pin-card--unlocked .aman-card-lock-backdrop {
+  background: radial-gradient(
+    ellipse at 50% 48%,
+    rgba(75, 255, 179, 0.26) 0%,
+    rgba(20, 148, 100, 0.11) 48%,
+    transparent 76%
+  );
+  transform: translateX(-50%) scale(1.06);
+}
+
+.aman-pin-card--error .aman-card-lock-backdrop {
+  background: radial-gradient(
+    ellipse at 50% 48%,
+    rgba(239, 68, 68, 0.16) 0%,
+    transparent 70%
+  );
+}
+
+/* Localized emerald edge glint along bottom rim when unlocked */
+.aman-card-bottom-reflection {
+  position: absolute;
+  bottom: 0;
+  left: 16%;
+  right: 16%;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(75, 255, 179, 0.52) 50%,
+    transparent 100%
+  );
+  filter: blur(1px);
+  transition: opacity 320ms ease;
+}
+
+.aman-pin-card--unlocked .aman-card-bottom-reflection {
+  opacity: 1;
 }
 
 .aman-pin-card--error {
-  border-color: rgba(239, 68, 68, 0.58);
+  border-color: rgba(239, 68, 68, 0.45);
   box-shadow:
-    0 0 0 1px rgba(239, 68, 68, 0.28),
-    0 0 32px rgba(239, 68, 68, 0.16),
-    0 28px 70px rgba(0, 0, 0, 0.75);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 0 26px rgba(239, 68, 68, 0.12),
+    0 28px 70px rgba(0, 0, 0, 0.58);
 }
 
 .aman-pin-card--unlocked {
-  border-color: rgba(75, 255, 179, 0.45);
+  border-color: rgba(75, 255, 179, 0.32);
   box-shadow:
-    0 0 0 1px rgba(75, 255, 179, 0.22),
-    0 0 42px rgba(24, 160, 108, 0.24),
-    0 28px 70px rgba(0, 0, 0, 0.75);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 10px rgba(75, 255, 179, 0.10),
+    0 28px 70px rgba(0, 0, 0, 0.58);
 }
 
+/* Specular sweep on unlock only */
 .aman-pin-card::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: linear-gradient(
-    105deg,
-    transparent 25%,
-    rgba(85, 255, 180, 0.13) 48%,
-    transparent 70%
+    110deg,
+    transparent 35%,
+    rgba(75, 255, 179, 0.11) 48%,
+    transparent 58%
   );
   transform: translateX(-125%);
 }
 
 .aman-pin-card--unlocked::after {
-  animation: amanCardSweep 720ms ease-out forwards;
+  animation: amanCardSweep 760ms ease-out forwards;
 }
 
 @keyframes amanCardSweep {
@@ -140,46 +207,286 @@ body,
   }
 }
 
-/* Padlock & Success Rings */
+/* =====================================================
+   3D MECHANICAL PADLOCK (CSS + SVG + DOM, ~122px high)
+   ===================================================== */
 .aman-lock-shell {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 112px;
+  height: 122px;
 }
 
-.aman-lock-dial-idle {
-  animation: amanDialBreathe 3.2s ease-in-out infinite;
+.aman-lock-aura {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(21, 105, 76, 0.22) 0%, transparent 68%);
+  transition: background 320ms ease, transform 320ms ease;
 }
 
-@keyframes amanDialBreathe {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 4px rgba(229, 180, 64, 0.25));
-  }
-  50% {
-    filter: drop-shadow(0 0 10px rgba(255, 211, 101, 0.52));
-  }
+.aman-lock--unlocked .aman-lock-aura {
+  background: radial-gradient(circle, rgba(75, 255, 179, 0.30) 0%, transparent 70%);
+  transform: scale(1.08);
 }
 
-.aman-lock-shackle {
-  transform-origin: 72px 46px;
-  transition: transform 420ms cubic-bezier(0.2, 1.38, 0.34, 1);
+.aman-lock--error .aman-lock-aura {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.22) 0%, transparent 68%);
 }
 
-.aman-lock--unlocked .aman-lock-shackle {
-  transform: translateY(-14px) rotate(15deg);
+.aman-lock-assembly {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.aman-lock-shackle-wrap {
+  position: relative;
+  z-index: 1;
+  width: 92px;
+  height: 54px;
+  margin-bottom: -11px;
+  transform-origin: 66px 50px;
+  will-change: transform;
+  transition: transform 440ms cubic-bezier(0.2, 1.38, 0.34, 1);
+}
+
+.aman-lock--unlocked .aman-lock-shackle-wrap {
+  transform: translateY(-13px) rotate(14deg);
+}
+
+.aman-lock-shackle-svg {
+  display: block;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.48));
+}
+
+.aman-lock-body {
+  position: relative;
+  z-index: 2;
+  width: 82px;
+  height: 62px;
+  border-radius: 19px;
+  background: linear-gradient(145deg, #253031, #111718 48%, #080b0c);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 2px 2px 2px rgba(255, 255, 255, 0.11),
+    inset -3px -4px 5px rgba(0, 0, 0, 0.75),
+    0 12px 18px rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 260ms ease, border-color 260ms ease;
+}
+
+.aman-lock--unlocked .aman-lock-body {
+  border-color: rgba(75, 255, 179, 0.24);
+  box-shadow:
+    inset 2px 2px 2px rgba(255, 255, 255, 0.13),
+    inset -3px -4px 5px rgba(0, 0, 0, 0.78),
+    0 6px 14px rgba(75, 255, 179, 0.14),
+    0 12px 18px rgba(0, 0, 0, 0.48);
+}
+
+.aman-lock-collar {
+  position: absolute;
+  top: -2px;
+  width: 14px;
+  height: 5px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #030505 46%, #454f50 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.96),
+    0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.aman-lock-collar--left {
+  left: 13px;
+}
+
+.aman-lock-collar--right {
+  right: 13px;
+}
+
+.aman-lock-bevel-sheen {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  right: 3px;
+  height: 22px;
+  border-radius: 15px 15px 8px 8px;
+  background: linear-gradient(
+    162deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.03) 48%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.aman-lock-index {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 5px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: #d4ab48;
+  transition: background-color 240ms ease;
+}
+
+.aman-lock--unlocked .aman-lock-index {
+  background: #4bffb3;
+}
+
+.aman-lock--error .aman-lock-index {
+  background: #ef4444;
+}
+
+.aman-lock-dial-recess {
+  position: relative;
+  margin-top: 5px;
+  width: 42px;
+  height: 42px;
+  padding: 2.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #050708 62%, #192122 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.96),
+    0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.aman-lock-dial-ring {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 315deg,
+    #f1cf76 0deg,
+    #b68928 100deg,
+    #6c4f13 195deg,
+    #d4ab48 285deg,
+    #f1cf76 360deg
+  );
+  box-shadow: 0 0 8px rgba(212, 171, 72, 0.20);
+  transition: background 260ms ease, box-shadow 260ms ease;
+}
+
+.aman-lock--unlocked .aman-lock-dial-ring {
+  background: conic-gradient(
+    from 315deg,
+    #82ffcb 0deg,
+    #18b87a 100deg,
+    #0b5a3c 195deg,
+    #4bffb3 285deg,
+    #82ffcb 360deg
+  );
+  box-shadow: 0 0 12px rgba(75, 255, 179, 0.45);
+}
+
+.aman-lock--error .aman-lock-dial-ring {
+  background: conic-gradient(
+    from 315deg,
+    #fca5a5 0deg,
+    #dc2626 110deg,
+    #7f1d1d 200deg,
+    #ef4444 290deg,
+    #fca5a5 360deg
+  );
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.38);
+}
+
+.aman-lock-dial-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(
+      circle,
+      #cfd5d4 0 8%,
+      #676f70 9% 16%,
+      #0a0d0e 17% 68%,
+      #1b2324 69% 100%
+    );
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.88),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+.aman-lock-tick {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 1px;
+  height: 2.4px;
+  margin-left: -0.5px;
+  transform-origin: 50% 14.5px;
+  background: rgba(215, 224, 223, 0.38);
+}
+
+.aman-lock-tick--major {
+  width: 1.3px;
+  height: 3.4px;
+  margin-left: -0.65px;
+  background: rgba(240, 245, 244, 0.85);
+}
+
+.aman-lock-spindle {
+  position: relative;
+  z-index: 2;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #cfd5d4 34%, #676f70 72%, #293031 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(255, 255, 255, 0.72);
+}
+
+.aman-lock-bottom-glint {
+  position: absolute;
+  bottom: 0;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  border-radius: 999px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(75, 255, 179, 0.75), transparent);
+  transition: opacity 280ms ease;
+}
+
+.aman-lock--unlocked .aman-lock-bottom-glint {
+  opacity: 1;
+}
+
+.aman-lock-cast-shadow {
+  width: 78px;
+  height: 10px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, transparent 72%);
+  filter: blur(2px);
 }
 
 .aman-success-ring {
   position: absolute;
-  top: 52%;
+  top: 56%;
   left: 50%;
   width: 70px;
   height: 70px;
   margin-top: -35px;
   margin-left: -35px;
-  border: 1.5px solid rgba(75, 255, 179, 0.85);
+  border: 1.5px solid rgba(75, 255, 179, 0.78);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
@@ -195,17 +502,61 @@ body,
 
 @keyframes amanSuccessRing {
   0% {
-    opacity: 0.85;
+    opacity: 0.82;
     transform: scale(0.45);
   }
   100% {
     opacity: 0;
-    transform: scale(3.3);
+    transform: scale(3.1);
   }
 }
 
-/* Mechanical Digit Wheels */
+/* =====================================================
+   TITLE DEPTH
+   ===================================================== */
+.aman-safe-title {
+  color: #edf2f1;
+  text-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.80),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.aman-safe-title--unlocked {
+  color: #effaf5;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.85),
+    0 0 14px rgba(75, 255, 179, 0.34);
+}
+
+/* =====================================================
+   3D CYLINDRICAL NUMBER WHEELS & ENGRAVED DIGITS
+   ===================================================== */
+.aman-wheels-stage {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.aman-wheels-floor-glow {
+  position: absolute;
+  bottom: -4px;
+  left: 8%;
+  right: 8%;
+  height: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(75, 255, 179, 0.22) 0%, transparent 72%);
+  filter: blur(5px);
+  transition: opacity 320ms ease;
+}
+
+.aman-pin-card--unlocked .aman-wheels-floor-glow {
+  opacity: 1;
+}
+
 .aman-wheels-row {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -238,93 +589,169 @@ body,
 }
 
 .aman-wheel-column {
+  perspective: 700px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
 }
 
 .aman-wheel {
   position: relative;
   width: 72px;
   height: 114px;
-  border-radius: 15px;
-  background: linear-gradient(
-    180deg,
-    #020303 0%,
-    #101516 22%,
-    #1b2223 49%,
-    #101516 74%,
-    #020303 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transform-style: preserve-3d;
+  background-image:
+    linear-gradient(
+      180deg,
+      #1c1c1c 0%,
+      #8f8f8f 24%,
+      #ffffff 50%,
+      #868686 76%,
+      #141414 100%
+    ),
+    linear-gradient(
+      90deg,
+      #020303 0%,
+      #0a0e0f 12%,
+      #1c2425 35%,
+      #222c2d 50%,
+      #151c1d 68%,
+      #060909 88%,
+      #010202 100%
+    );
+  background-blend-mode: multiply;
+  border: 1px solid rgba(115, 134, 132, 0.20);
   box-shadow:
-    inset 0 14px 18px rgba(0, 0, 0, 0.78),
-    inset 0 -14px 18px rgba(0, 0, 0, 0.78),
-    inset 1px 0 rgba(255, 255, 255, 0.07),
-    inset -1px 0 rgba(0, 0, 0, 0.8),
-    0 9px 18px rgba(0, 0, 0, 0.42);
+    inset 8px 0 12px rgba(0, 0, 0, 0.55),
+    inset -8px 0 12px rgba(0, 0, 0, 0.65),
+    inset 0 4px 4px rgba(255, 255, 255, 0.07),
+    inset 0 -6px 9px rgba(0, 0, 0, 0.75),
+    0 10px 14px rgba(0, 0, 0, 0.50);
   overflow: hidden;
   cursor: pointer;
   user-select: none;
   transition: box-shadow 220ms ease, border-color 220ms ease, transform 180ms ease;
 }
 
+/* Raised Dark Chrome Outer Rim */
+.aman-wheel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  z-index: 5;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(90, 100, 100, 0.08),
+    rgba(0, 0, 0, 0.80),
+    rgba(220, 230, 225, 0.18)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: background 220ms ease;
+}
+
 .aman-wheel--active {
-  border-color: rgba(255, 211, 101, 0.8);
-  animation: amanActiveWheel 1.7s ease-in-out infinite;
+  border-color: rgba(235, 185, 67, 0.70);
+  box-shadow:
+    inset 0 0 0 1px rgba(235, 185, 67, 0.70),
+    inset 8px 0 12px rgba(0, 0, 0, 0.55),
+    inset -8px 0 12px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 211, 101, 0.75),
+    0 0 14px rgba(229, 180, 64, 0.33),
+    0 10px 18px rgba(0, 0, 0, 0.55);
+}
+
+.aman-wheel--active::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 225, 135, 0.88),
+    rgba(229, 180, 64, 0.28),
+    rgba(80, 58, 12, 0.70),
+    rgba(255, 214, 108, 0.55)
+  );
 }
 
 .aman-wheel--error {
-  border-color: rgba(239, 68, 68, 0.75);
+  border-color: rgba(239, 68, 68, 0.72);
   box-shadow:
-    0 0 0 1px rgba(239, 68, 68, 0.45),
-    0 0 16px rgba(239, 68, 68, 0.24),
-    inset 0 14px 18px rgba(0, 0, 0, 0.78),
-    inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+    inset 0 0 0 1px rgba(239, 68, 68, 0.52),
+    inset 8px 0 12px rgba(0, 0, 0, 0.58),
+    inset -8px 0 12px rgba(0, 0, 0, 0.66),
+    0 0 14px rgba(239, 68, 68, 0.24),
+    0 10px 14px rgba(0, 0, 0, 0.50);
+}
+
+.aman-wheel--error::before {
+  background: linear-gradient(
+    135deg,
+    rgba(252, 165, 165, 0.72),
+    rgba(239, 68, 68, 0.22),
+    rgba(60, 10, 10, 0.8),
+    rgba(248, 113, 113, 0.45)
+  );
 }
 
 .aman-wheel--unlocked {
-  border-color: rgba(75, 255, 179, 0.65);
+  border-color: rgba(75, 255, 179, 0.52);
   box-shadow:
-    0 0 0 1px rgba(75, 255, 179, 0.42),
-    0 0 18px rgba(75, 255, 179, 0.2),
-    inset 0 14px 18px rgba(0, 0, 0, 0.78),
-    inset 0 -14px 18px rgba(0, 0, 0, 0.78);
+    inset 0 0 0 1px rgba(75, 255, 179, 0.42),
+    inset 8px 0 12px rgba(0, 0, 0, 0.55),
+    inset -8px 0 12px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(75, 255, 179, 0.18),
+    0 10px 14px rgba(0, 0, 0, 0.50);
 }
 
-@keyframes amanActiveWheel {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 1px rgba(229, 180, 64, 0.45),
-      0 0 8px rgba(229, 180, 64, 0.12),
-      0 10px 20px rgba(0, 0, 0, 0.45),
-      inset 0 14px 18px rgba(0, 0, 0, 0.78),
-      inset 0 -14px 18px rgba(0, 0, 0, 0.78);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px rgba(255, 211, 101, 0.95),
-      0 0 18px rgba(229, 180, 64, 0.4),
-      0 0 34px rgba(229, 180, 64, 0.14),
-      0 10px 20px rgba(0, 0, 0, 0.45),
-      inset 0 14px 18px rgba(0, 0, 0, 0.78),
-      inset 0 -14px 18px rgba(0, 0, 0, 0.78);
-  }
+.aman-wheel--unlocked::before {
+  background: linear-gradient(
+    135deg,
+    rgba(130, 255, 205, 0.76),
+    rgba(75, 255, 179, 0.20),
+    rgba(5, 40, 26, 0.8),
+    rgba(75, 255, 179, 0.48)
+  );
 }
 
+/* Cylindrical Horizontal Convex Specular Sheen */
+.aman-wheel-drum-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.42) 0%,
+    transparent 24%,
+    rgba(255, 255, 255, 0.065) 42%,
+    rgba(255, 255, 255, 0.025) 54%,
+    transparent 76%,
+    rgba(0, 0, 0, 0.48) 100%
+  );
+}
+
+/* Center Machined Reading Band */
 .aman-wheel-band {
   position: absolute;
   left: 0;
   right: 0;
   top: 38px;
   height: 38px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.025),
+    rgba(255, 255, 255, 0.07),
+    rgba(0, 0, 0, 0.12)
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.80);
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 .aman-wheel-viewport {
@@ -332,10 +759,12 @@ body,
   width: 100%;
   height: 114px;
   overflow: hidden;
+  transform-style: preserve-3d;
   z-index: 1;
 }
 
 .aman-wheel-rail {
+  transform-style: preserve-3d;
   will-change: transform, filter;
   transition:
     transform 420ms cubic-bezier(0.16, 1.35, 0.32, 1),
@@ -343,7 +772,7 @@ body,
 }
 
 .aman-wheel--spinning .aman-wheel-rail {
-  filter: blur(1.4px);
+  filter: blur(1.2px) brightness(0.8);
 }
 
 .aman-wheel-digit {
@@ -354,76 +783,143 @@ body,
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  transition: opacity 180ms ease, transform 180ms ease, color 180ms ease;
+  transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, text-shadow 180ms ease;
 }
 
+/* Machined Engraved Center Digit */
 .aman-wheel-digit--center {
-  font-size: 25px;
+  font-size: 27px;
   font-weight: 800;
-  color: #f5f7f6;
+  color: #d7dedd;
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.65);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.38),
+    0 -2px 2px rgba(0, 0, 0, 0.95),
+    1px 2px 2px rgba(0, 0, 0, 0.75);
+  transform: translateZ(10px) scale(1.04);
 }
 
 .aman-wheel-digit--placeholder {
   font-size: 20px;
   font-weight: 700;
-  color: #6b7677;
+  color: #626e6d;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
+/* Receding Curved Drum Digits */
 .aman-wheel-digit--side {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: #9ba7a6;
-  opacity: 0.42;
-  transform: scale(0.88);
+  color: #707b7a;
+  opacity: 0.46;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.92),
+    0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+.aman-wheel-digit--above {
+  transform: scale(0.86) rotateX(24deg);
+}
+
+.aman-wheel-digit--below {
+  transform: scale(0.86) rotateX(-24deg);
+}
+
+/* Top & Bottom Cylindrical Depth Vignette */
+.aman-wheel-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(
+    180deg,
+    rgba(1, 2, 2, 0.82) 0%,
+    transparent 33%,
+    transparent 67%,
+    rgba(1, 2, 2, 0.86) 100%
+  );
+}
+
+/* Moving Specular Reflection ONLY on Wheel Spin */
 .aman-wheel-flash {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 3;
+  z-index: 4;
 }
 
 .aman-wheel-flash::after {
   content: '';
   position: absolute;
-  left: -20%;
-  right: -20%;
-  top: -30px;
-  height: 26px;
-  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.22), transparent);
-  filter: blur(3px);
+  inset: -20%;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.10) 48%,
+    transparent 58%
+  );
+  transform: translateY(-100%);
   opacity: 0;
 }
 
 .aman-wheel--spinning .aman-wheel-flash::after {
-  animation: amanWheelSweep 420ms ease-out;
+  animation: amanWheelSweep 380ms ease-out;
 }
 
 @keyframes amanWheelSweep {
   from {
-    transform: translateY(0);
+    transform: translateY(-85%);
     opacity: 0;
   }
-  25% {
+  30% {
     opacity: 1;
   }
   to {
-    transform: translateY(135px);
+    transform: translateY(85%);
     opacity: 0;
   }
 }
 
-/* Physical LED Indicators */
+/* =====================================================
+   PHYSICAL RECESSED LED INDICATORS
+   ===================================================== */
+.aman-led-socket {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: #050708;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.96),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
 .aman-wheel-led {
   position: relative;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   transition: background-color 180ms ease, box-shadow 180ms ease;
 }
 
+/* Glass dome specular glint */
+.aman-wheel-led::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1.5px;
+  width: 2.5px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+
+/* Surface reflection bloom halo */
 .aman-wheel-led::before {
   content: '';
   position: absolute;
@@ -436,37 +932,53 @@ body,
 }
 
 .aman-wheel-led--empty {
-  color: #2f3839;
-  background-color: #2f3839;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  color: #262e2f;
+  background: radial-gradient(circle at 35% 30%, #374243 0%, #171d1e 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.aman-wheel-led--empty::after {
+  opacity: 0.22;
 }
 
 .aman-wheel-led--entered {
   color: #e5b440;
-  background-color: #ffd365;
-  box-shadow: 0 0 8px rgba(229, 180, 64, 0.65);
+  background: radial-gradient(circle at 35% 30%, #fff0bd 0%, #e5b440 65%, #a87717 100%);
+  box-shadow:
+    0 0 5px currentColor,
+    0 0 12px currentColor,
+    0 0 22px color-mix(in srgb, currentColor 45%, transparent);
 }
 
 .aman-wheel-led--gold-flash {
   color: #ffd365;
-  background-color: #ffe394;
-  box-shadow: 0 0 14px rgba(255, 211, 101, 0.95);
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ffd365 60%, #d49e2a 100%);
+  box-shadow:
+    0 0 5px currentColor,
+    0 0 12px currentColor,
+    0 0 22px color-mix(in srgb, currentColor 45%, transparent);
 }
 
 .aman-wheel-led--emerald {
   color: #4bffb3;
-  background-color: #4bffb3;
-  box-shadow: 0 0 12px rgba(75, 255, 179, 0.85);
+  background: radial-gradient(circle at 35% 30%, #e4fff3 0%, #4bffb3 62%, #0d9460 100%);
+  box-shadow:
+    0 0 5px currentColor,
+    0 0 12px currentColor,
+    0 0 22px color-mix(in srgb, currentColor 45%, transparent);
 }
 
 .aman-wheel-led--error {
   color: #ef4444;
-  background-color: #f87171;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+  background: radial-gradient(circle at 35% 30%, #fecaca 0%, #ef4444 65%, #991b1b 100%);
+  box-shadow:
+    0 0 5px currentColor,
+    0 0 12px currentColor,
+    0 0 22px color-mix(in srgb, currentColor 45%, transparent);
 }
 
 .aman-wheel-led--pulse::before {
-  animation: amanLedBloom 480ms ease-out;
+  animation: amanLedBloom 460ms ease-out;
 }
 
 @keyframes amanLedBloom {
@@ -475,12 +987,12 @@ body,
     transform: scale(0.4);
   }
   35% {
-    opacity: 0.95;
-    transform: scale(1.6);
+    opacity: 0.9;
+    transform: scale(1.65);
   }
   100% {
     opacity: 0;
-    transform: scale(2.5);
+    transform: scale(2.4);
   }
 }
 
@@ -495,59 +1007,79 @@ body,
   left: 0;
 }
 
-/* Primary Safe Action Button */
+/* =====================================================
+   RAISED PHYSICAL METALLIC CAPSULE BUTTON
+   ===================================================== */
 .aman-unlock-btn {
-  width: 220px;
-  height: 48px;
-  border-radius: 14px;
-  font-weight: 700;
+  width: 224px;
+  height: 46px;
+  border-radius: 9999px;
+  font-weight: 800;
   font-size: 15px;
-  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.01em;
+  transition: transform 140ms ease, box-shadow 180ms ease, background 200ms ease, color 180ms ease;
 }
 
 .aman-unlock-btn--ready {
-  background: linear-gradient(180deg, #f1c65b 0%, #d49e2a 100%);
-  color: #0b0e0e;
+  background: linear-gradient(180deg, #f7faf9, #cbd3d4 48%, #aeb8b8);
+  color: #0e1414;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow:
-    0 0 22px rgba(229, 180, 64, 0.28),
-    0 8px 20px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    inset 0 2px 1px rgba(255, 255, 255, 0.90),
+    inset 0 -4px 6px rgba(70, 80, 80, 0.28),
+    0 9px 14px rgba(0, 0, 0, 0.42);
+  cursor: pointer;
 }
 
 .aman-unlock-btn--ready:hover:not(:disabled) {
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #ffffff, #d5dddd 48%, #b5c0c0);
   box-shadow:
-    0 0 28px rgba(255, 211, 101, 0.42),
-    0 10px 24px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    inset 0 2px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -4px 6px rgba(70, 80, 80, 0.26),
+    0 11px 18px rgba(0, 0, 0, 0.48);
 }
 
 .aman-unlock-btn--ready:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.25),
+    0 3px 6px rgba(0, 0, 0, 0.35);
 }
 
 .aman-unlock-btn--disabled {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.34);
+  background: linear-gradient(180deg, #1b2223 0%, #101516 55%, #090c0d 100%);
+  color: rgba(215, 224, 223, 0.36);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.65),
+    0 5px 10px rgba(0, 0, 0, 0.36);
   cursor: not-allowed;
 }
 
 .aman-unlock-btn--unlocked {
-  background: linear-gradient(180deg, #56f3b2 0%, #10b981 100%);
-  color: #05140e;
-  box-shadow: 0 0 24px rgba(75, 255, 179, 0.35);
+  background: linear-gradient(180deg, #f2fbf7 0%, #c6e1d7 50%, #99bfb1 100%);
+  color: #071611;
+  border: 1px solid rgba(160, 255, 218, 0.55);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.90),
+    inset 0 -4px 6px rgba(16, 84, 58, 0.28),
+    0 0 18px rgba(75, 255, 179, 0.22),
+    0 9px 14px rgba(0, 0, 0, 0.42);
 }
 
-/* Responsive Mechanical Wheels on Mobile */
+/* Responsive Proportional Wheel Scaling on Mobile */
 @media (max-width: 580px) {
+  .aman-pin-card {
+    border-radius: 28px;
+  }
   .aman-wheels-row {
     gap: 6px;
   }
   .aman-wheel {
-    width: 44px;
+    width: 46px;
     height: 90px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
   .aman-wheel-band {
     top: 30px;
@@ -560,10 +1092,10 @@ body,
     height: 30px;
   }
   .aman-wheel-digit--center {
-    font-size: 20px;
+    font-size: 21px;
   }
   .aman-wheel-digit--side {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
