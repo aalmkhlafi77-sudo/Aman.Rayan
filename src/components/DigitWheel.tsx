@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { playWheelSettle } from '../services/mechanicalAudio';
 
 const RAIL_DIGITS = ['9', '•', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const;
-const DRAG_STEP_PX = 30;
-const WHEEL_ACCUM_THRESHOLD = 28;
+const DRAG_STEP_PX = 28;
+const WHEEL_ACCUM_THRESHOLD = 26;
 
 export type LedState = 'empty' | 'entered' | 'gold-flash' | 'emerald' | 'error';
 
@@ -34,9 +34,12 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
 }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [cellHeight, setCellHeight] = useState<number>(() =>
-    typeof window !== 'undefined' && window.innerWidth <= 580 ? 30 : 38
-  );
+  const [cellHeight, setCellHeight] = useState<number>(() => {
+    if (typeof window === 'undefined') return 38;
+    if (window.innerWidth <= 480) return 32;
+    if (window.innerWidth <= 640) return 35;
+    return 40;
+  });
 
   const prevValueRef = useRef(value);
   const drumRef = useRef<HTMLDivElement | null>(null);
@@ -55,7 +58,14 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
 
   useEffect(() => {
     const updateCellHeight = () => {
-      setCellHeight(window.innerWidth <= 580 ? 30 : 38);
+      const w = window.innerWidth;
+      if (w <= 480) {
+        setCellHeight(32);
+      } else if (w <= 640) {
+        setCellHeight(35);
+      } else {
+        setCellHeight(40);
+      }
     };
     window.addEventListener('resize', updateCellHeight);
     return () => window.removeEventListener('resize', updateCellHeight);
@@ -80,9 +90,7 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
       event.stopPropagation();
       if (disabled) return;
 
-      // Discrete mouse wheel notch (usually >= 40) fires 1 crisp step immediately;
-      // high-resolution trackpads accumulate until threshold.
-      if (Math.abs(event.deltaY) >= 40) {
+      if (Math.abs(event.deltaY) >= 36) {
         wheelAccumRef.current = 0;
         const dir: 1 | -1 = event.deltaY < 0 ? 1 : -1;
         onRotateRef.current(index, dir);
@@ -180,8 +188,6 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
     }
   };
 
-  // Empty state centers index 1 ('•' with '9' above and '0' below)
-  // Digit '0'..'9' centers index 2..11
   const railIndex = value === '' ? 1 : Number(value) + 2;
   const offsetY = -(railIndex - 1) * cellHeight;
 
@@ -218,9 +224,15 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
 
   return (
     <div className="aman-wheel-column">
-      {/* Recessed Safe Socket Cavity */}
+      {/* Precision Recessed Socket Cavity */}
       <div className={housingClasses}>
-        {/* Raised Cylindrical Mechanical Drum */}
+        {/* Recessed Corner Precision Milled Notches */}
+        <div className="wheel-housing-rivet wheel-housing-rivet--tl" aria-hidden="true" />
+        <div className="wheel-housing-rivet wheel-housing-rivet--tr" aria-hidden="true" />
+        <div className="wheel-housing-rivet wheel-housing-rivet--bl" aria-hidden="true" />
+        <div className="wheel-housing-rivet wheel-housing-rivet--br" aria-hidden="true" />
+
+        {/* Tactile 3D Cylindrical Mechanical Drum */}
         <div
           ref={drumRef}
           role="spinbutton"
@@ -236,6 +248,11 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
           onKeyDown={handleDrumKeyDown}
           className={drumClasses}
         >
+          {/* Subtle Lateral Mechanical Grooves (Left & Right Flange) */}
+          <div className="wheel-drum-flange wheel-drum-flange--left" aria-hidden="true" />
+          <div className="wheel-drum-flange wheel-drum-flange--right" aria-hidden="true" />
+
+          {/* Perspective Rail Track for Digits */}
           <div className="wheel-perspective">
             <div
               className="wheel-rail"
@@ -256,22 +273,39 @@ export const DigitWheel: React.FC<DigitWheelProps> = ({
                     : 'wheel-digit wheel-digit--side wheel-digit--next';
 
                 return (
-                  <div key={`${index}-${railPos}`} className={digitClass}>
-                    {digit}
+                  <div
+                    key={`${index}-${railPos}`}
+                    className={digitClass}
+                    style={{ height: `${cellHeight}px` }}
+                  >
+                    {isPlaceholder ? (
+                      <span className="wheel-placeholder-pip" aria-hidden="true" />
+                    ) : (
+                      digit
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="wheel-drum-vignette" />
-          <div className="wheel-center-band" />
-          <div className="wheel-specular" />
+          {/* Curved Cylinder Top & Bottom Roll-off Shadows */}
+          <div className="wheel-drum-vignette" aria-hidden="true" />
+
+          {/* Center Precision Alignment Band / Laser Sight Window */}
+          <div className="wheel-center-band" aria-hidden="true">
+            <span className="wheel-center-marker wheel-center-marker--left" />
+            <span className="wheel-center-marker wheel-center-marker--right" />
+          </div>
+
+          {/* Specular Glint & Convex Metallic Reflection */}
+          <div className="wheel-specular" aria-hidden="true" />
         </div>
       </div>
 
-      {/* Embedded Physical LED Indicator */}
-      <div className="aman-led-socket">
+      {/* Embedded Physical Jewel LED Indicator */}
+      <div className="aman-led-socket" title={`مؤشر الخانة ${index + 1}`}>
+        <div className="aman-led-socket-rim" aria-hidden="true" />
         <div
           key={`${index}-${pulseNonce}-${ledState}`}
           className={`wheel-led ${ledColorClass} ${
