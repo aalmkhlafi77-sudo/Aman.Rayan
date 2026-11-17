@@ -16,7 +16,7 @@ import {
   playWheelSettle,
 } from '../../services/mechanicalAudio';
 import type { BiometricCapability, BiometricStatus } from '../../types/aman';
-import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
+import { APP_DESIGNER_URL, APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
 
@@ -826,7 +826,15 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
         {/* Refined Designer Signature Footer */}
         <footer className="aman-safe-signature relative z-10 mt-4 border-t border-white/5 pt-2.5 text-center text-[11px] text-[#788a8f]">
-          <span className="tracking-wide">{APP_SIGNATURE}</span>
+          <a
+            href={APP_DESIGNER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="aman-designer-link"
+            aria-label="فتح الصفحة الشخصية للمصمم عبدالله المخلافي"
+          >
+            <span className="tracking-wide">{APP_SIGNATURE}</span>
+          </a>
         </footer>
       </section>
     </main>

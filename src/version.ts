@@ -4,6 +4,7 @@ export const APP_DESCRIPTION_AR = 'خزنة رقمية آمنة لحفظ كلم�
 export const APP_VERSION = '2.0.1';
 export const APP_DESIGNER = 'عبدالله المخلافي 2026';
 export const APP_SIGNATURE = 'تصميم : عبدالله المخلافي 2026';
+export const APP_DESIGNER_URL = 'https://almkhlafi.carpetbazar.org/';
 
 // Backup envelope format identifiers — independent of APP_VERSION for strict backward compatibility
 export const BACKUP_FORMAT = 'AMAN_ENCRYPTED_VAULT' as const;
