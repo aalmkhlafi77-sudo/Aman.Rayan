@@ -23,8 +23,18 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Refresh lockfile for biometric dependency recovery
+        run: npm install --package-lock-only
+
       - name: Install dependencies cleanly
         run: npm ci
+
+      - name: Upload refreshed package lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: refreshed-package-lock
+          path: package-lock.json
+          if-no-files-found: error
 
       - name: Typecheck
         run: npm run lint
