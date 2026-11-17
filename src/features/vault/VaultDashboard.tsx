@@ -35,7 +35,7 @@ import type {
   VaultItemInput,
   ViewMode,
 } from '../../types/aman';
-import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
+import { APP_DESIGNER_URL, APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
 import { formatArabicDate, normalizeArabic, openSafeExternalUrl } from '../../utils/normalize';
 import type { BatchImportRequest } from '../../adapters/AmanDataAdapter';
 import { getPreviewAdapter } from '../../adapters';
@@ -919,8 +919,22 @@ export const VaultDashboard: React.FC<VaultDashboardProps> = ({
         </main>
 
         {/* Quiet Etched Signature Footer */}
-        <footer className="border-t border-white/14 px-6 py-3 text-center text-[11px] font-medium text-[#c2cccf]/85 [text-shadow:0_1px_1px_rgba(9,13,14,0.65)]">
-          {APP_SIGNATURE} · الإصدار <span className="font-mono-tabular">{APP_VERSION}</span>
+        <footer className="border-t border-white/14 px-4 py-3 text-center text-[11px] font-medium text-[#c2cccf]/85 [text-shadow:0_1px_1px_rgba(9,13,14,0.65)] sm:px-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <a
+              href={APP_DESIGNER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="aman-designer-link"
+              aria-label="فتح الصفحة الشخصية للمصمم عبدالله المخلافي"
+            >
+              {APP_SIGNATURE}
+            </a>
+            <span aria-hidden="true">·</span>
+            <span>
+              الإصدار <span className="font-mono-tabular">{APP_VERSION}</span>
+            </span>
+          </div>
         </footer>
       </div>
 
