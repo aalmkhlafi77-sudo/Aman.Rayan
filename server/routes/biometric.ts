@@ -19,7 +19,6 @@ import {
   buildBiometricAuthenticationOptions,
   buildBiometricRegistrationOptions,
   extractVerifiedCredentialRecord,
-  generateChallengeBase64Url,
   generatePrfInputBase64Url,
   isChallengeExpired,
   parseTransportsJson,
@@ -189,45 +188,10 @@ async function handleBeginRegistration(
       return;
     }
 
-    let challenge = generateChallengeBase64Url();
-    let prfInput = generatePrfInputBase64Url();
-    const now = toSqlDateTime();
-    const expiresAt = toSqlDateTime(new Date(Date.now() + WEBAUTHN_CHALLENGE_TTL_MS));
-
-    await withTransaction(async (conn) => {
-      await conn.execute('DELETE FROM webauthn_challenges WHERE expires_at <= NOW()');
-
-      // Registration options can be requested twice by mobile browsers/touch UI before
-      // React has rendered the disabled state. Reuse the active challenge instead of
-      // deleting it; deleting the first challenge makes a valid WebAuthn response fail
-      // with "challenge invalid or already used".
-      const [activeRows] = await conn.execute<ChallengeRow[]>(
-        `SELECT * FROM webauthn_challenges
-         WHERE session_id = ? AND operation = ? AND staged_credential_json IS NULL
-           AND expires_at > NOW()
-         ORDER BY created_at DESC
-         LIMIT 1 FOR UPDATE`,
-        [req.sessionId || '', operation]
-      );
-      const activeChallenge = activeRows[0];
-      if (activeChallenge?.prf_input) {
-        challenge = activeChallenge.challenge;
-        prfInput = activeChallenge.prf_input;
-        return;
-      }
-
-      await conn.execute(
-        `INSERT INTO webauthn_challenges
-          (id, challenge, operation, session_id, prf_input, staged_credential_json, expires_at, created_at)
-         VALUES (?, ?, ?, ?, ?, NULL, ?, ?)`,
-        [crypto.randomUUID(), challenge, operation, req.sessionId || null, prfInput, expiresAt, now]
-      );
-    });
-
+    const prfInput = generatePrfInputBase64Url();
     const options = await buildBiometricRegistrationOptions({
       rpName: webauthn.rpName,
       rpId: webauthn.rpId,
-      challenge,
       excludeCredentials:
         operation === 'enroll'
           ? existingCreds.map((c) => ({
@@ -235,6 +199,23 @@ async function handleBeginRegistration(
               transports: parseTransportsJson(c.transports),
             }))
           : [],
+    });
+
+    // Persist the canonical challenge returned by SimpleWebAuthn. Passing a string
+    // challenge into generateRegistrationOptions() causes the library to UTF-8 encode
+    // then Base64URL-encode it, so storing the pre-transform value breaks verification.
+    const challenge = options.challenge;
+    const now = toSqlDateTime();
+    const expiresAt = toSqlDateTime(new Date(Date.now() + WEBAUTHN_CHALLENGE_TTL_MS));
+
+    await withTransaction(async (conn) => {
+      await conn.execute('DELETE FROM webauthn_challenges WHERE expires_at <= NOW()');
+      await conn.execute(
+        `INSERT INTO webauthn_challenges
+          (id, challenge, operation, session_id, prf_input, staged_credential_json, expires_at, created_at)
+         VALUES (?, ?, ?, ?, ?, NULL, ?, ?)`,
+        [crypto.randomUUID(), challenge, operation, req.sessionId || null, prfInput, expiresAt, now]
+      );
     });
 
     res.json({ options, prfInput });
@@ -436,7 +417,16 @@ async function handleStageRegistration(
         return { ok: false as const, status: 409, error: 'معرّف الاعتماد البيومتري مسجل مسبقاً' };
       }
 
-      const nextChallenge = generateChallengeBase64Url();
+      const assertionOptions = await buildBiometricAuthenticationOptions({
+        rpId: webauthn.rpId,
+        allowCredentials: [
+          {
+            id: record.credentialId,
+            transports: parseTransportsJson(record.transportsJson),
+          },
+        ],
+      });
+      const nextChallenge = assertionOptions.challenge;
       const now = toSqlDateTime();
       const expiresAt = toSqlDateTime(new Date(Date.now() + WEBAUTHN_CHALLENGE_TTL_MS));
       const stagedPayload: StagedCredentialPayload = {
@@ -459,17 +449,6 @@ async function handleStageRegistration(
           now,
         ]
       );
-
-      const assertionOptions = await buildBiometricAuthenticationOptions({
-        rpId: webauthn.rpId,
-        challenge: nextChallenge,
-        allowCredentials: [
-          {
-            id: record.credentialId,
-            transports: parseTransportsJson(record.transportsJson),
-          },
-        ],
-      });
 
       return {
         ok: true as const,
@@ -715,7 +694,14 @@ biometricRouter.post('/options', authOptionsLimiter, async (_req, res) => {
       return;
     }
 
-    const challenge = generateChallengeBase64Url();
+    const options = await buildBiometricAuthenticationOptions({
+      rpId: webauthn.rpId,
+      allowCredentials: creds.map((row) => ({
+        id: row.credential_id,
+        transports: parseTransportsJson(row.transports),
+      })),
+    });
+    const challenge = options.challenge;
     const now = toSqlDateTime();
     const expiresAt = toSqlDateTime(new Date(Date.now() + WEBAUTHN_CHALLENGE_TTL_MS));
 
@@ -727,15 +713,6 @@ biometricRouter.post('/options', authOptionsLimiter, async (_req, res) => {
          VALUES (?, ?, 'authenticate', NULL, ?, NULL, ?, ?)`,
         [crypto.randomUUID(), challenge, cred.prf_input, expiresAt, now]
       );
-    });
-
-    const options = await buildBiometricAuthenticationOptions({
-      rpId: webauthn.rpId,
-      challenge,
-      allowCredentials: creds.map((row) => ({
-        id: row.credential_id,
-        transports: parseTransportsJson(row.transports),
-      })),
     });
 
     res.json({ options, prfInput: cred.prf_input });
