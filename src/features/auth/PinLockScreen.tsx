@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Fingerprint } from 'lucide-react';
+import { Fingerprint, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import { AmanRayanEmblem } from '../../components/AmanRayanEmblem';
 import { DigitWheel, type LedState } from '../../components/DigitWheel';
 import { MechanicalPadlock } from '../../components/MechanicalPadlock';
-import {
-  getBiometricButtonLabel,
-} from '../../services/biometricAuth';
+import { VaultBackground } from '../../components/VaultBackground';
+import { getBiometricButtonLabel } from '../../services/biometricAuth';
 import {
   playBiometricActivate,
   playBiometricConfirmLatch,
@@ -17,7 +16,7 @@ import {
   playWheelSettle,
 } from '../../services/mechanicalAudio';
 import type { BiometricCapability, BiometricStatus } from '../../types/aman';
-import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, IS_PREVIEW_MODE } from '../../version';
+import { APP_NAME, APP_NAME_AR, APP_SIGNATURE, APP_VERSION, IS_PREVIEW_MODE } from '../../version';
 
 export type PinScreenMode = 'setup' | 'locked';
 
@@ -110,7 +109,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
   const inputDigit = useCallback(
     (digit: string) => {
-      if (statusPhase === 'submitting' || statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald') {
+      if (
+        statusPhase === 'submitting' ||
+        statusPhase === 'unlock-gold' ||
+        statusPhase === 'unlock-emerald'
+      ) {
         return;
       }
       if (statusPhase === 'error') {
@@ -128,10 +131,12 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
       const nextEmpty = next.findIndex((d, idx) => idx > target && d === '');
       const resolvedNextIndex =
-        nextEmpty !== -1 ? nextEmpty : (() => {
-          const anyEmpty = next.findIndex((d) => d === '');
-          return anyEmpty !== -1 ? anyEmpty : 5;
-        })();
+        nextEmpty !== -1
+          ? nextEmpty
+          : (() => {
+              const anyEmpty = next.findIndex((d) => d === '');
+              return anyEmpty !== -1 ? anyEmpty : 5;
+            })();
       activeIndexRef.current = resolvedNextIndex;
 
       setDigits(next);
@@ -148,7 +153,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   );
 
   const removeLastDigit = useCallback(() => {
-    if (statusPhase === 'submitting' || statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald') {
+    if (
+      statusPhase === 'submitting' ||
+      statusPhase === 'unlock-gold' ||
+      statusPhase === 'unlock-emerald'
+    ) {
       return;
     }
     setErrorMessage('');
@@ -336,7 +345,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
 
   const rotateWheelDigit = useCallback(
     (index: number, direction: 1 | -1) => {
-      if (statusPhase === 'submitting' || statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald') {
+      if (
+        statusPhase === 'submitting' ||
+        statusPhase === 'unlock-gold' ||
+        statusPhase === 'unlock-emerald'
+      ) {
         return;
       }
       if (statusPhase === 'error') {
@@ -381,7 +394,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   // Mandatory global keyboard-first listener (works immediately without clicking any field)
   useEffect(() => {
     const handleKeyboard = (event: KeyboardEvent) => {
-      if (statusPhase === 'unlock-gold' || statusPhase === 'unlock-emerald' || statusPhase === 'submitting') {
+      if (
+        statusPhase === 'unlock-gold' ||
+        statusPhase === 'unlock-emerald' ||
+        statusPhase === 'submitting'
+      ) {
         return;
       }
 
@@ -485,30 +502,30 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
         : 'locked';
 
   const titleText = isUnlockedVisual
-    ? 'مفتوح'
+    ? 'تم فتح الخزنة'
     : mode === 'setup'
       ? setupStage === 'create'
-        ? 'إنشاء رمز أمان الخاص بك'
-        : 'تأكيد رمز أمان الخاص بك'
-      : 'أدخل رمز أمان الخاص بك';
+        ? 'تعيين رمز الأمان الرئيسي'
+        : 'تأكيد رمز الأمان'
+      : 'فتح خزنة أمان ريان';
 
   const subtitleText = isUnlockedVisual
-    ? 'تم فتح خزنة أمان ريان بنجاح'
+    ? 'تم التحقق من المفتاح وفك تشفير الجلسة بنجاح'
     : mode === 'setup'
       ? setupStage === 'create'
-        ? 'أنشئ رمز أمان مكوّن من 6 أرقام'
-        : 'أعد إدخال رمز PIN المكوّن من 6 أرقام للتأكيد'
-      : 'أدخل رمز PIN المكوّن من 6 أرقام';
+        ? 'عيّن رمز PIN سداسي الأرقام لحماية جميع بياناتك الحساسة'
+        : 'أعد إدخال الرمز المكوّن من 6 أرقام لتثبيت التشفير'
+      : 'أدخل رمز PIN المكوّن من 6 أرقام لإلغاء قفل الخزنة';
 
   const buttonLabel = isUnlockedVisual
     ? 'مفتوح'
     : statusPhase === 'submitting'
-      ? 'جاري التحقق...'
+      ? 'جاري فك التشفير والتحقق...'
       : mode === 'setup'
         ? setupStage === 'create'
-          ? 'متابعة'
-          : 'حفظ رمز الأمان'
-        : 'فتح أمان';
+          ? 'متابعة الخطوة التالية'
+          : 'حفظ وتشفير الخزنة'
+        : 'فتح الخزنة الرقمية';
 
   const resolveLedState = (idx: number): LedState => {
     if (statusPhase === 'unlock-gold') return 'gold-flash';
@@ -529,13 +546,12 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
   return (
     <main
       dir="rtl"
-      className="aman-safe-bg aman-safe-bg--login flex min-h-screen w-full items-center justify-center p-2.5 sm:p-3.5"
+      className="aman-safe-bg aman-safe-bg--login relative flex min-h-screen w-full items-center justify-center p-3 sm:p-5"
     >
-      <div className="aman-studio-light" aria-hidden="true" />
-      <div className="aman-ambient-glow" aria-hidden="true" />
-      <div className="aman-scene-glints" aria-hidden="true" />
-      <div className="aman-scene-vignette" aria-hidden="true" />
+      {/* 1. Dynamic Interactive Animated Background System */}
+      <VaultBackground status={padlockStatus} />
 
+      {/* 2. Precision Brushed-Steel Vault Control Panel */}
       <section
         aria-label="بوابة أمان ريان الميكانيكية"
         onClick={handleCardTap}
@@ -543,10 +559,16 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           isError ? 'aman-pin-card--error' : ''
         } ${isUnlockedVisual ? 'aman-pin-card--unlocked' : ''}`}
       >
-        {/* Top Cyan Logo Reflection + Localized Atmospheric Lock Backdrop + Bottom Edge Glint */}
+        {/* Top Specular Rim + Ambient Cyan Glints */}
         <div className="aman-card-top-reflection" aria-hidden="true" />
         <div className="aman-card-lock-backdrop" aria-hidden="true" />
         <div className="aman-card-bottom-reflection" aria-hidden="true" />
+
+        {/* Precision Metal Frame Rivets */}
+        <div className="aman-panel-rivet aman-panel-rivet--tl" aria-hidden="true" />
+        <div className="aman-panel-rivet aman-panel-rivet--tr" aria-hidden="true" />
+        <div className="aman-panel-rivet aman-panel-rivet--bl" aria-hidden="true" />
+        <div className="aman-panel-rivet aman-panel-rivet--br" aria-hidden="true" />
 
         {/* Invisible mobile numeric input (invokes phone keyboard on touch tap) */}
         <input
@@ -561,14 +583,33 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           aria-label="رمز أمان"
         />
 
+        {/* Top Security Status Bar */}
+        <div className="aman-panel-status-bar relative z-10 flex w-full items-center justify-between border-b border-white/10 pb-2.5 text-[11px] text-[#9fb0b5]">
+          <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-[#7ce2f7]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#38bdf8] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#38bdf8]" />
+            </span>
+            <span className="uppercase">AES-256 ZERO-KNOWLEDGE</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-[#d3e0e2] border border-white/10">
+              <ShieldCheck className="h-3 w-3 text-[#5eead4]" />
+              <span>{IS_PREVIEW_MODE ? 'وضع المعاينة الآمن' : 'محمي محلياً'}</span>
+            </span>
+            <span className="font-mono text-[10px] text-white/40">v{APP_VERSION}</span>
+          </div>
+        </div>
+
         {/* Official Aman Rayan Brand Identity Header */}
-        <header className="aman-brand-header relative z-10 flex flex-col items-center text-center">
+        <header className="aman-brand-header relative z-10 mt-3 flex flex-col items-center text-center">
           <div className="aman-brand-emblem-wrap">
             <div className="aman-brand-halo" aria-hidden="true" />
             <AmanRayanEmblem className="aman-brand-emblem-img" />
           </div>
 
-          <div className="aman-brand-titles">
+          <div className="aman-brand-titles mt-1">
             <span dir="ltr" className="aman-brand-title-en">
               {APP_NAME}
             </span>
@@ -576,32 +617,36 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
             <span className="aman-brand-title-ar">{APP_NAME_AR}</span>
           </div>
 
-          <div className="aman-brand-descriptor">
+          <div className="aman-brand-descriptor mt-1">
             <span className="aman-brand-line" aria-hidden="true" />
-            <span>الخزنة الرقمية الآمنة</span>
+            <span className="text-[11px] font-medium tracking-wide text-[#b4c3c7]">
+              خزنة رقمية خاصة وعالية الأمان
+            </span>
             <span className="aman-brand-line aman-brand-line--flip" aria-hidden="true" />
           </div>
         </header>
 
-        {/* Mechanical Padlock Symbolism */}
-        <div className="aman-lock-stage relative z-10">
+        {/* Mechanical Padlock Visual Stage */}
+        <div className="aman-lock-stage relative z-10 my-1">
           <MechanicalPadlock status={padlockStatus} />
         </div>
 
-        {/* Functional PIN Title & Subtitle */}
+        {/* High-Contrast Heading & Contextual Subtitle */}
         <div className="aman-pin-heading relative z-10 text-center">
           <h1
-            className={`aman-safe-title text-lg font-extrabold tracking-tight transition-colors duration-300 sm:text-xl ${
+            className={`aman-safe-title text-xl font-extrabold tracking-tight transition-colors duration-300 sm:text-2xl ${
               isUnlockedVisual ? 'aman-safe-title--unlocked' : ''
             }`}
           >
             {titleText}
           </h1>
-          <p className="aman-safe-subtitle mt-0.5 text-xs sm:text-[13px]">{subtitleText}</p>
+          <p className="aman-safe-subtitle mt-1 text-xs text-[#9bb0b5] sm:text-sm">
+            {subtitleText}
+          </p>
         </div>
 
-        {/* Six Recessed Sockets + Raised Cylindrical Drums + Physical LEDs */}
-        <div className="aman-wheels-stage relative z-10">
+        {/* 3D Mechanical Vault Input Drums Stage */}
+        <div className="aman-wheels-stage relative z-10 mt-3">
           <div className="aman-wheels-floor-glow" aria-hidden="true" />
           <div className={`aman-wheels-row ${isError ? 'aman-wheels-row--shake' : ''}`}>
             {digits.map((digit, idx) => (
@@ -622,7 +667,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           </div>
         </div>
 
-        {/* Production-only one-time bootstrap token input during initial owner setup */}
+        {/* Production-only bootstrap token during initial owner setup */}
         {mode === 'setup' && !IS_PREVIEW_MODE ? (
           <div className="relative z-10 mt-4 w-full max-w-[440px]">
             <input
@@ -641,14 +686,15 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           </div>
         ) : null}
 
-        {/* 6. Short Status / Error Area */}
-        <div className="aman-pin-status relative z-10 mt-3 flex h-7 items-center justify-center text-center">
+        {/* Short Status / Feedback / Keyboard Hints */}
+        <div className="aman-pin-status relative z-10 mt-3 flex min-h-[30px] items-center justify-center text-center">
           {errorMessage ? (
             <p
               role="alert"
-              className="steel-recess rounded-lg border-[#d95c5c]/65 px-3 py-1 text-xs font-semibold text-[#f8c4c4]"
+              className="steel-recess inline-flex items-center gap-1.5 rounded-xl border-[#d95c5c]/60 bg-[#2d1214]/85 px-3.5 py-1 text-xs font-semibold text-[#fecaca] shadow-lg animate-fadeIn"
             >
-              {errorMessage}
+              <Lock className="h-3.5 w-3.5 text-[#f87171]" />
+              <span>{errorMessage}</span>
             </p>
           ) : mode === 'setup' && setupStage === 'confirm' ? (
             <button
@@ -664,24 +710,31 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                 playReverseDetent(0);
                 restorePinInputFocus(false);
               }}
-              className="text-xs font-semibold text-[#f2f5f5] underline-offset-4 transition hover:text-[#76e5ff] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#76e5ff] underline-offset-4 transition hover:text-white hover:underline"
             >
-              تعديل الرمز الأول
+              <span>← العودة لتعديل الرمز الأول</span>
             </button>
           ) : (
-            <p className="aman-safe-helper text-[11px] sm:text-xs">
-              اكتب الأرقام مباشرة أو اسحب العجلات للأعلى والأسفل، ثم اضغط Enter للفتح
-            </p>
+            <div className="aman-safe-helper flex items-center justify-center gap-2 text-[11px] text-[#93a7ad] sm:text-xs">
+              <span className="hidden sm:inline">أدخل الأرقام مباشرة من لوحة المفاتيح</span>
+              <span className="hidden text-white/20 sm:inline">•</span>
+              <span>اسحب العجلات للأعلى والأسفل</span>
+              <span className="hidden text-white/20 sm:inline">•</span>
+              <span className="inline-flex items-center gap-1">
+                <kbd className="rounded border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/80">Enter</kbd>
+                <span>للفتح</span>
+              </span>
+            </div>
           )}
         </div>
 
-        {/* 7. Raised Physical Metallic Capsule Button */}
-        <div className="aman-pin-action relative z-10 mt-3">
+        {/* Primary Action Button: Heavy Machined Metallic Capsule */}
+        <div className="aman-pin-action relative z-10 mt-3.5 w-full max-w-[340px]">
           <button
             type="button"
             disabled={!isComplete || statusPhase === 'submitting' || isUnlocking || biometricPhase === 'prompting'}
             onClick={() => void submitPin()}
-            className={`aman-unlock-btn inline-flex items-center justify-center ${
+            className={`aman-unlock-btn w-full inline-flex items-center justify-center gap-2 ${
               isUnlockedVisual
                 ? 'aman-unlock-btn--unlocked'
                 : isComplete && statusPhase === 'idle'
@@ -689,16 +742,21 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                   : 'aman-unlock-btn--disabled'
             }`}
           >
-            {buttonLabel}
+            {isUnlockedVisual ? (
+              <Sparkles className="h-4 w-4" />
+            ) : (
+              <Lock className="h-4 w-4 opacity-80" />
+            )}
+            <span>{buttonLabel}</span>
           </button>
         </div>
 
-        {/* 7b. Secondary Biometric / Windows Hello Unlock (ONLY when locked & enrolled) */}
+        {/* Secondary Biometric / Windows Hello Action (when enrolled) */}
         {mode === 'locked' && biometricStatus?.enrolled ? (
-          <div className="aman-biometric-row relative z-10 mt-2.5 flex w-full max-w-[340px] flex-col items-center gap-2">
+          <div className="aman-biometric-row relative z-10 mt-3 flex w-full max-w-[340px] flex-col items-center gap-2">
             <div className="aman-biometric-divider" aria-hidden="true">
               <span className="aman-biometric-divider-line" />
-              <span>أو</span>
+              <span className="text-[11px] font-medium text-[#7a8c91]">أو عبر المصادقة الحيوية</span>
               <span className="aman-biometric-divider-line" />
             </div>
 
@@ -708,7 +766,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                   type="button"
                   disabled={isUnlocking || statusPhase === 'submitting' || biometricPhase === 'prompting'}
                   onClick={() => void triggerBiometricUnlock()}
-                  className={`aman-biometric-btn ${
+                  className={`aman-biometric-btn w-full ${
                     biometricPhase === 'prompting'
                       ? 'aman-biometric-btn--prompting'
                       : biometricPhase === 'success' || isUnlockedVisual
@@ -724,8 +782,8 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
                   <span>
                     {biometricPhase === 'prompting'
                       ? biometricCapability.isWindows
-                        ? 'بانتظار Windows Hello...'
-                        : 'بانتظار التحقق البيومتري...'
+                        ? 'بانتظار مصادقة Windows Hello...'
+                        : 'بانتظار مسح البصمة الحيوية...'
                       : getBiometricButtonLabel(biometricCapability.isWindows)}
                   </span>
                 </button>
@@ -766,9 +824,9 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({
           </div>
         ) : null}
 
-        {/* 8. Designer Signature */}
-        <footer className="aman-safe-signature relative z-10 mt-4 text-center text-[11px] font-medium">
-          {APP_SIGNATURE}
+        {/* Refined Designer Signature Footer */}
+        <footer className="aman-safe-signature relative z-10 mt-4 border-t border-white/5 pt-2.5 text-center text-[11px] text-[#788a8f]">
+          <span className="tracking-wide">{APP_SIGNATURE}</span>
         </footer>
       </section>
     </main>
