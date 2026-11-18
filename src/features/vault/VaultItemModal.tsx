@@ -227,6 +227,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                 <input
                   type="text"
                   required
+                  autoComplete="off"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="مثال: لوحة تحكم الخادم أو حساب البريد"
@@ -270,6 +271,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               <input
                 type="text"
                 dir="ltr"
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
@@ -284,6 +286,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               <input
                 type="email"
                 dir="ltr"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
@@ -300,6 +303,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     dir="ltr"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
