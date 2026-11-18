@@ -209,6 +209,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
 
         {/* Recessed Form Body */}
         <form
+          autoComplete="off"
           onSubmit={(e) => void handleSubmit(e)}
           className="steel-modal-body flex-1 space-y-5 overflow-y-auto rounded-xl p-5 sm:p-6"
         >
@@ -271,7 +272,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               <input
                 type="text"
                 dir="ltr"
-                autoComplete="username"
+                autoComplete="off"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
@@ -286,7 +287,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
               <input
                 type="email"
                 dir="ltr"
-                autoComplete="email"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
@@ -356,6 +357,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                   <input
                     type="text"
                     dir="ltr"
+                    autoComplete="off"
                     value={urlVal}
                     onChange={(e) =>
                       setUrls((prev) => prev.map((u, i) => (i === idx ? e.target.value : u)))
@@ -409,6 +411,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                 <div key={entry.id} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
                   <input
                     type="text"
+                    autoComplete="off"
                     value={entry.label}
                     onChange={(e) =>
                       updateSecretRow(activeSecretTab, entry.id, 'label', e.target.value)
@@ -421,6 +424,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
                   <input
                     type="text"
                     dir="ltr"
+                    autoComplete="off"
                     value={entry.value}
                     onChange={(e) =>
                       updateSecretRow(activeSecretTab, entry.id, 'value', e.target.value)
@@ -457,6 +461,7 @@ export const VaultItemModal: React.FC<VaultItemModalProps> = ({
             </label>
             <textarea
               rows={3}
+              autoComplete="off"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="أي تعليمات وصول أو رموز استرداد إضافية..."
